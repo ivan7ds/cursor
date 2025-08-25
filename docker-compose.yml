@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=cpo_ocpi
+      - DB_USER=cpo_user
+      - DB_PASSWORD=cpo_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OCPI_PARTY_ID=ES-CPO
+      - OCPI_COUNTRY_CODE=ES
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - cpo-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=cpo_ocpi
+      - POSTGRES_USER=cpo_user
+      - POSTGRES_PASSWORD=cpo_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cpo-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cpo-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@cpo.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - cpo-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  cpo-network:
+    driver: bridge
