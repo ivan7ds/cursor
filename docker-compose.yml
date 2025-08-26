@@ -20,7 +20,7 @@ services:
       - postgres
       - redis
     volumes:
-      - ./logs:/app/logs
+      - logs_data:/app/logs
     networks:
       - cpo-network
 
@@ -62,6 +62,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  logs_data:
 
 networks:
   cpo-network:

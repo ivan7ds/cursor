@@ -69,7 +69,7 @@ const Location = sequelize.define('Location', {
     comment: 'List of EVSEs at this location'
   },
   directions: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.JSON,
     allowNull: true,
     comment: 'Human-readable directions to reach the location'
   },
