@@ -114,3 +114,5 @@ const Session = sequelize.define('Session', {
 });
 
 module.exports = Session;
+
+

@@ -49,7 +49,7 @@ const Location = sequelize.define('Location', {
     comment: 'Country name'
   },
   coordinates: {
-    type: DataTypes.JSON,
+    type: DataTypes.JSONB,
     allowNull: false,
     comment: 'Geographic coordinates of the location'
   },
@@ -63,7 +63,7 @@ const Location = sequelize.define('Location', {
     allowNull: true,
     comment: 'Type of parking at the location'
   },
-  evses: {
+  evse_list: {
     type: DataTypes.JSON,
     allowNull: true,
     comment: 'List of EVSEs at this location'
@@ -130,10 +130,7 @@ const Location = sequelize.define('Location', {
     {
       fields: ['country_code', 'party_id']
     },
-    {
-      fields: ['coordinates'],
-      type: 'GIN'
-    },
+
     {
       fields: ['last_updated']
     }
@@ -141,3 +138,5 @@ const Location = sequelize.define('Location', {
 });
 
 module.exports = Location;
+
+

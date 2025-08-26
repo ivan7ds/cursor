@@ -16,72 +16,53 @@ const CDR = sequelize.define('CDR', {
   party_id: {
     type: DataTypes.STRING(3),
     allowNull: false,
-    comment: 'CPO ID of the party that owns this CDR'
+    comment: 'CPO ID of this Charging Station'
   },
   session_id: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    comment: 'Reference to the session this CDR belongs to'
+    comment: 'Session ID that was started by this token'
   },
   evse_uid: {
-    type: DataTypes.STRING(36),
+    type: DataTypes.STRING(39),
     allowNull: false,
-    comment: 'Reference to the EVSE where this CDR was created'
+    comment: 'Uniquely identifies the EVSE within the CPOs platform'
   },
   connector_id: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    comment: 'Reference to the connector used for this CDR'
+    comment: 'Uniquely identifies the connector within the EVSE'
   },
   id_token: {
-    type: DataTypes.JSON,
+    type: DataTypes.JSONB,
     allowNull: false,
-    comment: 'Token used to authorize this charging session'
-  },
-  session_token: {
-    type: DataTypes.JSON,
-    allowNull: false,
-    comment: 'Token used to identify this session'
-  },
-  meter_id: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    comment: 'Identifier of the meter inside the charge point'
-  },
-  authorization_reference: {
-    type: DataTypes.STRING(36),
-    allowNull: true,
-    comment: 'Reference to the authorization given by the eMSP'
-  },
-  location_id: {
-    type: DataTypes.STRING(36),
-    allowNull: false,
-    comment: 'Reference to the location where this CDR was created'
+    comment: 'Identification token used to start this charging session'
   },
   start_datetime: {
     type: DataTypes.DATE,
     allowNull: false,
-    comment: 'Start timestamp of the session'
+    comment: 'Start date and time of the charging session'
   },
   end_datetime: {
     type: DataTypes.DATE,
     allowNull: false,
-    comment: 'End timestamp of the session'
+    comment: 'End date and time of the charging session'
   },
   total_energy: {
     type: DataTypes.DECIMAL(10, 3),
     allowNull: false,
-    comment: 'Total energy consumption in kWh'
+    comment: 'Total energy delivered in kWh'
   },
   total_cost: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
-    comment: 'Total cost of the session'
+    comment: 'Total cost of the charging session'
   },
   currency: {
     type: DataTypes.STRING(3),
     allowNull: false,
-    comment: 'ISO 4217 currency code'
+    defaultValue: 'EUR',
+    comment: 'ISO 4217 code of the currency used for this CDR'
   },
   total_parking_time: {
     type: DataTypes.INTEGER,
@@ -91,21 +72,17 @@ const CDR = sequelize.define('CDR', {
   total_time: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    comment: 'Total time in seconds'
-  },
-  remark: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-    comment: 'Remark related to the charging session'
+    comment: 'Total duration of the charging session in seconds'
   },
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false,
+    defaultValue: DataTypes.NOW,
     comment: 'Timestamp when this CDR was last updated'
   }
 }, {
   tableName: 'cdrs',
-  timestamps: true,
+  timestamps: false,
   indexes: [
     {
       fields: ['country_code', 'party_id']
@@ -117,10 +94,10 @@ const CDR = sequelize.define('CDR', {
       fields: ['evse_uid']
     },
     {
-      fields: ['location_id']
+      fields: ['start_datetime']
     },
     {
-      fields: ['start_datetime']
+      fields: ['end_datetime']
     },
     {
       fields: ['last_updated']
@@ -129,3 +106,4 @@ const CDR = sequelize.define('CDR', {
 });
 
 module.exports = CDR;
+

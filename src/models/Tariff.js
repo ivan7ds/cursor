@@ -16,66 +16,44 @@ const Tariff = sequelize.define('Tariff', {
   party_id: {
     type: DataTypes.STRING(3),
     allowNull: false,
-    comment: 'CPO ID of the party that owns this tariff'
+    comment: 'CPO ID of this Charging Station'
   },
   currency: {
     type: DataTypes.STRING(3),
     allowNull: false,
-    comment: 'ISO 4217 currency code'
+    defaultValue: 'EUR',
+    comment: 'ISO 4217 code of the currency used for this tariff'
   },
   type: {
-    type: DataTypes.ENUM('AD_HOC_PAYMENT', 'PROFILE_CHEAP', 'PROFILE_FAST', 'REGULAR'),
+    type: DataTypes.ENUM('AD_HOC_PAYMENT', 'PROFILE_CHEAP', 'PROFILE_FAST', 'PROFILE_GREEN', 'REGULAR'),
     allowNull: false,
+    defaultValue: 'REGULAR',
     comment: 'Type of tariff'
   },
-  tariff_alt_text: {
-    type: DataTypes.JSON,
-    allowNull: true,
-    comment: 'Alternative text for the tariff'
-  },
-  tariff_alt_url: {
-    type: DataTypes.STRING(512),
-    allowNull: true,
-    comment: 'Alternative URL for the tariff'
-  },
-  min_price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-    comment: 'Minimum price of the tariff'
-  },
-  max_price: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-    comment: 'Maximum price of the tariff'
-  },
   elements: {
-    type: DataTypes.JSON,
+    type: DataTypes.JSONB,
     allowNull: false,
-    comment: 'List of tariff elements'
+    comment: 'Array of tariff elements'
   },
   start_date_time: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'Start date and time of the tariff'
+    comment: 'Start date and time of this tariff'
   },
   end_date_time: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'End date and time of the tariff'
-  },
-  energy_mix: {
-    type: DataTypes.JSON,
-    allowNull: true,
-    comment: 'Energy mix information'
+    comment: 'End date and time of this tariff'
   },
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false,
+    defaultValue: DataTypes.NOW,
     comment: 'Timestamp when this tariff was last updated'
   }
 }, {
   tableName: 'tariffs',
-  timestamps: true,
+  timestamps: false,
   indexes: [
     {
       fields: ['country_code', 'party_id']
@@ -99,3 +77,4 @@ const Tariff = sequelize.define('Tariff', {
 });
 
 module.exports = Tariff;
+

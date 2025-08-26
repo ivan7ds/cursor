@@ -104,3 +104,7 @@ const Token = sequelize.define('Token', {
 });
 
 module.exports = Token;
+
+
+
+

@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
       where,
       include: [{
         model: EVSE,
-        as: 'evses',
+        as: 'evseList',
         attributes: ['id', 'evse_id', 'status', 'connectors']
       }],
       offset: parseInt(offset),
@@ -91,7 +91,7 @@ router.get('/:id', async (req, res) => {
     const location = await Location.findByPk(id, {
       include: [{
         model: EVSE,
-        as: 'evses',
+        as: 'evseList',
         attributes: ['id', 'evse_id', 'status', 'connectors']
       }]
     });
@@ -249,3 +249,6 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+
+

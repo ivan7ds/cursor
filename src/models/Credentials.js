@@ -38,3 +38,7 @@ const Credentials = sequelize.define('Credentials', {
 });
 
 module.exports = Credentials;
+
+
+
+

@@ -101,3 +101,5 @@ const EVSE = sequelize.define('EVSE', {
 });
 
 module.exports = EVSE;
+
+
