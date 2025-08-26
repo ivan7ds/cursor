@@ -100,8 +100,10 @@ async function startServer() {
     logger.info('Database connection established successfully');
     
     // Sync database models (create tables if they don't exist)
-    await sequelize.sync({ force: false });
-    logger.info('Database models synchronized');
+    // await sequelize.sync({ force: false });
+    logger.info('Database models synchronized (skipping sync)');
+    
+    // OCPI routes are already loaded
     
     // Test Redis connection
     await redisClient.ping();

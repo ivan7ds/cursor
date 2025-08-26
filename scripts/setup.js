@@ -45,10 +45,34 @@ async function createSampleData() {
       state: 'Madrid',
       country: 'Spain',
       coordinates: { latitude: 40.4168, longitude: -3.7038 },
+      related_locations: [],
       parking_type: 'PARKING_GARAGE',
+      evse_list: [],
+      directions: 'Centro de Madrid, cerca de la Puerta del Sol',
+      operator: { name: 'Madrid Parking Services' },
+      suboperator: null,
+      owner: { name: 'Madrid City Council' },
       time_zone: 'Europe/Madrid',
+      opening_times: {
+        regular_hours: {
+          weekday: [
+            {
+              period: [
+                { begin: '08:00', end: '22:00' }
+              ]
+            }
+          ]
+        }
+      },
       charging_when_closed: true,
-      facilities: ['RESTAURANT', 'SHOPPING', 'PARKING'],
+      images: [],
+      energy_mix: {
+        is_green_energy: true,
+        energy_sources: [
+          { source: 'SOLAR', percentage: 100 }
+        ]
+      },
+      facilities: { categories: ['RESTAURANT', 'SHOPPING', 'PARKING'] },
       last_updated: new Date()
     },
     {
@@ -60,10 +84,35 @@ async function createSampleData() {
       state: 'Barcelona',
       country: 'Spain',
       coordinates: { latitude: 41.3851, longitude: 2.1734 },
+      related_locations: [],
       parking_type: 'ALONG_MOTORWAY',
+      evse_list: [],
+      directions: 'Avenida Diagonal, zona comercial',
+      operator: { name: 'Barcelona EV Services' },
+      suboperator: null,
+      owner: { name: 'Barcelona City Council' },
       time_zone: 'Europe/Madrid',
+      opening_times: {
+        regular_hours: {
+          weekday: [
+            {
+              period: [
+                { begin: '06:00', end: '24:00' }
+              ]
+            }
+          ]
+        }
+      },
       charging_when_closed: true,
-      facilities: ['RESTAURANT', 'SHOP', 'RESTROOM'],
+      images: [],
+      energy_mix: {
+        is_green_energy: true,
+        energy_sources: [
+          { source: 'WIND', percentage: 80 },
+          { source: 'SOLAR', percentage: 20 }
+        ]
+      },
+      facilities: { categories: ['RESTAURANT', 'SHOP', 'RESTROOM'] },
       last_updated: new Date()
     },
     {
@@ -75,10 +124,34 @@ async function createSampleData() {
       state: 'Porto',
       country: 'Portugal',
       coordinates: { latitude: 41.1579, longitude: -8.6291 },
+      related_locations: [],
       parking_type: 'PARKING_GARAGE',
+      evse_list: [],
+      directions: 'Centro histórico de Porto',
+      operator: { name: 'Porto EV Solutions' },
+      suboperator: null,
+      owner: { name: 'Porto Municipality' },
       time_zone: 'Europe/Lisbon',
+      opening_times: {
+        regular_hours: {
+          weekday: [
+            {
+              period: [
+                { begin: '09:00', end: '21:00' }
+              ]
+            }
+          ]
+        }
+      },
       charging_when_closed: true,
-      facilities: ['RESTAURANT', 'SHOPPING', 'PARKING'],
+      images: [],
+      energy_mix: {
+        is_green_energy: true,
+        energy_sources: [
+          { source: 'HYDRO', percentage: 100 }
+        ]
+      },
+      facilities: { categories: ['RESTAURANT', 'SHOPPING', 'PARKING'] },
       last_updated: new Date()
     },
     {
@@ -90,10 +163,35 @@ async function createSampleData() {
       state: 'Lisboa',
       country: 'Portugal',
       coordinates: { latitude: 38.7223, longitude: -9.1393 },
+      related_locations: [],
       parking_type: 'ALONG_MOTORWAY',
+      evse_list: [],
+      directions: 'Avenida da República, zona de servicios',
+      operator: { name: 'Lisboa EV Network' },
+      suboperator: null,
+      owner: { name: 'Lisboa Municipality' },
       time_zone: 'Europe/Lisbon',
+      opening_times: {
+        regular_hours: {
+          weekday: [
+            {
+              period: [
+                { begin: '07:00', end: '23:00' }
+              ]
+            }
+          ]
+        }
+      },
       charging_when_closed: true,
-      facilities: ['RESTAURANT', 'SHOP', 'RESTROOM'],
+      images: [],
+      energy_mix: {
+        is_green_energy: true,
+        energy_sources: [
+          { source: 'WIND', percentage: 60 },
+          { source: 'SOLAR', percentage: 40 }
+        ]
+      },
+      facilities: { categories: ['RESTAURANT', 'SHOP', 'RESTROOM'] },
       last_updated: new Date()
     }
   ];

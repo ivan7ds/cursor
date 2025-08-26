@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Master script to set up the CPO OCPI 2.2 database
+# This script creates tables and populates them with sample data
+
+echo "🚀 Starting CPO OCPI 2.2 database setup..."
+
+# Database connection parameters
+DB_HOST="localhost"
+DB_PORT="5432"
+DB_NAME="cpo_ocpi"
+DB_USER="cpo_user"
+DB_PASSWORD="cpo_ocpi"
+
+# Wait for PostgreSQL to be ready
+echo "⏳ Waiting for PostgreSQL to be ready..."
+until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME; do
+    echo "PostgreSQL is not ready yet, waiting..."
+    sleep 2
+done
+
+echo "✅ PostgreSQL is ready!"
+
+# Execute scripts in order
+echo "📊 Creating database tables..."
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/init_database.sql
+
+echo "📍 Populating locations..."
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/populate_database.sql
+
+echo "🔌 Populating EVSEs..."
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/populate_evses.sql
+
+echo "💰 Populating tariffs..."
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/populate_tariffs.sql
+
+echo "✅ Database setup completed successfully!"
+echo ""
+echo "📊 Summary:"
+echo "   - Tables created and configured"
+echo "   - 75 locations across Spain and Portugal"
+echo "   - EVSEs distributed (max 50 per location)"
+echo "   - Basic tariffs configured"
+echo ""
+echo "🌐 You can now start the application!"

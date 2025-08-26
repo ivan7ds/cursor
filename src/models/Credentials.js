@@ -21,7 +21,7 @@ const Credentials = sequelize.define('Credentials', {
     allowNull: false
   },
   party_id: {
-    type: DataTypes.STRING(3),
+    type: DataTypes.STRING(10),
     allowNull: false
   },
   country_code: {

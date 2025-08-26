@@ -14,7 +14,7 @@ const Token = sequelize.define('Token', {
     comment: 'ISO 3166-1 alpha-2 country code'
   },
   party_id: {
-    type: DataTypes.STRING(3),
+    type: DataTypes.STRING(10),
     allowNull: false,
     comment: 'CPO ID of the party that owns this token'
   },
