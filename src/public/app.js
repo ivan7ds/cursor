@@ -79,6 +79,52 @@ class DashboardApp {
             } else {
                 console.warn('⚠️ Elemento clearLogs no encontrado');
             }
+            
+            // Event listeners para filtros de logs
+            const logLevelFilter = document.getElementById('logLevelFilter');
+            if (logLevelFilter) {
+                logLevelFilter.addEventListener('change', () => {
+                    console.log('🔍 Filtro de nivel cambiado:', logLevelFilter.value);
+                    this.applyLogFilters();
+                });
+                console.log('✅ Event listener para logLevelFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento logLevelFilter no encontrado');
+            }
+            
+            const logTypeFilter = document.getElementById('logTypeFilter');
+            if (logTypeFilter) {
+                logTypeFilter.addEventListener('change', () => {
+                    console.log('🔍 Filtro de tipo cambiado:', logTypeFilter.value);
+                    this.applyLogFilters();
+                });
+                console.log('✅ Event listener para logTypeFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento logTypeFilter no encontrado');
+            }
+            
+            const logSearchFilter = document.getElementById('logSearchFilter');
+            if (logSearchFilter) {
+                logSearchFilter.addEventListener('input', () => {
+                    console.log('🔍 Filtro de búsqueda cambiado:', logSearchFilter.value);
+                    this.applyLogFilters();
+                });
+                console.log('✅ Event listener para logSearchFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento logSearchFilter no encontrado');
+            }
+            
+            // Event listener para auto-scroll
+            const autoScroll = document.getElementById('autoScroll');
+            if (autoScroll) {
+                autoScroll.addEventListener('change', () => {
+                    console.log('🔄 Auto-scroll cambiado:', autoScroll.checked);
+                    // No necesitamos hacer nada especial aquí, se aplica en addLogEntry
+                });
+                console.log('✅ Event listener para autoScroll agregado');
+            } else {
+                console.warn('⚠️ Elemento autoScroll no encontrado');
+            }
 
             // Botones de refresh
             const refreshLocations = document.getElementById('refreshLocations');
@@ -492,6 +538,15 @@ class DashboardApp {
                 document.getElementById('stopLogs').disabled = false;
                 this.showNotification('Streaming de logs iniciado', 'success');
             };
+            
+            // Verificar el estado después de 3 segundos
+            setTimeout(() => {
+                if (this.logsEventSource && this.logsEventSource.readyState === 0) {
+                    console.log('⚠️ EventSource no se conecta - iniciando polling seguro...');
+                    this.logsEventSource.close();
+                    this.startSafePolling();
+                }
+            }, 3000);
 
         } catch (error) {
             console.error('❌ Error al iniciar streaming:', error);
@@ -505,12 +560,66 @@ class DashboardApp {
             this.logsEventSource = null;
         }
         
+        // Detener polling seguro si está activo
+        this.stopSafePolling();
+        
         this.logsStreaming = false;
         document.getElementById('startLogs').disabled = false;
         document.getElementById('stopLogs').disabled = true;
         
         this.showNotification('Streaming de logs detenido', 'info');
         console.log('🔴 Streaming de logs detenido');
+    }
+    
+    // Función para iniciar polling seguro (cada 10 segundos)
+    startSafePolling() {
+        console.log('🔄 Iniciando polling seguro cada 10 segundos...');
+        
+        // Limpiar logs existentes
+        this.clearLogs();
+        
+        // Función para hacer polling
+        const pollLogs = async () => {
+            try {
+                console.log('📡 Haciendo polling seguro a /logs/recent...');
+                const response = await fetch('/logs/recent');
+                
+                if (response.ok) {
+                    const logs = await response.json();
+                    console.log('✅ Logs recibidos del backend:', logs.data?.length || 0);
+                    
+                    if (logs.data && Array.isArray(logs.data)) {
+                        logs.data.forEach(log => {
+                            this.addLogEntry(log);
+                        });
+                    }
+                } else {
+                    console.log('⚠️ Error en polling seguro:', response.status);
+                }
+            } catch (error) {
+                console.log('❌ Error en polling seguro:', error.message);
+            }
+        };
+        
+        // Hacer polling inmediatamente
+        pollLogs();
+        
+        // Hacer polling cada 10 segundos (más seguro que 3 segundos)
+        const pollInterval = setInterval(pollLogs, 10000);
+        
+        // Guardar el intervalo para poder detenerlo
+        this.safePollInterval = pollInterval;
+        
+        console.log('✅ Polling seguro iniciado cada 10 segundos');
+    }
+    
+    // Función para detener polling seguro
+    stopSafePolling() {
+        if (this.safePollInterval) {
+            clearInterval(this.safePollInterval);
+            this.safePollInterval = null;
+            console.log('🛑 Polling seguro detenido');
+        }
     }
 
     addLogEntry(logData) {
@@ -545,6 +654,16 @@ class DashboardApp {
         if (autoScroll && autoScroll.checked) {
             container.scrollTop = 0;
         }
+        
+        // Aplicar filtros si hay alguno activo
+        const levelFilter = document.getElementById('logLevelFilter')?.value || '';
+        const typeFilter = document.getElementById('logTypeFilter')?.value || '';
+        const searchFilter = document.getElementById('logSearchFilter')?.value || '';
+        
+        if (levelFilter || typeFilter || searchFilter) {
+            // Aplicar filtros solo al nuevo log
+            setTimeout(() => this.applyLogFilters(), 100);
+        }
     }
 
     clearLogs() {
@@ -559,6 +678,85 @@ class DashboardApp {
         }
         this.showNotification('Logs limpiados', 'info');
         console.log('🗑️ Logs limpiados');
+    }
+    
+    // Función para aplicar filtros a los logs
+    applyLogFilters() {
+        console.log('🔍 Aplicando filtros de logs...');
+        
+        const levelFilter = document.getElementById('logLevelFilter')?.value || '';
+        const typeFilter = document.getElementById('logTypeFilter')?.value || '';
+        const searchFilter = document.getElementById('logSearchFilter')?.value || '';
+        
+        console.log('📊 Filtros activos:', { levelFilter, typeFilter, searchFilter });
+        
+        const logEntries = document.querySelectorAll('#logsContainer .log-entry');
+        let visibleCount = 0;
+        
+        logEntries.forEach(entry => {
+            const level = entry.querySelector('.log-level')?.textContent || '';
+            const message = entry.querySelector('.log-message')?.textContent || '';
+            
+            // Aplicar filtro de nivel
+            let levelMatch = true;
+            if (levelFilter && level !== levelFilter) {
+                levelMatch = false;
+            }
+            
+            // Aplicar filtro de tipo (basado en el mensaje)
+            let typeMatch = true;
+            if (typeFilter) {
+                const messageUpper = message.toUpperCase();
+                if (typeFilter === 'API' && !messageUpper.includes('API')) typeMatch = false;
+                else if (typeFilter === 'OCPI' && !messageUpper.includes('OCPI')) typeMatch = false;
+                else if (typeFilter === 'Database' && !messageUpper.includes('DATABASE') && !messageUpper.includes('DB')) typeMatch = false;
+                else if (typeFilter === 'Notification' && !messageUpper.includes('NOTIFICATION') && !messageUpper.includes('NOTIFY')) typeMatch = false;
+            }
+            
+            // Aplicar filtro de búsqueda
+            let searchMatch = true;
+            if (searchFilter) {
+                const searchUpper = searchFilter.toUpperCase();
+                const messageUpper = message.toUpperCase();
+                const levelUpper = level.toUpperCase();
+                if (!messageUpper.includes(searchUpper) && !levelUpper.includes(searchUpper)) {
+                    searchMatch = false;
+                }
+            }
+            
+            // Mostrar/ocultar entrada según filtros
+            if (levelMatch && typeMatch && searchMatch) {
+                entry.style.display = 'block';
+                visibleCount++;
+            } else {
+                entry.style.display = 'none';
+            }
+        });
+        
+        console.log(`✅ Filtros aplicados: ${visibleCount}/${logEntries.length} logs visibles`);
+        
+        // Mostrar contador de logs filtrados
+        this.updateFilteredLogsCount(visibleCount, logEntries.length);
+    }
+    
+    // Función para actualizar contador de logs filtrados
+    updateFilteredLogsCount(visible, total) {
+        const container = document.getElementById('logsContainer');
+        if (!container) return;
+        
+        // Buscar o crear contador de logs filtrados
+        let counter = container.querySelector('.filtered-logs-counter');
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.className = 'filtered-logs-counter text-muted small mb-2';
+            container.insertBefore(counter, container.firstChild);
+        }
+        
+        if (visible === total) {
+            counter.textContent = `Mostrando todos los logs (${total})`;
+        } else {
+            counter.textContent = `Mostrando ${visible} de ${total} logs`;
+        }
     }
 
     // ===== CARGA DE DATOS =====

@@ -157,22 +157,62 @@ router.get('/recent', (req, res) => {
         const limit = parseInt(req.query.limit) || 100;
         const level = req.query.level;
 
-        // Por ahora retornamos logs simulados
-        // En el futuro se pueden leer desde archivo o base de datos
-        const recentLogs = [
-            {
-                timestamp: new Date().toISOString(),
-                level: 'INFO',
-                message: 'Dashboard accedido',
-                source: 'web'
-            },
-            {
-                timestamp: new Date(Date.now() - 5000).toISOString(),
-                level: 'INFO',
-                message: 'Streaming de logs iniciado',
-                source: 'system'
+        // Leer logs reales del archivo de manera simple y eficiente
+        const fs = require('fs');
+        const path = require('path');
+        const logFile = path.join(__dirname, '../../logs/app.log');
+        
+        let recentLogs = [];
+        
+        try {
+            if (fs.existsSync(logFile)) {
+                // Leer el archivo completo (es pequeño)
+                const logContent = fs.readFileSync(logFile, 'utf8');
+                const logLines = logContent.split('\n').filter(line => line.trim());
+                
+                // Procesar las últimas líneas
+                recentLogs = logLines.slice(-limit).map(line => {
+                    try {
+                        const parsed = JSON.parse(line);
+                        return {
+                            timestamp: parsed.timestamp || new Date().toISOString(),
+                            level: parsed.level || 'INFO',
+                            message: parsed.message || line.substring(0, 200),
+                            source: parsed.source || 'system'
+                        };
+                    } catch (parseError) {
+                        return {
+                            timestamp: new Date().toISOString(),
+                            level: 'INFO',
+                            message: line.substring(0, 200),
+                            source: 'file'
+                        };
+                    }
+                }).reverse(); // Más recientes primero
+                
+                console.log(`📊 Logs leídos: ${recentLogs.length} de ${limit} solicitados`);
             }
-        ];
+        } catch (fileError) {
+            console.warn('⚠️ No se pudo leer archivo de logs:', fileError.message);
+        }
+        
+        // Si no hay logs del archivo, usar logs simulados como respaldo
+        if (recentLogs.length === 0) {
+            recentLogs = [
+                {
+                    timestamp: new Date().toISOString(),
+                    level: 'INFO',
+                    message: 'Dashboard accedido',
+                    source: 'web'
+                },
+                {
+                    timestamp: new Date(Date.now() - 5000).toISOString(),
+                    level: 'INFO',
+                    message: 'Streaming de logs iniciado',
+                    source: 'system'
+                }
+            ];
+        }
 
         // Filtrar por nivel si se especifica
         const filteredLogs = level ? recentLogs.filter(log => log.level === level) : recentLogs;
@@ -184,7 +224,7 @@ router.get('/recent', (req, res) => {
         });
 
     } catch (error) {
-        logger.error('Error getting recent logs:', error);
+        console.error('❌ Error getting recent logs:', error);
         res.status(500).json({
             status_code: 2000,
             status_message: 'Internal server error',
