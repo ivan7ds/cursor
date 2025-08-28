@@ -9,9 +9,9 @@ const disableRateLimit = process.env.DISABLE_RATE_LIMIT === 'true';
 const rateLimiter = new RateLimiterRedis({
   storeClient: redisClient,
   keyPrefix: 'middleware',
-  points: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000, // Aumentado de 100 a 1000
+  points: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 2000, // Aumentado a 2000 para dashboard
   duration: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-  blockDuration: 60 * 5, // Reducido de 15 a 5 minutos
+  blockDuration: 60 * 2, // Reducido a 2 minutos
 });
 
 const rateLimiterMiddleware = async (req, res, next) => {
@@ -21,12 +21,34 @@ const rateLimiterMiddleware = async (req, res, next) => {
     return next();
   }
 
+  // Excluir ciertas rutas del rate limiting (dashboard y health)
+  const excludedPaths = ['/health', '/logs/stream', '/logs/recent'];
+  if (excludedPaths.some(path => req.path.startsWith(path))) {
+    return next();
+  }
+
+  // Rate limiting más permisivo para el dashboard
+  const isDashboardRequest = req.path.startsWith('/ocpi/cpo/2.2/') || req.path === '/';
+  const rateLimiterToUse = isDashboardRequest ? 
+    new RateLimiterRedis({
+      storeClient: redisClient,
+      keyPrefix: 'dashboard',
+      points: 5000, // Mucho más permisivo para dashboard
+      duration: 900000, // 15 minutos
+      blockDuration: 60, // Solo 1 minuto de bloqueo
+    }) : rateLimiter;
+
   try {
     const key = req.ip || req.connection.remoteAddress;
-    await rateLimiter.consume(key);
+    await rateLimiterToUse.consume(key);
     next();
   } catch (rejRes) {
-    logger.warn('Rate limit exceeded', { ip: req.ip, remainingPoints: rejRes.remainingPoints });
+    logger.warn('Rate limit exceeded', { 
+      ip: req.ip, 
+      path: req.path,
+      remainingPoints: rejRes.remainingPoints,
+      isDashboard: isDashboardRequest 
+    });
     res.status(429).json({
       error: 'Too Many Requests',
       message: 'Rate limit exceeded. Please try again later.',

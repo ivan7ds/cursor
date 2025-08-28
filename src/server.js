@@ -29,6 +29,7 @@ const tokensRoutes = require('./api/tokens');
 const versionsRoutes = require('./api/versions');
 const detailsRoutes = require('./api/details');
 const notificationsRoutes = require('./api/notifications');
+const { router: logsRoutes } = require('./api/logs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -65,6 +66,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging middleware (detallado)
 app.use(requestLogger);
 
+// Servir archivos estáticos del frontend
+app.use(express.static('src/public'));
+
 // Rate limiting
 app.use(rateLimiter);
 
@@ -93,6 +97,7 @@ app.use('/ocpi/cpo/2.2/cdrs', authMiddleware, cdrsRoutes);
 app.use('/ocpi/cpo/2.2/tariffs', authMiddleware, tariffsRoutes);
 app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
 app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
+app.use('/logs', logsRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
