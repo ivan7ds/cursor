@@ -15,6 +15,9 @@ const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const logger = require('./utils/logger');
 
+// Import EVSE Notification Service
+const evseNotificationService = require('./services/evseNotificationService');
+
 // Import OCPI routes
 const credentialsRoutes = require('./api/credentials');
 const locationsRoutes = require('./api/locations');
@@ -25,6 +28,7 @@ const tariffsRoutes = require('./api/tariffs');
 const tokensRoutes = require('./api/tokens');
 const versionsRoutes = require('./api/versions');
 const detailsRoutes = require('./api/details');
+const notificationsRoutes = require('./api/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -88,6 +92,7 @@ app.use('/ocpi/cpo/2.2/sessions', authMiddleware, sessionsRoutes);
 app.use('/ocpi/cpo/2.2/cdrs', authMiddleware, cdrsRoutes);
 app.use('/ocpi/cpo/2.2/tariffs', authMiddleware, tariffsRoutes);
 app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
+app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
@@ -126,6 +131,10 @@ async function startServer() {
       logger.info(`Health Check: http://localhost:${PORT}/health`);
     });
     
+    // Start EVSE Notification Service
+    evseNotificationService.start();
+    logger.info('EVSE Notification Service started');
+    
   } catch (error) {
     logger.error('Failed to start server:', error.message || error);
     logger.error('Error stack:', error.stack);
@@ -137,6 +146,7 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
+  evseNotificationService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
@@ -144,6 +154,7 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
+  evseNotificationService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
