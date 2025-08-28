@@ -258,6 +258,17 @@ router.get('/', async (req, res) => {
         }
       }
       
+      // Ensure coordinates are strings according to OCPI 2.2 specification
+      if (cleanLocation.coordinates && typeof cleanLocation.coordinates === 'object') {
+        if (cleanLocation.coordinates.latitude !== undefined) {
+          cleanLocation.coordinates.latitude = cleanLocation.coordinates.latitude.toString();
+        }
+        if (cleanLocation.coordinates.longitude !== undefined) {
+          cleanLocation.coordinates.longitude = cleanLocation.coordinates.longitude.toString();
+        }
+        logger.info(`Location ${cleanLocation.id}: Coordinates converted to strings - lat: ${cleanLocation.coordinates.latitude}, lon: ${cleanLocation.coordinates.longitude}`);
+      }
+      
       return cleanLocation;
     });
     
