@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const { CDR, Session, EVSE, Location } = require('../models');
+const { CDR } = require('../models');
 const logger = require('../utils/logger');
 
 /**
@@ -37,23 +37,6 @@ router.get('/', async (req, res) => {
     
     const cdrs = await CDR.findAndCountAll({
       where,
-      include: [
-        {
-          model: Session,
-          as: 'session',
-          attributes: ['id', 'start_datetime', 'end_datetime']
-        },
-        {
-          model: EVSE,
-          as: 'evse',
-          attributes: ['id', 'evse_id', 'status']
-        },
-        {
-          model: Location,
-          as: 'location',
-          attributes: ['id', 'name', 'address', 'city']
-        }
-      ],
       offset: parseInt(offset),
       limit: Math.min(parseInt(limit), 1000),
       order: [['start_datetime', 'DESC']]
@@ -97,25 +80,7 @@ router.get('/:id', async (req, res) => {
     logger.ocpi('/cdrs', 'GET_BY_ID', { id: req.params.id });
     
     const { id } = req.params;
-    const cdr = await CDR.findByPk(id, {
-      include: [
-        {
-          model: Session,
-          as: 'session',
-          attributes: ['id', 'start_datetime', 'end_datetime']
-        },
-        {
-          model: EVSE,
-          as: 'evse',
-          attributes: ['id', 'evse_id', 'status']
-        },
-        {
-          model: Location,
-          as: 'location',
-          attributes: ['id', 'name', 'address', 'city']
-        }
-      ]
-    });
+    const cdr = await CDR.findByPk(id);
     
     if (!cdr) {
       return res.status(404).json({

@@ -10,6 +10,8 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Paginación OCPI 2.2**: Endpoints con paginación estándar
 - **Base de Datos Limpia**: Sin sincronización automática de Sequelize
 - **Datos Persistentes**: Información mantenida entre reinicios
+- **Autenticación por Tokens**: Sistema de tokens OCPI 2.2
+- **Logging Detallado**: Monitoreo completo de peticiones y respuestas
 
 ## 🏗️ Arquitectura
 
@@ -85,6 +87,10 @@ Get-Content scripts/populate_tariffs.sql | docker exec -i cursorconcepto-postgre
 ### Tariffs (Tarifas)
 - `GET /ocpi/2.2/tariffs` - Lista de tarifas
 
+### Credentials (Credenciales)
+- `POST /ocpi/2.2/credentials` - Intercambio de credenciales OCPI 2.2
+- `PUT /ocpi/2.2/credentials` - Actualización de credenciales OCPI 2.2
+
 ### Otros
 - `GET /health` - Estado de la aplicación
 - `GET /api-docs` - Documentación Swagger
@@ -115,14 +121,18 @@ src/
 ├── database/      # Configuración de base de datos
 ├── middleware/    # Middleware de Express
 ├── models/        # Modelos de Sequelize
+├── services/      # Servicios (OCPI Token Service)
 └── utils/         # Utilidades (logger, etc.)
 
-scripts/           # Scripts de base de datos
+scripts/           # Scripts de base de datos y utilidades
 ├── init_database.sql
 ├── populate_database.sql
 ├── populate_evses.sql
 ├── populate_tariffs.sql
-└── setup_database.ps1
+├── setup_database.ps1
+├── generate-ocpi-token.js
+├── view-logs.js
+└── logs
 ```
 
 ### Reiniciar la Aplicación
@@ -140,6 +150,126 @@ docker-compose logs -f app
 docker exec -it cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
 ```
 
+## 🔍 Monitoreo y Logs
+
+### Herramientas de Logs Disponibles
+
+El proyecto incluye herramientas especializadas para monitorear y analizar logs de la API OCPI:
+
+#### **1. Script Simple (Uso Rápido)**
+```bash
+# Ver logs de diferentes períodos
+./scripts/logs 5        # Últimos 5 minutos
+./scripts/logs 10       # Últimos 10 minutos
+./scripts/logs 30       # Últimos 30 minutos
+
+# Filtrar por tipo de log
+./scripts/logs api      # Solo peticiones API entrantes
+./scripts/logs responses # Solo respuestas API salientes
+./scripts/logs auth     # Solo logs de autenticación
+./scripts/logs errors   # Solo errores (4xx, 5xx)
+./scripts/logs success  # Solo respuestas exitosas (2xx)
+
+# Seguimiento en tiempo real
+./scripts/logs follow   # Seguir logs en tiempo real (Ctrl+C para salir)
+
+# Ayuda
+./scripts/logs help     # Mostrar todas las opciones disponibles
+```
+
+#### **2. Menú Interactivo (Uso Completo)**
+```bash
+# Iniciar menú interactivo con todas las opciones
+node scripts/view-logs.js
+```
+
+**Características del menú interactivo:**
+- 📊 Opciones numeradas para fácil navegación
+- 🔍 Búsqueda por texto específico en logs
+- 📋 Seguimiento en tiempo real con navegación
+- 🔄 Menú recursivo para análisis continuo
+
+### Casos de Uso Comunes
+
+```bash
+# Monitoreo rápido de actividad reciente
+./scripts/logs 5
+
+# Detectar problemas de autenticación
+./scripts/logs auth
+
+# Identificar errores de API
+./scripts/logs errors
+
+# Verificar peticiones entrantes
+./scripts/logs api
+
+# Monitoreo continuo durante pruebas
+./scripts/logs follow
+```
+
+### Ventajas de las Herramientas
+
+✅ **Monitoreo Independiente**: No más preguntas sobre qué está pasando en la API  
+✅ **Detección Rápida**: Identificación inmediata de problemas y errores  
+✅ **Filtros Especializados**: Logs organizados por tipo y período  
+✅ **Tiempo Real**: Seguimiento continuo de actividad de la aplicación  
+✅ **Uso Sencillo**: Comandos simples y menú intuitivo  
+
+## 🔑 Gestión de Tokens OCPI
+
+### Comandos de Gestión de Tokens
+
+El proyecto incluye herramientas CLI para gestionar tokens de autenticación OCPI:
+
+#### **Generar Nuevo Token**
+```bash
+# Generar token para un party_id específico
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id EFI --country-code ES
+
+# Generar token con fecha de expiración
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id EPK --country-code ES --expires 2025-12-31
+```
+
+#### **Listar Tokens Existentes**
+```bash
+# Ver todos los tokens
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js list
+
+# Ver tokens activos
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js list --active
+```
+
+#### **Gestionar Tokens**
+```bash
+# Desactivar token específico
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js deactivate --token OCPI_XXXXX
+
+# Limpiar tokens expirados
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js cleanup
+```
+
+### Casos de Uso Comunes
+
+```bash
+# Generar token inicial para nuevo eMSP
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id TELPARK --country-code ES
+
+# Verificar estado de tokens existentes
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js list
+
+# Renovar token expirado
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id EFI --country-code ES
+```
+
+### Estructura de Tokens
+
+- **Formato**: `OCPI_[random_string]`
+- **Longitud**: Variable (seguro y único)
+- **Expiración**: Configurable o indefinida
+- **Asociación**: Party ID + Country Code
+- **Estado**: Activo/Inactivo
+
 ## 🚨 Solución de Problemas
 
 ### Base de Datos Vacía
@@ -155,6 +285,27 @@ docker-compose ps
 
 # Reiniciar servicios
 docker-compose down && docker-compose up -d
+```
+
+### Problemas de Autenticación
+```bash
+# Verificar tokens activos
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js list
+
+# Generar nuevo token si es necesario
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id EFI --country-code ES
+```
+
+### Monitoreo de Problemas
+```bash
+# Ver logs de errores
+./scripts/logs errors
+
+# Ver logs de autenticación
+./scripts/logs auth
+
+# Seguir logs en tiempo real
+./scripts/logs follow
 ```
 
 ## 📊 Estadísticas

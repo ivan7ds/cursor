@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Script simple para ver logs de OCPI API
+# Uso: ./scripts/logs [opción]
+
+case "$1" in
+  "5"|"5m")
+    echo "📊 Logs de los últimos 5 minutos:"
+    docker logs cursor-app-1 --since "5m"
+    ;;
+  "10"|"10m")
+    echo "📊 Logs de los últimos 10 minutos:"
+    docker logs cursor-app-1 --since "10m"
+    ;;
+  "30"|"30m")
+    echo "📊 Logs de los últimos 30 minutos:"
+    docker logs cursor-app-1 --since "30m"
+    ;;
+  "api"|"requests")
+    echo "🚀 Peticiones API entrantes (últimos 10m):"
+    docker logs cursor-app-1 --since "10m" | grep -E "(API Request Incoming|🚀)" | head -20
+    ;;
+  "responses")
+    echo "📤 Respuestas API salientes (últimos 10m):"
+    docker logs cursor-app-1 --since "10m" | grep -E "(API Response Outgoing|📤)" | head -20
+    ;;
+  "auth")
+    echo "🔐 Logs de autenticación (últimos 10m):"
+    docker logs cursor-app-1 --since "10m" | grep -E "(Authentication|WARN.*token|Invalid token)" | head -20
+    ;;
+  "errors")
+    echo "❌ Solo errores (últimos 10m):"
+    docker logs cursor-app-1 --since "10m" | grep -E "(4[0-9][0-9]|5[0-9][0-9]|ERROR|WARN)" | head -20
+    ;;
+  "success")
+    echo "✅ Solo respuestas exitosas (últimos 10m):"
+    docker logs cursor-app-1 --since "10m" | grep -E "(2[0-9][0-9]|Success|OK)" | head -20
+    ;;
+  "follow"|"f")
+    echo "📋 Siguiendo logs en tiempo real... (Ctrl+C para salir)"
+    docker logs cursor-app-1 -f
+    ;;
+  "help"|"-h"|"--help"|"")
+    echo "🔍 OCPI API Logs Viewer - Uso rápido"
+    echo "====================================="
+    echo ""
+    echo "Uso: ./scripts/logs [opción]"
+    echo ""
+    echo "Opciones rápidas:"
+    echo "  5, 5m     - Logs últimos 5 minutos"
+    echo "  10, 10m   - Logs últimos 10 minutos"
+    echo "  30, 30m   - Logs últimos 30 minutos"
+    echo "  api       - Solo peticiones API entrantes"
+    echo "  responses - Solo respuestas API salientes"
+    echo "  auth      - Solo logs de autenticación"
+    echo "  errors    - Solo errores (4xx, 5xx)"
+    echo "  success   - Solo respuestas exitosas (2xx)"
+    echo "  follow, f - Seguir logs en tiempo real"
+    echo "  help      - Mostrar esta ayuda"
+    echo ""
+    echo "Para menú interactivo completo: node scripts/view-logs.js"
+    ;;
+  *)
+    echo "❌ Opción '$1' no válida. Usa './scripts/logs help' para ver opciones."
+    ;;
+esac

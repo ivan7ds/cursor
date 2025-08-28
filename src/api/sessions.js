@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const { Session, EVSE, Location } = require('../models');
+const { Session, EVSE } = require('../models');
 const logger = require('../utils/logger');
 
 /**
@@ -47,11 +47,6 @@ router.get('/', async (req, res) => {
           model: EVSE,
           as: 'evse',
           attributes: ['id', 'evse_id', 'status', 'connectors']
-        },
-        {
-          model: Location,
-          as: 'location',
-          attributes: ['id', 'name', 'address', 'city']
         }
       ],
       offset: parseInt(offset),
@@ -103,11 +98,6 @@ router.get('/:id', async (req, res) => {
           model: EVSE,
           as: 'evse',
           attributes: ['id', 'evse_id', 'status', 'connectors']
-        },
-        {
-          model: Location,
-          as: 'location',
-          attributes: ['id', 'name', 'address', 'city']
         }
       ]
     });

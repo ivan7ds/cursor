@@ -10,7 +10,9 @@ require('dotenv').config();
 const { sequelize } = require('./database/connection');
 const { redisClient } = require('./database/redis');
 const rateLimiter = require('./middleware/rateLimiter');
+const { authMiddleware, optionalAuthMiddleware } = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
+const requestLogger = require('./middleware/requestLogger');
 const logger = require('./utils/logger');
 
 // Import OCPI routes
@@ -21,6 +23,8 @@ const sessionsRoutes = require('./api/sessions');
 const cdrsRoutes = require('./api/cdrs');
 const tariffsRoutes = require('./api/tariffs');
 const tokensRoutes = require('./api/tokens');
+const versionsRoutes = require('./api/versions');
+const detailsRoutes = require('./api/details');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +58,9 @@ app.use(morgan('combined', { stream: { write: message => logger.info(message.tri
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Request logging middleware (detallado)
+app.use(requestLogger);
+
 // Rate limiting
 app.use(rateLimiter);
 
@@ -72,13 +79,15 @@ app.get('/health', (req, res) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // OCPI 2.2 Routes
-app.use('/ocpi/2.2/credentials', credentialsRoutes);
-app.use('/ocpi/2.2/locations', locationsRoutes);
-app.use('/ocpi/2.2/evses', evsesRoutes);
-app.use('/ocpi/2.2/sessions', sessionsRoutes);
-app.use('/ocpi/2.2/cdrs', cdrsRoutes);
-app.use('/ocpi/2.2/tariffs', tariffsRoutes);
-app.use('/ocpi/2.2/tokens', tokensRoutes);
+app.use('/ocpi/versions', versionsRoutes);
+app.use('/ocpi/cpo/2.2/details', authMiddleware, detailsRoutes);
+app.use('/ocpi/cpo/2.2/credentials', authMiddleware, credentialsRoutes);
+app.use('/ocpi/cpo/2.2/locations', authMiddleware, locationsRoutes);
+app.use('/ocpi/cpo/2.2/evses', authMiddleware, evsesRoutes);
+app.use('/ocpi/cpo/2.2/sessions', authMiddleware, sessionsRoutes);
+app.use('/ocpi/cpo/2.2/cdrs', authMiddleware, cdrsRoutes);
+app.use('/ocpi/cpo/2.2/tariffs', authMiddleware, tariffsRoutes);
+app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

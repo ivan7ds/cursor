@@ -1,0 +1,3 @@
+[2025-08-26T19:28:14.810Z] [ERROR] Error deactivating previous tokens: | {"name":"SequelizeConnectionError","parent":{"length":104,"name":"error","severity":"FATAL","code":"28P01","file":"auth.c","line":"334","routine":"auth_failed"},"original":{"length":104,"name":"error","severity":"FATAL","code":"28P01","file":"auth.c","line":"334","routine":"auth_failed"}}
+[2025-08-26T19:28:14.856Z] [ERROR] Error generating OCPI token: | {"name":"SequelizeConnectionError","parent":{"length":104,"name":"error","severity":"FATAL","code":"28P01","file":"auth.c","line":"334","routine":"auth_failed"},"original":{"length":104,"name":"error","severity":"FATAL","code":"28P01","file":"auth.c","line":"334","routine":"auth_failed"}}
+[2025-08-28T07:27:27.481Z] [INFO] Test log message

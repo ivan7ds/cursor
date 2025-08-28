@@ -51,11 +51,11 @@ async function createTablesManually() {
       city VARCHAR(100) NOT NULL,
       postal_code VARCHAR(10),
       state VARCHAR(100),
-      country VARCHAR(100) NOT NULL,
+      country VARCHAR(3) NOT NULL,
       coordinates JSONB NOT NULL,
       related_locations JSON,
       parking_type VARCHAR(50),
-      evse_list JSON,
+      evses JSON,
       directions JSON,
       operator JSON,
       suboperator JSON,
@@ -67,6 +67,7 @@ async function createTablesManually() {
       images JSON,
       energy_mix JSON,
       last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+      publish BOOLEAN DEFAULT true,
       created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
     )
@@ -85,7 +86,7 @@ async function createTablesManually() {
       connectors JSON NOT NULL,
       floor_level VARCHAR(4),
       coordinates JSON,
-      physical_reference VARCHAR(16),
+      physical_reference VARCHAR(50),
       directions JSON,
       parking_restrictions JSON,
       group_id VARCHAR(36),
@@ -135,7 +136,7 @@ async function createTablesManually() {
 async function createSampleDataWithSQL() {
   logger.info('Creating sample data using SQL...');
   
-  const partyId = process.env.OCPI_PARTY_ID || 'ES-CPO';
+  const partyId = 'IPD';
   const now = new Date().toISOString();
   
   // Insert locations using SQL
@@ -200,25 +201,26 @@ async function createSampleDataWithSQL() {
   
   for (const location of locations) {
     const countryCode = location.country === 'Spain' ? 'ES' : 'PT';
+    const countryCode3 = location.country === 'Spain' ? 'ESP' : 'PRT';
     
     await sequelize.query(`
       INSERT INTO locations (
         id, country_code, party_id, name, address, city, postal_code, state, country,
         coordinates, parking_type, facilities, time_zone, charging_when_closed,
-        related_locations, evse_list, directions, operator, suboperator, owner,
-        opening_times, images, energy_mix, last_updated, created_at, updated_at
+        related_locations, evses, directions, operator, suboperator, owner,
+        opening_times, images, energy_mix, last_updated, publish, created_at, updated_at
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
       )
     `, {
       bind: [
         location.id, countryCode, partyId, location.name, location.address,
-        location.city, location.postal_code, location.state, location.country,
+        location.city, location.postal_code, location.state, countryCode3,
         location.coordinates, location.parking_type, location.facilities,
         location.time_zone, location.charging_when_closed,
         '[]', '[]', '{}', '{}', null, '{}',
-        '{}', '[]', '{}', now, now, now
+        '{}', '[]', '{}', now, true, now, now
       ]
     });
   }
@@ -312,27 +314,28 @@ async function createSampleDataWithSQL() {
       location_id: location.id,
       evse_id: `EVSE-${String(i + 1).padStart(5, '0')}`,
       status: ['AVAILABLE', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER'][Math.floor(Math.random() * 4)],
-      capabilities: JSON.stringify(['RESERVABLE', 'RENTABLE']),
+      capabilities: JSON.stringify(['REMOTE_START_STOP_CAPABLE']),
       connectors: JSON.stringify([{
         id: uuidv4(),
-        standard: ['Type 2', 'CCS', 'CHAdeMO', 'Tesla Supercharger'][Math.floor(Math.random() * 4)],
+        standard: 'IEC_62196_T2',
         format: 'SOCKET',
         power_type: 'AC_3_PHASE',
-        voltage: 400,
+        voltage: 230,
         amperage: 32
       }]),
+      physical_reference: `LOC${i + 1}`,
       coordinates: location.coordinates
     };
     
     await sequelize.query(`
       INSERT INTO evses (
         id, location_id, country_code, party_id, evse_id, status, capabilities,
-        connectors, coordinates, last_updated, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        connectors, physical_reference, coordinates, last_updated, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     `, {
       bind: [
         evse.id, evse.location_id, countryCode, partyId, evse.evse_id,
-        evse.status, evse.capabilities, evse.connectors, evse.coordinates,
+        evse.status, evse.capabilities, evse.connectors, evse.physical_reference, evse.coordinates,
         now, now, now
       ]
     });

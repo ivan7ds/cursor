@@ -6,6 +6,7 @@ const CDR = require('./CDR');
 const Tariff = require('./Tariff');
 const Token = require('./Token');
 const Credentials = require('./Credentials');
+const OCPIToken = require('./OCPIToken');
 
 // Define relationships
 Location.hasMany(EVSE, { 
@@ -14,18 +15,6 @@ Location.hasMany(EVSE, {
   as: 'evseList' 
 });
 EVSE.belongsTo(Location, { 
-  foreignKey: 'location_id', 
-  targetKey: 'id',
-  as: 'location' 
-});
-
-// Location has many Sessions (using location_id)
-Location.hasMany(Session, { 
-  foreignKey: 'location_id', 
-  sourceKey: 'id',
-  as: 'sessionList' 
-});
-Session.belongsTo(Location, { 
   foreignKey: 'location_id', 
   targetKey: 'id',
   as: 'location' 
@@ -55,6 +44,7 @@ CDR.belongsTo(Session, {
   as: 'session' 
 });
 
+// Export all models
 module.exports = {
   sequelize,
   Location,
@@ -63,5 +53,6 @@ module.exports = {
   CDR,
   Tariff,
   Token,
-  Credentials
+  Credentials,
+  OCPIToken
 };
