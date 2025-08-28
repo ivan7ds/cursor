@@ -30,6 +30,7 @@ const versionsRoutes = require('./api/versions');
 const detailsRoutes = require('./api/details');
 const notificationsRoutes = require('./api/notifications');
 const { router: logsRoutes } = require('./api/logs');
+const emspRoutes = require('./api/emsp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -112,6 +113,11 @@ app.use('/ocpi/cpo/2.2/cdrs', authMiddleware, cdrsRoutes);
 app.use('/ocpi/cpo/2.2/tariffs', authMiddleware, tariffsRoutes);
 app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
 app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
+
+// ===== RUTAS EMSP =====
+// Estas rutas permiten consultar información de eMSPs cuando actuamos como CPO
+app.use('/ocpi/emsp/2.2', emspRoutes);
+
 app.use('/logs', logsRoutes);
 
 // Error handling middleware

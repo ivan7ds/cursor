@@ -142,12 +142,152 @@ class DashboardApp {
                     this.loadLocations();
                 });
                 
-                // Event listener adicional para debug
-                refreshLocations.onclick = (event) => {
-                    console.log('📍 Botón refreshLocations onclick!');
-                    console.log('📍 Evento onclick:', event);
-                };
-                
+                            // Event listener adicional para debug
+            refreshLocations.onclick = (event) => {
+                console.log('📍 Botón refreshLocations onclick!');
+                console.log('📍 Evento onclick:', event);
+            };
+            
+            // ===== EVENT LISTENERS PARA FUNCIONALIDAD EMSP =====
+            console.log('🔧 Configurando event listeners EMSP...');
+            
+            // Botones de refresh EMSP
+            const refreshEmspLocations = document.getElementById('refreshEmspLocations');
+            if (refreshEmspLocations) {
+                refreshEmspLocations.addEventListener('click', () => {
+                    console.log('📍 Botón refreshEmspLocations clickeado');
+                    this.loadEmspLocations();
+                });
+                console.log('✅ Event listener para refreshEmspLocations agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshEmspLocations no encontrado');
+            }
+
+            const refreshEmspEvses = document.getElementById('refreshEmspEvses');
+            if (refreshEmspEvses) {
+                refreshEmspEvses.addEventListener('click', () => {
+                    console.log('📍 Botón refreshEmspEvses clickeado');
+                    this.loadEmspEvses();
+                });
+                console.log('✅ Event listener para refreshEmspEvses agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshEmspEvses no encontrado');
+            }
+
+            const refreshEmspTariffs = document.getElementById('refreshEmspTariffs');
+            if (refreshEmspTariffs) {
+                refreshEmspTariffs.addEventListener('click', () => {
+                    console.log('📍 Botón refreshEmspTariffs clickeado');
+                    this.loadEmspTariffs();
+                });
+                console.log('✅ Event listener para refreshEmspTariffs agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshEmspTariffs no encontrado');
+            }
+
+            // Botones de acciones EMSP
+            const getCpoVersions = document.getElementById('getCpoVersions');
+            if (getCpoVersions) {
+                getCpoVersions.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoVersions clickeado');
+                    this.getCpoVersions();
+                });
+                console.log('✅ Event listener para getCpoVersions agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoVersions no encontrado');
+            }
+
+            const getCpoLocations = document.getElementById('getCpoLocations');
+            if (getCpoLocations) {
+                getCpoLocations.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoLocations clickeado');
+                    this.getCpoLocations();
+                });
+                console.log('✅ Event listener para getCpoLocations agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoLocations no encontrado');
+            }
+
+            const getCpoEvses = document.getElementById('getCpoEvses');
+            if (getCpoEvses) {
+                getCpoEvses.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoEvses clickeado');
+                    this.getCpoEvses();
+                });
+                console.log('✅ Event listener para getCpoEvses agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoEvses no encontrado');
+            }
+
+            const getCpoTariffs = document.getElementById('getCpoTariffs');
+            if (getCpoTariffs) {
+                getCpoTariffs.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoTariffs clickeado');
+                    this.getCpoTariffs();
+                });
+                console.log('✅ Event listener para getCpoTariffs agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoTariffs no encontrado');
+            }
+
+            const getCpoTokens = document.getElementById('getCpoTokens');
+            if (getCpoTokens) {
+                getCpoTokens.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoTokens clickeado');
+                    this.getCpoTokens();
+                });
+                console.log('✅ Event listener para getCpoTokens agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoTokens no encontrado');
+            }
+
+            const clearCpoResponse = document.getElementById('clearCpoResponse');
+            if (clearCpoResponse) {
+                clearCpoResponse.addEventListener('click', () => {
+                    console.log('🗑️ Botón clearCpoResponse clickeado');
+                    this.clearCpoResponse();
+                });
+                console.log('✅ Event listener para clearCpoResponse agregado');
+            } else {
+                console.warn('⚠️ Elemento clearCpoResponse no encontrado');
+            }
+
+            // Filtros EMSP
+            const emspEvseStatusFilter = document.getElementById('emspEvseStatusFilter');
+            if (emspEvseStatusFilter) {
+                emspEvseStatusFilter.addEventListener('change', () => {
+                    console.log('🔍 Filtro de estado EMSP EVSE cambiado:', emspEvseStatusFilter.value);
+                    this.applyEmspEvseFilters();
+                });
+                console.log('✅ Event listener para emspEvseStatusFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspEvseStatusFilter no encontrado');
+            }
+
+            const emspEvsePartyFilter = document.getElementById('emspEvsePartyFilter');
+            if (emspEvsePartyFilter) {
+                emspEvsePartyFilter.addEventListener('change', () => {
+                    console.log('🔍 Filtro de party EMSP EVSE cambiado:', emspEvsePartyFilter.value);
+                    this.applyEmspEvseFilters();
+                });
+                console.log('✅ Event listener para emspEvsePartyFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspEvsePartyFilter no encontrado');
+            }
+
+            const emspEvseSearchFilter = document.getElementById('emspEvseSearchFilter');
+            if (emspEvseSearchFilter) {
+                emspEvseSearchFilter.addEventListener('input', () => {
+                    console.log('🔍 Filtro de búsqueda EMSP EVSE cambiado:', emspEvseSearchFilter.value);
+                    this.applyEmspEvseFilters();
+                });
+                console.log('✅ Event listener para emspEvseSearchFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspEvseSearchFilter no encontrado');
+            }
+            
+            console.log('✅ Event listeners EMSP configurados');
+                            
                 // Event listener directo en el DOM
                 refreshLocations.addEventListener('mousedown', (event) => {
                     console.log('📍 Botón refreshLocations mousedown!');
@@ -1045,6 +1185,462 @@ class DashboardApp {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // ===== FUNCIONES EMSP =====
+    
+    // Cargar locations de eMSPs
+    async loadEmspLocations() {
+        try {
+            console.log('🔄 Cargando EMSP locations...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/locations`, {
+                headers: { 
+                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 EMSP Locations data:', data);
+            
+            this.renderEmspLocations(data.data || []);
+            this.updateCount('emspLocationsCount', data.data?.length || 0);
+            
+            console.log('✅ EMSP Locations cargados exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando EMSP locations:', error);
+            this.showTableError('emspLocationsTableBody', `Error al cargar EMSP locations: ${error.message}`);
+        }
+    }
+
+    renderEmspLocations(locations) {
+        const tbody = document.getElementById('emspLocationsTableBody');
+        if (!tbody) {
+            console.warn('⚠️ Elemento emspLocationsTableBody no encontrado');
+            return;
+        }
+        
+        if (locations.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No hay EMSP locations disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = locations.map(location => `
+            <tr class="fade-in">
+                <td><code>${location.id}</code></td>
+                <td><span class="badge bg-info">${location.emsp_party_id}</span></td>
+                <td>${location.name}</td>
+                <td>${location.country}</td>
+                <td>${location.city}</td>
+                <td>${location.address}</td>
+                <td>${location.evse_list ? JSON.parse(location.evse_list).length : 0}</td>
+                <td>${new Date(location.last_updated).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        
+        console.log(`✅ ${locations.length} EMSP locations renderizados`);
+    }
+
+    // Cargar EVSEs de eMSPs
+    async loadEmspEvses() {
+        try {
+            console.log('🔄 Cargando EMSP EVSEs...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
+                headers: { 
+                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 EMSP EVSEs data:', data);
+            
+            this.renderEmspEvses(data.data || []);
+            this.updateCount('emspEvsesCount', data.data?.length || 0);
+            this.populateEmspPartyFilter(data.data || []);
+            
+            console.log('✅ EMSP EVSEs cargados exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando EMSP EVSEs:', error);
+            this.showTableError('emspEvsesTableBody', `Error al cargar EMSP EVSEs: ${error.message}`);
+        }
+    }
+
+    renderEmspEvses(evses) {
+        const tbody = document.getElementById('emspEvsesTableBody');
+        if (!tbody) {
+            console.warn('⚠️ Elemento emspEvsesTableBody no encontrado');
+            return;
+        }
+        
+        if (evses.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No hay EMSP EVSEs disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = evses.map(evse => `
+            <tr class="fade-in">
+                <td><code>${evse.evse_id}</code></td>
+                <td><code>${evse.id}</code></td>
+                <td><span class="badge bg-info">${evse.emsp_party_id}</span></td>
+                <td>${evse.location_id}</td>
+                <td>
+                    <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
+                        ${evse.status}
+                    </span>
+                </td>
+                <td>${evse.connectors ? JSON.parse(evse.connectors).length : 0}</td>
+                <td>${new Date(evse.last_updated).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        
+        console.log(`✅ ${evses.length} EMSP EVSEs renderizados`);
+    }
+
+    // Cargar tariffs de eMSPs
+    async loadEmspTariffs() {
+        try {
+            console.log('🔄 Cargando EMSP tariffs...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tariffs`, {
+                headers: { 
+                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 EMSP Tariffs data:', data);
+            
+            this.renderEmspTariffs(data.data || []);
+            this.updateCount('emspTariffsCount', data.data?.length || 0);
+            
+            console.log('✅ EMSP Tariffs cargados exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando EMSP tariffs:', error);
+            this.showTableError('emspTariffsTableBody', `Error al cargar EMSP tariffs: ${error.message}`);
+        }
+    }
+
+    renderEmspTariffs(tariffs) {
+        const tbody = document.getElementById('emspTariffsTableBody');
+        if (!tbody) {
+            console.warn('⚠️ Elemento emspTariffsTableBody no encontrado');
+            return;
+        }
+        
+        if (tariffs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No hay EMSP tariffs disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = tariffs.map(tariff => `
+            <tr class="fade-in">
+                <td><code>${tariff.id}</code></td>
+                <td><span class="badge bg-info">${tariff.emsp_party_id}</span></td>
+                <td>${tariff.type}</td>
+                <td>${tariff.currency}</td>
+                <td>${tariff.elements ? JSON.parse(tariff.elements).length : 0} elementos</td>
+                <td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</td>
+                <td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</td>
+                <td>${new Date(tariff.last_updated).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        
+        console.log(`✅ ${tariffs.length} EMSP tariffs renderizados`);
+    }
+
+    // Funciones de filtrado EMSP
+    populateEmspPartyFilter(evses) {
+        const partyFilter = document.getElementById('emspEvsePartyFilter');
+        if (!partyFilter) return;
+
+        const parties = [...new Set(evses.map(evse => evse.emsp_party_id))];
+        partyFilter.innerHTML = '<option value="">Todos los eMSPs</option>' + 
+            parties.map(party => `<option value="${party}">${party}</option>`).join('');
+    }
+
+    applyEmspEvseFilters() {
+        const statusFilter = document.getElementById('emspEvseStatusFilter')?.value || '';
+        const partyFilter = document.getElementById('emspEvsePartyFilter')?.value || '';
+        const searchFilter = document.getElementById('emspEvseSearchFilter')?.value || '';
+
+        const rows = document.querySelectorAll('#emspEvsesTable tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.cells.length < 7) return; // Skip header rows
+
+            const status = row.cells[4]?.textContent || '';
+            const party = row.cells[2]?.textContent || '';
+            const searchText = row.textContent.toLowerCase();
+
+            const statusMatch = !statusFilter || status.includes(statusFilter);
+            const partyMatch = !partyFilter || party.includes(partyFilter);
+            const searchMatch = !searchFilter || searchText.includes(searchFilter.toLowerCase());
+
+            if (statusMatch && partyMatch && searchMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        console.log(`🔍 Filtros EMSP EVSE aplicados: ${visibleCount} filas visibles`);
+    }
+
+    // ===== FUNCIONES PARA CONSULTAR CPOs (ROL EMSP) =====
+    
+    // Obtener versión del CPO
+    async getCpoVersions() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value;
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🌐 Consultando versiones del CPO:', cpoUrl);
+            
+            const response = await fetch(`${cpoUrl}/ocpi/versions`, {
+                headers: { 
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            
+            console.log('✅ Versiones del CPO obtenidas exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error consultando CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener locations del CPO
+    async getCpoLocations() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value;
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🌐 Consultando locations del CPO:', cpoUrl);
+            
+            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/locations`, {
+                headers: { 
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            
+            console.log('✅ Locations del CPO obtenidas exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error consultando CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener EVSEs del CPO
+    async getCpoEvses() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value;
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🌐 Consultando EVSEs del CPO:', cpoUrl);
+            
+            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/evses`, {
+                headers: { 
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            
+            console.log('✅ EVSEs del CPO obtenidos exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error consultando CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener tariffs del CPO
+    async getCpoTariffs() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value;
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🌐 Consultando tariffs del CPO:', cpoUrl);
+            
+            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/tariffs`, {
+                headers: { 
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            
+            console.log('✅ Tariffs del CPO obtenidos exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error consultando CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener tokens del CPO
+    async getCpoTokens() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value;
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🌐 Consultando tokens del CPO:', cpoUrl);
+            
+            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/tokens`, {
+                headers: { 
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            
+            console.log('✅ Tokens del CPO obtenidos exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error consultando CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Funciones auxiliares para CPO
+    showCpoResponse(response, type = 'info') {
+        const responseElement = document.getElementById('cpoResponse');
+        if (!responseElement) return;
+
+        responseElement.textContent = response;
+        responseElement.className = `bg-light p-3 rounded ${type === 'error' ? 'text-danger' : 'text-success'}`;
+    }
+
+    clearCpoResponse() {
+        const responseElement = document.getElementById('cpoResponse');
+        if (!responseElement) return;
+
+        responseElement.textContent = 'Haz clic en una acción para consultar al CPO...';
+        responseElement.className = 'bg-light p-3 rounded';
+    }
+
+    // Función auxiliar para obtener clase de badge de estado EVSE
+    getEvseStatusBadgeClass(status) {
+        const statusClasses = {
+            'AVAILABLE': 'bg-success',
+            'CHARGING': 'bg-warning',
+            'INOPERATIVE': 'bg-danger',
+            'OUTOFORDER': 'bg-danger',
+            'PLANNED': 'bg-info',
+            'RESERVED': 'bg-primary',
+            'UNKNOWN': 'bg-secondary'
+        };
+        return statusClasses[status] || 'bg-secondary';
     }
 
     showNotification(message, type = 'info') {

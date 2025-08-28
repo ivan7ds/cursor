@@ -53,6 +53,26 @@
                     <i class="bi bi-key"></i> Tokens
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-locations-tab" data-bs-toggle="tab" data-bs-target="#emsp-locations" type="button" role="tab">
+                    <i class="bi bi-geo-alt-fill"></i> EMSP Locations
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-evses-tab" data-bs-toggle="tab" data-bs-target="#emsp-evses" type="button" role="tab">
+                    <i class="bi bi-ev-station-fill"></i> EMSP EVSEs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-tariffs-tab" data-bs-toggle="tab" data-bs-target="#emsp-tariffs" type="button" role="tab">
+                    <i class="bi bi-currency-exchange"></i> EMSP Tariffs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-actions-tab" data-bs-toggle="tab" data-bs-target="#emsp-actions" type="button" role="tab">
+                    <i class="bi bi-play-circle-fill"></i> EMSP Actions
+                </button>
+            </li>
         </ul>
 
         <!-- Contenido de las tabs -->
@@ -297,6 +317,233 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de EMSP Locations -->
+            <div class="tab-pane fade" id="emsp-locations" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt-fill"></i> EMSP Locations
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspLocations">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspLocationsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspLocationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>eMSP</th>
+                                        <th>Nombre</th>
+                                        <th>País</th>
+                                        <th>Ciudad</th>
+                                        <th>Dirección</th>
+                                        <th>EVSEs</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspLocationsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando EMSP locations...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de EMSP EVSEs -->
+            <div class="tab-pane fade" id="emsp-evses" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-ev-station-fill"></i> EMSP EVSEs
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspEvses">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspEvsesCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros de EMSP EVSEs -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="emspEvseStatusFilter">
+                                    <option value="">Todos los estados</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="emspEvsePartyFilter">
+                                    <option value="">Todos los eMSPs</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" id="emspEvseSearchFilter" placeholder="Buscar EMSP EVSE...">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspEvsesTable">
+                                <thead>
+                                    <tr>
+                                        <th>EVSE ID</th>
+                                        <th>UID</th>
+                                        <th>eMSP</th>
+                                        <th>Location</th>
+                                        <th>Estado</th>
+                                        <th>Conectores</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspEvsesTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando EMSP EVSEs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de EMSP Tariffs -->
+            <div class="tab-pane fade" id="emsp-tariffs" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-currency-exchange"></i> EMSP Tariffs
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspTariffs">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspTariffsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspTariffsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>eMSP</th>
+                                        <th>Tipo</th>
+                                        <th>Moneda</th>
+                                        <th>Elementos</th>
+                                        <th>Válido Desde</th>
+                                        <th>Válido Hasta</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspTariffsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando EMSP tariffs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de EMSP Actions -->
+            <div class="tab-pane fade" id="emsp-actions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-play-circle-fill"></i> EMSP Actions - Consultar CPOs
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Configuración de conexión CPO -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Configuración de Conexión CPO</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="cpoUrl" class="form-label">URL del CPO</label>
+                                        <input type="url" class="form-control" id="cpoUrl" placeholder="https://cpo.example.com">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="cpoToken" class="form-label">Token de Acceso</label>
+                                        <input type="text" class="form-control" id="cpoToken" placeholder="Token del CPO">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="cpoVersion" class="form-label">Versión OCPI</label>
+                                        <select class="form-select" id="cpoVersion">
+                                            <option value="2.2">2.2</option>
+                                            <option value="2.1">2.1</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones disponibles -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Acciones Disponibles</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-primary" id="getCpoVersions">
+                                        <i class="bi bi-info-circle"></i> Obtener Versiones
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="getCpoLocations">
+                                        <i class="bi bi-geo-alt"></i> Obtener Locations
+                                    </button>
+                                    <button type="button" class="btn btn-info" id="getCpoEvses">
+                                        <i class="bi bi-ev-station"></i> Obtener EVSEs
+                                    </button>
+                                    <button type="button" class="btn btn-warning" id="getCpoTariffs">
+                                        <i class="bi bi-currency-exchange"></i> Obtener Tariffs
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="getCpoTokens">
+                                        <i class="bi bi-key"></i> Obtener Tokens
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resultado de la acción -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6>Resultado de la Acción</h6>
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <span>Respuesta del CPO</span>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearCpoResponse">
+                                            <i class="bi bi-trash"></i> Limpiar
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <pre id="cpoResponse" class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;">Haz clic en una acción para consultar al CPO...</pre>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
