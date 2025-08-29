@@ -70,14 +70,37 @@ class OCPITokenService {
    */
   static async validateToken(token) {
     try {
-      const tokenRecord = await OCPIToken.findOne({
+      // Primero buscar en la tabla OCPIToken
+      let tokenRecord = await OCPIToken.findOne({
         where: {
           token,
           is_active: true
         }
       });
       
+      // Si no se encuentra en OCPIToken, buscar en la tabla credentials
       if (!tokenRecord) {
+        const { sequelize } = require('../database/connection');
+        const [credentialsResult] = await sequelize.query(`
+          SELECT token, party_id, country_code, created_at, updated_at 
+          FROM credentials 
+          WHERE token = ?
+        `, {
+          replacements: [token]
+        });
+        
+        if (credentialsResult && credentialsResult.length > 0) {
+          const cred = credentialsResult[0];
+          return {
+            id: cred.token, // Usar el token como ID
+            party_id: cred.party_id,
+            country_code: cred.country_code,
+            created_at: cred.created_at,
+            expires_at: null, // Los tokens de credentials no expiran
+            type: 'credentials'
+          };
+        }
+        
         return null;
       }
       
@@ -98,7 +121,8 @@ class OCPITokenService {
         party_id: tokenRecord.party_id,
         country_code: tokenRecord.country_code,
         created_at: tokenRecord.created_at,
-        expires_at: tokenRecord.expires_at
+        expires_at: tokenRecord.expires_at,
+        type: 'ocpi_token'
       };
       
     } catch (error) {

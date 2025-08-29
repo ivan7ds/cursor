@@ -31,6 +31,7 @@ const detailsRoutes = require('./api/details');
 const notificationsRoutes = require('./api/notifications');
 const { router: logsRoutes } = require('./api/logs');
 const emspRoutes = require('./api/emsp');
+const { router: emspActionsRoutes } = require('./api/emspActions');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -99,6 +100,26 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test endpoint para verificar EMSP locations
+app.get('/test-emsp-locations', (req, res) => {
+  res.status(200).json({
+    status_code: 1000,
+    data: [
+      {
+        id: 'test-001',
+        name: 'Test Location',
+        emsp_party_id: 'TEST',
+        country: 'ES',
+        city: 'Test City',
+        address: 'Test Address',
+        evse_list: '[]',
+        last_updated: new Date().toISOString()
+      }
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
@@ -115,10 +136,14 @@ app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
 app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
 
 // ===== RUTAS EMSP =====
-// Estas rutas permiten consultar información de eMSPs cuando actuamos como CPO
-app.use('/ocpi/emsp/2.2', emspRoutes);
-
-app.use('/logs', logsRoutes);
+  // Estas rutas permiten consultar información de eMSPs cuando actuamos como CPO
+  app.use('/ocpi/emsp/2.2', emspRoutes);
+  
+  // ===== RUTAS DE ACCIONES EMSP =====
+  // Estas rutas permiten actuar como eMSP y guardar datos de CPOs externos
+  app.use('/emsp/actions', emspActionsRoutes);
+  
+  app.use('/logs', logsRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

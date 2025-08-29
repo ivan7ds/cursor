@@ -906,7 +906,7 @@ class DashboardApp {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
             });
             
@@ -991,7 +991,7 @@ class DashboardApp {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses`, {
                 headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
             });
             
@@ -1055,7 +1055,7 @@ class DashboardApp {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/credentials`, {
                 headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
             });
             
@@ -1116,7 +1116,7 @@ class DashboardApp {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
                 headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
             });
             
@@ -1194,22 +1194,47 @@ class DashboardApp {
         try {
             console.log('🔄 Cargando EMSP locations...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/locations`, {
-                headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
-                }
-            });
+            // Cargar locations y EVSEs en paralelo
+            const [locationsResponse, evsesResponse] = await Promise.all([
+                fetch(`${this.baseUrl}/ocpi/emsp/2.2/locations`, {
+                    headers: { 
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                    }
+                }),
+                fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
+                    headers: { 
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                    }
+                })
+            ]);
             
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            if (!locationsResponse.ok) {
+                const errorText = await locationsResponse.text();
+                throw new Error(`HTTP ${locationsResponse.status}: ${errorText}`);
             }
             
-            const data = await response.json();
-            console.log('📊 EMSP Locations data:', data);
+            if (!evsesResponse.ok) {
+                const errorText = await evsesResponse.text();
+                throw new Error(`HTTP ${evsesResponse.status}: ${errorText}`);
+            }
             
-            this.renderEmspLocations(data.data || []);
-            this.updateCount('emspLocationsCount', data.data?.length || 0);
+            const locationsData = await locationsResponse.json();
+            const evsesData = await evsesResponse.json();
+            
+            console.log('📊 EMSP Locations data:', locationsData);
+            console.log('📊 EMSP EVSEs data:', evsesData);
+            
+            // Crear un mapa de conteo de EVSEs por location
+            const evseCountMap = {};
+            if (evsesData.data && Array.isArray(evsesData.data)) {
+                evsesData.data.forEach(evse => {
+                    const locationId = evse.location_id;
+                    evseCountMap[locationId] = (evseCountMap[locationId] || 0) + 1;
+                });
+            }
+            
+            this.renderEmspLocations(locationsData.data || [], evseCountMap);
+            this.updateCount('emspLocationsCount', locationsData.data?.length || 0);
             
             console.log('✅ EMSP Locations cargados exitosamente');
             
@@ -1219,7 +1244,7 @@ class DashboardApp {
         }
     }
 
-    renderEmspLocations(locations) {
+    renderEmspLocations(locations, evseCountMap = {}) {
         const tbody = document.getElementById('emspLocationsTableBody');
         if (!tbody) {
             console.warn('⚠️ Elemento emspLocationsTableBody no encontrado');
@@ -1237,20 +1262,25 @@ class DashboardApp {
             return;
         }
 
-        tbody.innerHTML = locations.map(location => `
-            <tr class="fade-in">
-                <td><code>${location.id}</code></td>
-                <td><span class="badge bg-info">${location.emsp_party_id}</span></td>
-                <td>${location.name}</td>
-                <td>${location.country}</td>
-                <td>${location.city}</td>
-                <td>${location.address}</td>
-                <td>${location.evse_list ? JSON.parse(location.evse_list).length : 0}</td>
-                <td>${new Date(location.last_updated).toLocaleString()}</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = locations.map(location => {
+            // Obtener el conteo de EVSEs del mapa
+            const evseCount = evseCountMap[location.id] || 0;
+
+            return `
+                <tr class="fade-in">
+                    <td><code>${location.id || 'N/A'}</code></td>
+                    <td><span class="badge bg-info">${location.emsp_party_id || 'N/A'}</span></td>
+                    <td>${location.name || 'Sin nombre'}</td>
+                    <td>${location.country || 'N/A'}</td>
+                    <td>${location.city || 'N/A'}</td>
+                    <td>${location.address || 'N/A'}</td>
+                    <td><span class="badge bg-success">${evseCount}</span></td>
+                    <td>${location.last_updated ? new Date(location.last_updated).toLocaleString() : 'N/A'}</td>
+                </tr>
+            `;
+        }).join('');
         
-        console.log(`✅ ${locations.length} EMSP locations renderizados`);
+        console.log(`✅ ${locations.length} EMSP locations renderizados con conteo de EVSEs`);
     }
 
     // Cargar EVSEs de eMSPs
@@ -1260,7 +1290,7 @@ class DashboardApp {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                 headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
             });
             
@@ -1302,21 +1332,37 @@ class DashboardApp {
             return;
         }
 
-        tbody.innerHTML = evses.map(evse => `
-            <tr class="fade-in">
-                <td><code>${evse.evse_id}</code></td>
-                <td><code>${evse.id}</code></td>
-                <td><span class="badge bg-info">${evse.emsp_party_id}</span></td>
-                <td>${evse.location_id}</td>
-                <td>
-                    <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
-                        ${evse.status}
-                    </span>
-                </td>
-                <td>${evse.connectors ? JSON.parse(evse.connectors).length : 0}</td>
-                <td>${new Date(evse.last_updated).toLocaleString()}</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = evses.map(evse => {
+            // Función segura para parsear connectors
+            const getConnectorCount = (connectors) => {
+                try {
+                    if (!connectors || connectors === '' || connectors === 'null') {
+                        return 0;
+                    }
+                    const parsed = JSON.parse(connectors);
+                    return Array.isArray(parsed) ? parsed.length : 0;
+                } catch (error) {
+                    console.warn(`⚠️ Error parseando connectors para EVSE ${evse.id}:`, error);
+                    return 0;
+                }
+            };
+
+            return `
+                <tr class="fade-in">
+                    <td><code>${evse.evse_id || 'N/A'}</code></td>
+                    <td><code>${evse.id || 'N/A'}</code></td>
+                    <td><span class="badge bg-info">${evse.emsp_party_id || 'N/A'}</span></td>
+                    <td>${evse.location_id || 'N/A'}</td>
+                    <td>
+                        <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
+                            ${evse.status || 'UNKNOWN'}
+                        </span>
+                    </td>
+                    <td>${getConnectorCount(evse.connectors)}</td>
+                    <td>${evse.last_updated ? new Date(evse.last_updated).toLocaleString() : 'N/A'}</td>
+                </tr>
+            `;
+        }).join('');
         
         console.log(`✅ ${evses.length} EMSP EVSEs renderizados`);
     }
@@ -1328,7 +1374,7 @@ class DashboardApp {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tariffs`, {
                 headers: { 
-                    'ocpi-token': 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
             });
             
@@ -1495,6 +1541,12 @@ class DashboardApp {
             
             console.log('✅ Locations del CPO obtenidas exitosamente');
             
+            // Guardar las locations en nuestra base de datos
+            if (data.data && Array.isArray(data.data)) {
+                console.log(`💾 Guardando ${data.data.length} locations en base de datos...`);
+                await this.saveCpoLocationsToDatabase(cpoUrl, cpoToken, cpoVersion, data.data);
+            }
+            
         } catch (error) {
             console.error('❌ Error consultando CPO:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
@@ -1535,6 +1587,48 @@ class DashboardApp {
         } catch (error) {
             console.error('❌ Error consultando CPO:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Guardar locations del CPO en nuestra base de datos
+    async saveCpoLocationsToDatabase(cpoUrl, cpoToken, cpoVersion, locations) {
+        try {
+            console.log('💾 Guardando locations del CPO en base de datos...');
+            
+            const response = await fetch(`${this.baseUrl}/emsp/actions/save-cpo-locations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify({
+                    cpoUrl,
+                    cpoToken,
+                    cpoVersion,
+                    locations
+                })
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Locations guardadas exitosamente:', result);
+            
+            // Mostrar mensaje de éxito
+            this.showCpoResponse(`✅ ${result.data.saved_count} locations guardados exitosamente`, 'success');
+            
+            // Recargar las pestañas de EMSP para mostrar los nuevos datos
+            setTimeout(() => {
+                this.loadEmspLocations();
+                this.loadEmspEvses();
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Error guardando en BD:', error);
+            this.showCpoResponse(`❌ Error guardando en BD: ${error.message}`, 'error');
         }
     }
 

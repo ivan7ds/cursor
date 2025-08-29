@@ -166,34 +166,107 @@ router.get('/recent', (req, res) => {
         
         try {
             if (fs.existsSync(logFile)) {
-                // Leer el archivo completo (es pequeño)
-                const logContent = fs.readFileSync(logFile, 'utf8');
-                const logLines = logContent.split('\n').filter(line => line.trim());
+                console.log(`📊 Intentando leer archivo de logs: ${logFile}`);
                 
-                // Procesar las últimas líneas
-                recentLogs = logLines.slice(-limit).map(line => {
-                    try {
-                        const parsed = JSON.parse(line);
-                        return {
-                            timestamp: parsed.timestamp || new Date().toISOString(),
-                            level: parsed.level || 'INFO',
-                            message: parsed.message || line.substring(0, 200),
-                            source: parsed.source || 'system'
-                        };
-                    } catch (parseError) {
-                        return {
-                            timestamp: new Date().toISOString(),
-                            level: 'INFO',
-                            message: line.substring(0, 200),
-                            source: 'file'
-                        };
-                    }
-                }).reverse(); // Más recientes primero
+                // Leer el archivo de manera segura con límites de tamaño
+                const stats = fs.statSync(logFile);
+                if (stats.size > 1024 * 1024) { // Si es mayor a 1MB
+                    console.warn('⚠️ Archivo de logs muy grande, usando solo las últimas líneas');
+                    // Usar tail para leer solo las últimas líneas
+                    const { execSync } = require('child_process');
+                    const tailOutput = execSync(`tail -${Math.min(limit, 50)} "${logFile}"`, { encoding: 'utf8' });
+                    const logLines = tailOutput.split('\n').filter(line => line.trim());
+                    
+                    recentLogs = logLines.map(line => {
+                        try {
+                            // Parsear formato de log: [timestamp] [LEVEL] message
+                            const logMatch = line.match(/^\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)$/);
+                            
+                            if (logMatch) {
+                                const [, timestamp, level, message] = logMatch;
+                                
+                                // Filtrar logs innecesarios
+                                if (shouldExcludeLog(message)) {
+                                    return null; // Excluir este log
+                                }
+                                
+                                return {
+                                    timestamp: timestamp,
+                                    level: level,
+                                    message: message.substring(0, 500), // Limitar longitud del mensaje
+                                    source: 'application'
+                                };
+                            } else {
+                                return {
+                                    timestamp: new Date().toISOString(),
+                                    level: 'INFO',
+                                    message: line.substring(0, 200),
+                                    source: 'file'
+                                };
+                            }
+                        } catch (parseError) {
+                            return {
+                                timestamp: new Date().toISOString(),
+                                level: 'INFO',
+                                message: 'Error parsing log line',
+                                source: 'error'
+                            };
+                        }
+                    }).filter(log => log !== null).reverse(); // Filtrar nulos y más recientes primero
+                    
+                } else {
+                    // Archivo pequeño, leer completo
+                    const logContent = fs.readFileSync(logFile, 'utf8');
+                    const logLines = logContent.split('\n').filter(line => line.trim());
+                    
+                    // Procesar solo las últimas líneas
+                    const linesToProcess = logLines.slice(-Math.min(limit, 50));
+                    
+                    recentLogs = linesToProcess.map(line => {
+                        try {
+                            // Parsear formato de log: [timestamp] [LEVEL] message
+                            const logMatch = line.match(/^\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)$/);
+                            
+                            if (logMatch) {
+                                const [, timestamp, level, message] = logMatch;
+                                
+                                // Filtrar logs innecesarios
+                                if (shouldExcludeLog(message)) {
+                                    return null; // Excluir este log
+                                }
+                                
+                                return {
+                                    timestamp: timestamp,
+                                    level: level,
+                                    message: message.substring(0, 500), // Limitar longitud del mensaje
+                                    source: 'application'
+                                };
+                            } else {
+                                return {
+                                    timestamp: new Date().toISOString(),
+                                    level: 'INFO',
+                                    message: line.substring(0, 200),
+                                    source: 'file'
+                                };
+                            }
+                        } catch (parseError) {
+                            return {
+                                timestamp: new Date().toISOString(),
+                                level: 'INFO',
+                                message: 'Error parsing log line',
+                                source: 'error'
+                            };
+                        }
+                    }).filter(log => log !== null).reverse(); // Filtrar nulos y más recientes primero
+                }
                 
-                console.log(`📊 Logs leídos: ${recentLogs.length} de ${limit} solicitados`);
+                console.log(`📊 Logs procesados: ${recentLogs.length}`);
+                
+            } else {
+                console.log('⚠️ Archivo de logs no encontrado:', logFile);
             }
         } catch (fileError) {
-            console.warn('⚠️ No se pudo leer archivo de logs:', fileError.message);
+            console.warn('⚠️ Error leyendo archivo de logs:', fileError.message);
         }
         
         // Si no hay logs del archivo, usar logs simulados como respaldo
@@ -282,5 +355,50 @@ router.post('/clear', (req, res) => {
         });
     }
 });
+
+/**
+ * Función para determinar si un log debe ser excluido
+ * Filtra logs innecesarios como peticiones HTTP del navegador
+ */
+function shouldExcludeLog(message) {
+    if (!message || typeof message !== 'string') {
+        return false;
+    }
+    
+    const messageLower = message.toLowerCase();
+    
+    // Excluir logs de peticiones HTTP del navegador
+    if (messageLower.includes('get /logs/recent') || 
+        messageLower.includes('get /health') ||
+        messageLower.includes('get /favicon.ico')) {
+        return true;
+    }
+    
+    // Excluir logs del middleware de logging
+    if (messageLower.includes('api request incoming') ||
+        messageLower.includes('api response outgoing') ||
+        messageLower.includes('api request summary') ||
+        messageLower.includes('🚀') ||
+        messageLower.includes('📤') ||
+        messageLower.includes('📊')) {
+        return true;
+    }
+    
+    // Excluir logs del sistema de logs
+    if (messageLower.includes('logs procesados') ||
+        messageLower.includes('archivo de logs') ||
+        messageLower.includes('📊')) {
+        return true;
+    }
+    
+    // Excluir logs de peticiones curl o herramientas de testing
+    if (messageLower.includes('curl/') ||
+        messageLower.includes('postman') ||
+        messageLower.includes('insomnia')) {
+        return true;
+    }
+    
+    return false;
+}
 
 module.exports = { router, broadcastLog };

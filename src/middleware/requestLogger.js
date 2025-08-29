@@ -5,6 +5,11 @@ const logger = require('../utils/logger');
  * Captura payload entrante y response saliente
  */
 const requestLogger = (req, res, next) => {
+  // Excluir endpoints de logs para evitar bucles infinitos
+  if (req.path === '/logs/recent' || req.path === '/logs/stream') {
+    return next();
+  }
+  
   // Capturar el tiempo de inicio
   const startTime = Date.now();
   
