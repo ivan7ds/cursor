@@ -1024,7 +1024,7 @@ if (refreshEmspTokens) {
         try {
             console.log('🔄 Cargando EVSEs...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses`, {
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?limit=200`, {
                 headers: { 
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
