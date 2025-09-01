@@ -199,6 +199,12 @@ router.put('/:id', async (req, res) => {
       last_updated: new Date()
     });
 
+    // Notificar a los EMSPs sobre la actualización del EVSE (en segundo plano)
+    emspNotificationService.notifyEVSEUpdated(evse)
+      .catch(error => {
+        logger.error('Error notificando a EMSPs sobre actualización de EVSE:', error);
+      });
+
     res.status(200).json({
       status_code: 1000,
       data: evse,

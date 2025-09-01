@@ -99,6 +99,38 @@ class EMSPNotificationService {
     }
 
     /**
+     * Notificar a todas las organizaciones sobre un EVSE actualizado
+     * @param {Object} evseData - Datos del EVSE actualizado
+     */
+    async notifyEVSEUpdated(evseData) {
+        try {
+            logger.info('🔔 Notificando a organizaciones sobre EVSE actualizado:', evseData.id);
+            
+            // Obtener todas las organizaciones configuradas (excluyendo nuestro CPO)
+            const organizations = await this.getConfiguredOrganizations();
+            
+            if (organizations.length === 0) {
+                logger.info('📭 No hay organizaciones configuradas para notificar');
+                return;
+            }
+            
+            logger.info(`📤 Notificando a ${organizations.length} organización(es) sobre EVSE actualizado ${evseData.id}`);
+            
+            // Notificar a cada organización
+            const notificationPromises = organizations.map(org => 
+                this.notifyOrganizationAboutEVSE(org, evseData, 'PUT')
+            );
+            
+            await Promise.allSettled(notificationPromises);
+            
+            logger.info('✅ Notificaciones de EVSE actualizado enviadas a todas las organizaciones');
+            
+        } catch (error) {
+            logger.error('❌ Error notificando a organizaciones sobre EVSE actualizado:', error);
+        }
+    }
+
+    /**
      * Obtener todas las organizaciones configuradas para notificaciones
      * @returns {Array} Lista de organizaciones configuradas
      */

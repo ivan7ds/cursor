@@ -1121,6 +1121,162 @@
         </div>
     </div>
 
+    <!-- Modal para editar EVSE -->
+    <div class="modal fade" id="editEvseModal" tabindex="-1" aria-labelledby="editEvseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editEvseModalLabel">
+                        <i class="bi bi-pencil"></i> Editar EVSE
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEvseForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editEvseUid" class="form-label">UID *</label>
+                                <input type="text" class="form-control" id="editEvseUid" required readonly>
+                                <small class="form-text text-muted">UID único (no editable)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editEvseLocation" class="form-label">Location *</label>
+                                <select class="form-select" id="editEvseLocation" required>
+                                    <option value="">Seleccionar location...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editEvseStatus" class="form-label">Estado *</label>
+                                <select class="form-select" id="editEvseStatus" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="BLOCKED">Bloqueado</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="REMOVED">Removido</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editEvsePhysicalReference" class="form-label">Referencia Física</label>
+                                <input type="text" class="form-control" id="editEvsePhysicalReference" placeholder="Ej: Zona A - Nivel 1">
+                            </div>
+                        </div>
+
+                        <!-- Capabilities -->
+                        <div class="mb-3">
+                            <label class="form-label">Capabilities *</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CHARGING_PROFILE_CAPABLE" value="CHARGING_PROFILE_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_CHARGING_PROFILE_CAPABLE">
+                                            CHARGING_PROFILE_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CREDIT_CARD_PAYABLE" value="CREDIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="editCapability_CREDIT_CARD_PAYABLE">
+                                            CREDIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_REMOTE_START_STOP_CAPABLE" value="REMOTE_START_STOP_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_REMOTE_START_STOP_CAPABLE">
+                                            REMOTE_START_STOP_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_RESERVABLE" value="RESERVABLE">
+                                        <label class="form-check-label" for="editCapability_RESERVABLE">
+                                            RESERVABLE
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_RFID_READER" value="RFID_READER">
+                                        <label class="form-check-label" for="editCapability_RFID_READER">
+                                            RFID_READER
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_UNLOCK_CAPABLE" value="UNLOCK_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_UNLOCK_CAPABLE">
+                                            UNLOCK_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CHARGING_PREFERENCES_CAPABLE" value="CHARGING_PREFERENCES_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_CHARGING_PREFERENCES_CAPABLE">
+                                            CHARGING_PREFERENCES_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CHIP_CARD_SUPPORT" value="CHIP_CARD_SUPPORT">
+                                        <label class="form-check-label" for="editCapability_CHIP_CARD_SUPPORT">
+                                            CHIP_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CONTACTLESS_CARD_SUPPORT" value="CONTACTLESS_CARD_SUPPORT">
+                                        <label class="form-check-label" for="editCapability_CONTACTLESS_CARD_SUPPORT">
+                                            CONTACTLESS_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_PED_TERMINAL" value="PED_TERMINAL">
+                                        <label class="form-check-label" for="editCapability_PED_TERMINAL">
+                                            PED_TERMINAL
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_DEBIT_CARD_PAYABLE" value="DEBIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="editCapability_DEBIT_CARD_PAYABLE">
+                                            DEBIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_TOKEN_GROUP_CAPABLE" value="TOKEN_GROUP_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_TOKEN_GROUP_CAPABLE">
+                                            TOKEN_GROUP_CAPABLE
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conectores -->
+                        <div class="mb-3">
+                            <label class="form-label">Conectores *</label>
+                            <div id="editEvseConnectorsContainer">
+                                <!-- Los conectores se cargarán dinámicamente -->
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addEditEvseConnector">
+                                <i class="bi bi-plus-circle"></i> Agregar Conector
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateEvseBtn">
+                        <i class="bi bi-check-circle"></i> Actualizar EVSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para crear EVSE -->
     <div class="modal fade" id="createEvseModal" tabindex="-1" aria-labelledby="createEvseModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
