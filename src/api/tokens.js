@@ -5,6 +5,48 @@ const { Token } = require('../models');
 const logger = require('../utils/logger');
 
 /**
+ * Mapea un token de la base de datos al formato OCPI 2.2
+ * @param {Object} token - Token de la base de datos
+ * @returns {Object} Token mapeado según especificación OCPI 2.2
+ */
+function mapTokenToOCPI(token) {
+  const mappedToken = {
+    country_code: token.country_code,
+    party_id: token.party_id,
+    uid: token.uid,
+    type: token.type,
+    contract_id: token.contract_id,
+    issuer: token.issuer,
+    valid: token.valid,
+    whitelist: token.whitelist,
+    last_updated: token.last_updated.toISOString()
+  };
+
+  // Agregar campos opcionales si existen
+  if (token.visual_number) {
+    mappedToken.visual_number = token.visual_number;
+  }
+  
+  if (token.group_id) {
+    mappedToken.group_id = token.group_id;
+  }
+  
+  if (token.language) {
+    mappedToken.language = token.language;
+  }
+  
+  if (token.default_profile_type) {
+    mappedToken.default_profile_type = token.default_profile_type;
+  }
+  
+  if (token.energy_contract) {
+    mappedToken.energy_contract = token.energy_contract;
+  }
+
+  return mappedToken;
+}
+
+/**
  * @swagger
  * /ocpi/2.2/tokens:
  *   get:
@@ -47,9 +89,12 @@ router.get('/', async (req, res) => {
       order: [['last_updated', 'DESC']]
     });
 
+    // Mapear tokens según especificación OCPI 2.2
+    const mappedTokens = tokens.rows.map(mapTokenToOCPI);
+
     res.status(200).json({
       status_code: 1000,
-      data: tokens.rows,
+      data: mappedTokens,
       timestamp: new Date().toISOString(),
       pagination: {
         total: tokens.count,
@@ -95,9 +140,12 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Mapear token según especificación OCPI 2.2
+    const mappedToken = mapTokenToOCPI(token);
+
     res.status(200).json({
       status_code: 1000,
-      data: token,
+      data: mappedToken,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

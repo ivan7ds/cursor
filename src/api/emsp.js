@@ -152,12 +152,30 @@ router.get('/tokens', authMiddleware, async (req, res) => {
     try {
         console.log('📍 GET /ocpi/emsp/2.2/tokens - Consultando tokens de eMSPs');
         
+        // Consultar tokens de la tabla tokens donde party_id sea IPD
         const [results] = await sequelize.query(`
-            SELECT * FROM emsp_tokens 
+            SELECT 
+                id,
+                country_code,
+                party_id,
+                uid,
+                type,
+                contract_id,
+                visual_number,
+                issuer,
+                group_id,
+                valid,
+                whitelist,
+                language,
+                default_profile_type,
+                energy_contract,
+                last_updated
+            FROM tokens 
+            WHERE party_id = 'IPD'
             ORDER BY last_updated DESC
         `);
         
-        console.log(`✅ ${results.length} tokens de eMSPs encontrados`);
+        console.log(`✅ ${results.length} tokens de IPD (eMSP) encontrados`);
         
         res.status(200).json({
             status_code: 1000,
@@ -198,6 +216,52 @@ router.get('/contracts', authMiddleware, async (req, res) => {
         res.status(500).json({
             status_code: 2000,
             status_message: 'Error getting EMSP contracts',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// GET /ocpi/emsp/2.2/tokens/stored - Obtener tokens almacenados en emsp_tokens
+router.get('/tokens/stored', authMiddleware, async (req, res) => {
+    try {
+        console.log('📍 GET /ocpi/emsp/2.2/tokens/stored - Consultando tokens almacenados en emsp_tokens');
+        
+        // Consultar tokens de la tabla emsp_tokens
+        const [results] = await sequelize.query(`
+            SELECT 
+                id,
+                emsp_party_id as party_id,
+                emsp_country_code as country_code,
+                token_uid as uid,
+                type,
+                contract_id,
+                visual_number,
+                issuer,
+                group_id,
+                valid,
+                whitelist,
+                language,
+                default_profile_type,
+                energy_contract,
+                last_updated,
+                created_at
+            FROM emsp_tokens 
+            ORDER BY last_updated DESC
+        `);
+        
+        console.log(`✅ ${results.length} tokens almacenados encontrados en emsp_tokens`);
+        
+        res.status(200).json({
+            status_code: 1000,
+            data: results,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error consultando tokens almacenados:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error getting stored EMSP tokens',
             timestamp: new Date().toISOString()
         });
     }

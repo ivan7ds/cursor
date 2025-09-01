@@ -616,6 +616,30 @@ class DashboardApp {
                 case 'logs':
                     console.log('📝 Pestaña de logs - no requiere carga de datos');
                     break;
+                case 'emsp-locations':
+                    this.loadEmspLocations();
+                    break;
+                case 'emsp-evses':
+                    this.loadEmspEvses();
+                    break;
+                case 'emsp-tariffs':
+                    this.loadEmspTariffs();
+                    break;
+                case 'emsp-sessions':
+                    console.log('📝 Pestaña de EMSP sessions - no requiere carga de datos');
+                    break;
+                case 'emsp-cdrs':
+                    console.log('📝 Pestaña de EMSP CDRs - no requiere carga de datos');
+                    break;
+                case 'emsp-tokens':
+                    this.loadTokens(); // Usar la misma función que tokens normales
+                    break;
+                case 'emsp-contracts':
+                    console.log('📝 Pestaña de EMSP contracts - no requiere carga de datos');
+                    break;
+                case 'emsp-actions':
+                    console.log('📝 Pestaña de EMSP actions - no requiere carga de datos');
+                    break;
                 default:
                     console.log(`⚠️ Pestaña desconocida: ${tabName}`);
             }
@@ -1114,7 +1138,7 @@ class DashboardApp {
         try {
             console.log('🔄 Cargando tokens...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tokens`, {
                 headers: { 
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
@@ -1159,16 +1183,16 @@ class DashboardApp {
 
         tbody.innerHTML = tokens.map(token => `
             <tr class="fade-in">
-                <td><code>${this.truncateToken(token.token)}</code></td>
+                <td><code>${this.truncateToken(token.uid)}</code></td>
                 <td><code>${token.party_id}</code></td>
                 <td>${token.country_code}</td>
                 <td>
-                    <span class="badge ${token.is_active ? 'bg-success' : 'bg-secondary'}">
-                        ${token.is_active ? 'Activo' : 'Inactivo'}
+                    <span class="badge ${token.valid ? 'bg-success' : 'bg-secondary'}">
+                        ${token.valid ? 'Activo' : 'Inactivo'}
                     </span>
                 </td>
-                <td>${token.expires_at ? new Date(token.expires_at).toLocaleDateString() : 'N/A'}</td>
-                <td>${token.last_used_at ? new Date(token.last_used_at).toLocaleString() : 'N/A'}</td>
+                <td>${token.type}</td>
+                <td>${token.whitelist || 'N/A'}</td>
                 <td>${new Date(token.created_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
@@ -1339,8 +1363,24 @@ class DashboardApp {
                     if (!connectors || connectors === '' || connectors === 'null') {
                         return 0;
                     }
-                    const parsed = JSON.parse(connectors);
-                    return Array.isArray(parsed) ? parsed.length : 0;
+                    
+                    // Si ya es un array, usarlo directamente
+                    if (Array.isArray(connectors)) {
+                        return connectors.length;
+                    }
+                    
+                    // Si es un string, intentar parsearlo
+                    if (typeof connectors === 'string') {
+                        const parsed = JSON.parse(connectors);
+                        return Array.isArray(parsed) ? parsed.length : 0;
+                    }
+                    
+                    // Si es un objeto pero no array, verificar si tiene propiedades
+                    if (typeof connectors === 'object' && connectors !== null) {
+                        return Object.keys(connectors).length;
+                    }
+                    
+                    return 0;
                 } catch (error) {
                     console.warn(`⚠️ Error parseando connectors para EVSE ${evse.id}:`, error);
                     return 0;
@@ -1421,7 +1461,7 @@ class DashboardApp {
                 <td><span class="badge bg-info">${tariff.emsp_party_id}</span></td>
                 <td>${tariff.type}</td>
                 <td>${tariff.currency}</td>
-                <td>${tariff.elements ? JSON.parse(tariff.elements).length : 0} elementos</td>
+                <td>${this.getElementsCount(tariff.elements)} elementos</td>
                 <td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</td>
                 <td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</td>
                 <td>${new Date(tariff.last_updated).toLocaleString()}</td>
@@ -1429,6 +1469,34 @@ class DashboardApp {
         `).join('');
         
         console.log(`✅ ${tariffs.length} EMSP tariffs renderizados`);
+    }
+
+    // Función auxiliar para obtener el conteo de elementos de manera segura
+    getElementsCount(elements) {
+        try {
+            if (!elements) return 0;
+            
+            // Si ya es un array, devolver su longitud
+            if (Array.isArray(elements)) {
+                return elements.length;
+            }
+            
+            // Si es un string, intentar parsearlo
+            if (typeof elements === 'string') {
+                const parsed = JSON.parse(elements);
+                return Array.isArray(parsed) ? parsed.length : 0;
+            }
+            
+            // Si es un objeto, devolver 1
+            if (typeof elements === 'object') {
+                return 1;
+            }
+            
+            return 0;
+        } catch (error) {
+            console.warn('⚠️ Error parseando elements:', error);
+            return 0;
+        }
     }
 
     // Funciones de filtrado EMSP
@@ -1632,12 +1700,50 @@ class DashboardApp {
         }
     }
 
-    // Obtener tariffs del CPO
+    // Guardar tariffs del CPO en nuestra base de datos
+    async saveCpoTariffsToDatabase(tariffs) {
+        try {
+            console.log('💾 Guardando tariffs del CPO en base de datos...');
+            
+            const response = await fetch(`${this.baseUrl}/emsp/actions/save-cpo-tariffs`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify({
+                    tariffs
+                })
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Tariffs guardados exitosamente:', result);
+            
+            // Mostrar mensaje de éxito
+            this.showCpoResponse(`✅ ${result.data.saved_count} tariffs guardados exitosamente`, 'success');
+            
+            // Recargar la pestaña de EMSP Tariffs para mostrar los nuevos datos
+            setTimeout(() => {
+                this.loadEmspTariffs();
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Error guardando tariffs en BD:', error);
+            this.showCpoResponse(`❌ Error guardando tariffs en BD: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener tariffs del CPO y guardarlos en BD
     async getCpoTariffs() {
         try {
             const cpoUrl = document.getElementById('cpoUrl').value;
             const cpoToken = document.getElementById('cpoToken').value;
-            const cpoVersion = document.getElementById('cpoVersion').value;
+            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             if (!cpoUrl || !cpoToken) {
                 this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
@@ -1662,6 +1768,12 @@ class DashboardApp {
             this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
             
             console.log('✅ Tariffs del CPO obtenidos exitosamente');
+
+            // Guardar los tariffs en la tabla emsp_tariffs
+            if (data.data && Array.isArray(data.data)) {
+                console.log(`💾 Guardando ${data.data.length} tariffs en tabla emsp_tariffs...`);
+                await this.saveCpoTariffsToDatabase(data.data);
+            }
             
         } catch (error) {
             console.error('❌ Error consultando CPO:', error);
@@ -1669,25 +1781,63 @@ class DashboardApp {
         }
     }
 
-    // Obtener tokens del CPO
+    // Obtener tokens del CPO externo usando /ocpi/emsp/2.2/tokens
     async getCpoTokens() {
         try {
             const cpoUrl = document.getElementById('cpoUrl').value;
             const cpoToken = document.getElementById('cpoToken').value;
-            const cpoVersion = document.getElementById('cpoVersion').value;
+            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             if (!cpoUrl || !cpoToken) {
                 this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
                 return;
             }
 
-            console.log('🌐 Consultando tokens del CPO:', cpoUrl);
-            
-            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/tokens`, {
-                headers: { 
+            console.log('🔑 Consultando tokens del CPO usando endpoint /emsp/2.2/tokens:', cpoUrl);
+
+            const response = await fetch(`${cpoUrl}/ocpi/emsp/${cpoVersion}/tokens`, {
+                headers: {
                     'Authorization': `Token ${cpoToken}`,
                     'Content-Type': 'application/json'
                 }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+
+            console.log('✅ Tokens del CPO externo obtenidos exitosamente');
+
+            // Guardar los tokens en la tabla emsp_tokens
+            if (data.data && Array.isArray(data.data)) {
+                console.log(`💾 Guardando ${data.data.length} tokens en tabla emsp_tokens...`);
+                await this.saveEmspTokensToDatabase(data.data);
+            }
+
+        } catch (error) {
+            console.error('❌ Error consultando tokens del CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Guardar tokens eMSP en la tabla emsp_tokens
+    async saveEmspTokensToDatabase(tokens) {
+        try {
+            console.log('💾 Guardando tokens eMSP en tabla emsp_tokens...');
+            
+            const response = await fetch(`${this.baseUrl}/emsp/actions/save-emsp-tokens`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify({
+                    tokens
+                })
             });
             
             if (!response.ok) {
@@ -1695,14 +1845,15 @@ class DashboardApp {
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
-            const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            const result = await response.json();
+            console.log('✅ Tokens eMSP guardados exitosamente:', result);
             
-            console.log('✅ Tokens del CPO obtenidos exitosamente');
+            // Mostrar mensaje de éxito
+            this.showCpoResponse(`✅ ${result.data.saved_count} tokens guardados en tabla emsp_tokens`, 'success');
             
         } catch (error) {
-            console.error('❌ Error consultando CPO:', error);
-            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+            console.error('❌ Error guardando tokens eMSP en BD:', error);
+            this.showCpoResponse(`❌ Error guardando tokens en BD: ${error.message}`, 'error');
         }
     }
 

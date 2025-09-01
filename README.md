@@ -1,6 +1,6 @@
 # CPO OCPI 2.2 Application
 
-Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 para gestionar infraestructura de carga de vehículos eléctricos en España y Portugal.
+Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 para gestionar infraestructura de carga de vehículos eléctricos en España y Portugal. La aplicación incluye funcionalidades completas para actuar tanto como CPO como eMSP, con un dashboard frontend integrado para gestión y monitoreo.
 
 ## 🚀 Características
 
@@ -12,6 +12,10 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Datos Persistentes**: Información mantenida entre reinicios
 - **Autenticación por Tokens**: Sistema de tokens OCPI 2.2
 - **Logging Detallado**: Monitoreo completo de peticiones y respuestas
+- **Dashboard Frontend**: Interfaz web integrada para gestión y monitoreo
+- **Funcionalidad eMSP**: Capacidad para actuar como eMSP y conectar con CPOs externos
+- **Gestión de Conectores**: Información detallada de conectores por EVSE
+- **Notificaciones Automáticas**: Sistema de notificaciones para cambios de estado de EVSEs
 
 ## 🏗️ Arquitectura
 
@@ -21,6 +25,8 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Cache**: Redis
 - **Documentación**: Swagger/OpenAPI
 - **Contenedores**: Docker + Docker Compose
+- **Frontend**: HTML5 + Bootstrap 5.3 + JavaScript vanilla
+- **Tiempo Real**: Server-Sent Events (SSE) para streaming de logs
 
 ## 📊 Distribución de Ubicaciones
 
@@ -77,6 +83,10 @@ Get-Content scripts/populate_tariffs.sql | docker exec -i cursorconcepto-postgre
 
 ## 🌐 Endpoints Disponibles
 
+### Core OCPI 2.2
+- `GET /ocpi/2.2/versions` - Versiones disponibles del protocolo
+- `GET /ocpi/2.2/details` - Detalles de implementación con endpoints disponibles
+
 ### Locations (Ubicaciones)
 - `GET /ocpi/2.2/locations` - Lista de ubicaciones con paginación OCPI 2.2
 - `GET /ocpi/2.2/locations/{id}` - Ubicación específica con EVSEs asociados
@@ -91,7 +101,23 @@ Get-Content scripts/populate_tariffs.sql | docker exec -i cursorconcepto-postgre
 - `POST /ocpi/2.2/credentials` - Intercambio de credenciales OCPI 2.2
 - `PUT /ocpi/2.2/credentials` - Actualización de credenciales OCPI 2.2
 
-### Otros
+### Tokens
+- `GET /ocpi/2.2/tokens` - Lista de tokens OCPI 2.2 con paginación
+- `GET /ocpi/2.2/tokens/{id}` - Token específico por ID
+- `POST /ocpi/2.2/tokens` - Crear nuevo token
+- `PUT /ocpi/2.2/tokens/{id}` - Actualizar token existente
+- `DELETE /ocpi/2.2/tokens/{id}` - Eliminar token
+
+### Funcionalidad eMSP
+- `GET /ocpi/emsp/2.2/locations` - Ubicaciones recibidas de CPOs externos
+- `GET /ocpi/emsp/2.2/evses` - EVSEs recibidos de CPOs externos
+- `GET /ocpi/emsp/2.2/tariffs` - Tarifas recibidas de CPOs externos
+- `POST /emsp/actions/save-cpo-locations` - Guardar locations de CPO externo
+
+### Dashboard y Monitoreo
+- `GET /` - Dashboard frontend principal
+- `GET /logs/stream` - Streaming de logs en tiempo real (SSE)
+- `GET /logs/recent` - Logs recientes para el dashboard
 - `GET /health` - Estado de la aplicación
 - `GET /api-docs` - Documentación Swagger
 
@@ -112,23 +138,47 @@ Inserta tarifas básicas para España y Portugal.
 ### `scripts/setup_database.ps1`
 Script maestro que ejecuta todos los scripts en orden.
 
+### `scripts/init_emsp_tables.sql`
+Crea tablas específicas para funcionalidad eMSP (emsp_locations, emsp_evses, emsp_tariffs).
+
+### `scripts/populate_emsp_tokens.sql`
+Inserta 20 tokens eMSP con diferentes tipos según la especificación OCPI 2.2 (AD_HOC_USER, APP_USER, OTHER, RFID).
+
 ## 🔧 Desarrollo
 
 ### Estructura del Proyecto
 ```
 src/
 ├── api/           # Endpoints de la API
+│   ├── versions.js      # Endpoint de versiones OCPI 2.2
+│   ├── details.js       # Endpoint de detalles de implementación
+│   ├── locations.js     # Gestión de ubicaciones
+│   ├── evses.js         # Gestión de EVSEs
+│   ├── tariffs.js       # Gestión de tarifas
+│   ├── credentials.js   # Gestión de credenciales OCPI 2.2
+│   ├── emsp.js          # Endpoints eMSP para datos recibidos
+│   ├── emspActions.js   # Acciones eMSP (guardar datos de CPO)
+│   ├── logs.js          # Streaming y consulta de logs
+│   └── notifications.js # Notificaciones automáticas de EVSEs
 ├── database/      # Configuración de base de datos
 ├── middleware/    # Middleware de Express
 ├── models/        # Modelos de Sequelize
-├── services/      # Servicios (OCPI Token Service)
-└── utils/         # Utilidades (logger, etc.)
+├── services/      # Servicios
+│   ├── ocpiTokenService.js    # Gestión de tokens OCPI
+│   └── evseNotificationService.js # Notificaciones automáticas
+├── utils/         # Utilidades (logger, etc.)
+└── public/        # Frontend dashboard
+    ├── index.html # Dashboard principal
+    ├── app.js     # Lógica del frontend
+    └── styles.css # Estilos personalizados
 
 scripts/           # Scripts de base de datos y utilidades
 ├── init_database.sql
+├── init_emsp_tables.sql
 ├── populate_database.sql
 ├── populate_evses.sql
 ├── populate_tariffs.sql
+├── populate_emsp_tokens.sql
 ├── setup_database.ps1
 ├── generate-ocpi-token.js
 ├── view-logs.js
@@ -149,6 +199,75 @@ docker-compose logs -f app
 ```bash
 docker exec -it cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
 ```
+
+## 🖥️ Dashboard Frontend
+
+### Características del Dashboard
+
+La aplicación incluye un dashboard web integrado que proporciona:
+
+- **📊 Vista General**: Estadísticas en tiempo real de la aplicación
+- **📍 Gestión de Locations**: Visualización y gestión de ubicaciones
+- **🔌 Gestión de EVSEs**: Control de puntos de carga con información de conectores
+- **💰 Gestión de Tarifas**: Administración de tarifas de carga
+- **🔗 Conexiones eMSP**: Monitoreo de conexiones con CPOs externos
+- **📝 Logs en Tiempo Real**: Streaming de logs con filtros avanzados
+- **🔄 Funcionalidad eMSP**: Capacidad para actuar como eMSP y conectar con CPOs externos
+
+### Acceso al Dashboard
+
+```bash
+# El dashboard está disponible en:
+http://localhost:3000/
+```
+
+### Funcionalidades Principales
+
+#### **1. Gestión de Locations**
+- Visualización de todas las ubicaciones
+- Información detallada de cada location
+- Conteo de EVSEs por ubicación
+- Filtros y búsqueda avanzada
+
+#### **2. Gestión de EVSEs**
+- Lista completa de puntos de carga
+- Información de conectores por EVSE
+- Estados de EVSEs en tiempo real
+- Gestión de capacidades y características
+
+#### **3. Funcionalidad eMSP**
+- **"Get CPO Locations"**: Conectar con CPOs externos y obtener locations
+- **"EMSP Locations"**: Visualizar locations recibidas de CPOs externos
+- **"EMSP EVSEs"**: Ver EVSEs con información de conectores
+- **"EMSP Tariffs"**: Gestionar tarifas recibidas
+
+#### **4. Sistema de Logs**
+- **Streaming en Tiempo Real**: Logs actualizados automáticamente
+- **Filtros Avanzados**: Por tipo, período, y contenido
+- **Búsqueda Rápida**: Encuentra información específica
+- **Historial Completo**: Acceso a todos los logs de la aplicación
+
+### Tecnologías del Frontend
+
+- **HTML5**: Estructura semántica moderna
+- **Bootstrap 5.3**: Framework CSS responsive
+- **Bootstrap Icons**: Iconografía consistente
+- **JavaScript Vanilla**: Sin dependencias externas
+- **Server-Sent Events (SSE)**: Streaming de datos en tiempo real
+- **Fetch API**: Comunicación con el backend
+- **localStorage**: Persistencia de tokens y configuraciones
+
+### Navegación del Dashboard
+
+El dashboard está organizado en pestañas para facilitar la navegación:
+
+1. **📊 Dashboard**: Vista general y estadísticas
+2. **📍 Locations**: Gestión de ubicaciones
+3. **🔌 EVSEs**: Gestión de puntos de carga
+4. **💰 Tariffs**: Gestión de tarifas
+5. **🔗 Connections**: Conexiones eMSP activas
+6. **📝 Logs**: Sistema de logs en tiempo real
+7. **🔄 EMSP Actions**: Funcionalidades eMSP
 
 ## 🔍 Monitoreo y Logs
 
@@ -215,6 +334,168 @@ node scripts/view-logs.js
 ✅ **Filtros Especializados**: Logs organizados por tipo y período  
 ✅ **Tiempo Real**: Seguimiento continuo de actividad de la aplicación  
 ✅ **Uso Sencillo**: Comandos simples y menú intuitivo  
+
+## 🔄 Funcionalidad eMSP
+
+### Capacidades eMSP
+
+La aplicación puede actuar como un eMSP (Electric Mobility Service Provider) para:
+
+- **Conectar con CPOs Externos**: Establecer conexiones con otros operadores de carga
+- **Recibir Locations**: Obtener información de ubicaciones de CPOs externos
+- **Gestionar EVSEs**: Administrar puntos de carga de terceros
+- **Procesar Tarifas**: Manejar tarifas de diferentes operadores
+
+### Proceso de Conexión eMSP
+
+#### **1. Configuración Inicial**
+```bash
+# Generar token para el CPO externo
+docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id EXTERNAL_CPO --country-code ES
+```
+
+#### **2. Intercambio de Credenciales**
+```bash
+# El CPO externo debe hacer POST a /ocpi/2.2/credentials
+# La aplicación responderá con nuestras credenciales eMSP
+```
+
+#### **3. Obtención de Datos**
+- **Desde el Dashboard**: Usar el botón "Get CPO Locations"
+- **Desde la API**: Hacer GET requests a los endpoints del CPO externo
+- **Almacenamiento**: Los datos se guardan automáticamente en las tablas `emsp_*`
+
+### Estructura de Datos eMSP
+
+#### **Tablas eMSP**
+- **`emsp_locations`**: Ubicaciones recibidas de CPOs externos
+- **`emsp_evses`**: EVSEs con información de conectores
+- **`emsp_tariffs`**: Tarifas de operadores externos
+- **`emsp_connections`**: Registro de conexiones activas
+
+#### **Tokens eMSP**
+La aplicación incluye 20 tokens predefinidos para cuando actúa como eMSP:
+
+**Distribución por Tipo:**
+- **5 tokens AD_HOC_USER**: Usuarios ocasionales con diferentes perfiles
+- **5 tokens APP_USER**: Usuarios de aplicación móvil
+- **5 tokens RFID**: Tokens físicos para vehículos
+- **5 tokens OTHER**: Tokens especiales para casos específicos
+
+**Características de los Tokens:**
+- **Party ID**: EMSP001 (identificador del eMSP)
+- **Country Code**: ES (España)
+- **Whitelist**: ALWAYS, ALLOWED, ALLOWED_OFFLINE
+- **Perfiles**: REGULAR, FAST, CHEAP, GREEN
+- **Métodos de Autenticación**: APP_USER, RFID, OTHER
+
+**Estructura de Respuesta OCPI 2.2:**
+Los tokens se devuelven siguiendo la especificación OCPI 2.2 con campos obligatorios y opcionales:
+
+**Campos Obligatorios:**
+- `country_code`, `party_id`, `uid`, `type`, `contract_id`, `issuer`, `valid`, `whitelist`, `last_updated`
+
+**Campos Opcionales:**
+- `visual_number`, `group_id`, `language`, `default_profile_type`, `energy_contract`
+
+**Ejemplo de Respuesta:**
+```json
+{
+  "status_code": 1000,
+  "data": [
+    {
+      "country_code": "ES",
+      "party_id": "EMSP001",
+      "uid": "rfid-user-001",
+      "type": "RFID",
+      "contract_id": "contract-011",
+      "issuer": "EMSP_System",
+      "valid": true,
+      "whitelist": "ALWAYS",
+      "last_updated": "2025-08-31T14:39:40.205Z",
+      "visual_number": "RF001",
+      "group_id": "group-006",
+      "language": "es",
+      "default_profile_type": "REGULAR",
+      "energy_contract": {
+        "provider": "EMSP_System",
+        "type": "rfid",
+        "card_type": "ISO14443"
+      }
+    }
+  ],
+  "timestamp": "2025-08-31T14:46:50.860Z",
+  "pagination": {
+    "total": 6,
+    "offset": 0,
+    "limit": 2
+  }
+}
+```
+
+#### **Información de Conectores**
+Cada EVSE incluye información detallada de conectores:
+```json
+{
+  "id": "1",
+  "standard": "IEC_62196_T2",
+  "format": "SOCKET",
+  "power_type": "AC_1_PHASE",
+  "max_voltage": 230,
+  "max_amperage": 32,
+  "tariff_ids": ["tariff-uuid"],
+  "last_updated": "2025-02-21T12:46:23.395Z"
+}
+```
+
+### Endpoints eMSP Disponibles
+
+- **`GET /ocpi/emsp/2.2/locations`**: Obtener locations almacenadas
+- **`GET /ocpi/emsp/2.2/evses`**: Obtener EVSEs con conectores
+- **`GET /ocpi/emsp/2.2/tariffs`**: Obtener tarifas recibidas
+- **`POST /emsp/actions/save-cpo-locations`**: Guardar datos de CPO externo
+
+### Casos de Uso Comunes
+
+#### **Conectar con CPO Externo**
+1. Acceder al dashboard en `http://localhost:3000/`
+2. Ir a la pestaña "🔄 EMSP Actions"
+3. Usar "Get CPO Locations" con URL y token del CPO externo
+4. Los datos se guardan automáticamente en las tablas eMSP
+
+#### **Configurar Tokens eMSP**
+```bash
+# Ejecutar script para poblar tokens eMSP
+docker exec -i cursor-postgres-1 psql -U cpo_user -d cpo_ocpi < scripts/populate_emsp_tokens.sql
+
+# Verificar tokens creados
+docker exec -i cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT type, COUNT(*) FROM tokens WHERE party_id LIKE 'EMSP%' GROUP BY type;"
+```
+
+#### **Consultar Tokens eMSP via API**
+```bash
+# Obtener todos los tokens (con autenticación)
+curl -H "Authorization: Token OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb" \
+     "http://localhost:3000/ocpi/cpo/2.2/tokens"
+
+# Filtrar por tipo de token
+curl -H "Authorization: Token OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb" \
+     "http://localhost:3000/ocpi/cpo/2.2/tokens?type=RFID&limit=5"
+
+# Obtener token específico
+curl -H "Authorization: Token OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb" \
+     "http://localhost:3000/ocpi/cpo/2.2/tokens/emsp-token-001"
+```
+
+#### **Visualizar Datos Recibidos**
+- **EMSP Locations**: Ver ubicaciones del CPO externo
+- **EMSP EVSEs**: Ver EVSEs con conteo de conectores
+- **EMSP Tariffs**: Ver tarifas del operador externo
+
+#### **Monitoreo de Conexiones**
+- **Dashboard**: Estadísticas de conexiones activas
+- **Logs**: Seguimiento de todas las operaciones eMSP
+- **Health Check**: Estado de las conexiones externas
 
 ## 🔑 Gestión de Tokens OCPI
 
@@ -296,6 +577,39 @@ docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js list
 docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --party-id EFI --country-code ES
 ```
 
+### Problemas del Dashboard Frontend
+```bash
+# Si el dashboard no carga correctamente
+docker-compose restart app
+
+# Verificar logs del frontend
+docker-compose logs -f app | grep -E "(frontend|dashboard|error)"
+
+# Limpiar caché del navegador o usar modo incógnito
+```
+
+### Problemas de Funcionalidad eMSP
+```bash
+# Verificar tablas eMSP
+docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM emsp_locations;"
+docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM emsp_evses;"
+
+# Verificar conectores de EVSEs
+docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT id, evse_id, json_array_length(connectors) as connector_count FROM emsp_evses LIMIT 5;"
+```
+
+### Problemas de Streaming de Logs
+```bash
+# Si los logs no se actualizan en tiempo real
+docker-compose restart app
+
+# Verificar endpoint de logs
+curl -s http://localhost:3000/logs/recent | head -5
+
+# Verificar logs del servidor
+docker-compose logs -f app | grep -E "(SSE|EventSource|streaming)"
+```
+
 ### Monitoreo de Problemas
 ```bash
 # Ver logs de errores
@@ -315,6 +629,10 @@ docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --part
 - **Tarifas**: 6 (3 por país)
 - **Cobertura**: España y Portugal
 - **Protocolo**: OCPI 2.2 completo
+- **Conectores por EVSE**: 1-2 (IEC_62196_T2, DOMESTIC_F)
+- **Tipos de Conectores**: SOCKET, CABLE
+- **Potencia**: 16A-32A (AC_1_PHASE, AC_3_PHASE)
+- **Voltaje**: 40V-230V
 
 ## 🤝 Contribuir
 

@@ -272,4 +272,210 @@ router.post('/save-cpo-evses', authMiddleware, async (req, res) => {
     }
 });
 
+// POST /emsp/actions/save-emsp-tokens - Guardar tokens de nuestro eMSP
+router.post('/save-emsp-tokens', authMiddleware, async (req, res) => {
+    try {
+        const { tokens } = req.body;
+        
+        if (!tokens || !Array.isArray(tokens)) {
+            return res.status(400).json({
+                status_code: 2000,
+                status_message: 'Missing required fields: tokens array',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        console.log(`🔑 Guardando ${tokens.length} tokens de nuestro eMSP`);
+        
+        let savedCount = 0;
+        let errors = [];
+
+        for (const token of tokens) {
+            try {
+                // Validar campos obligatorios
+                if (!token.party_id || !token.country_code || !token.uid || !token.type) {
+                    console.warn(`⚠️ Token sin campos obligatorios party_id/country_code/uid/type, saltando...`);
+                    continue;
+                }
+
+                // Generar id estable si no viene: <party_id>-<uid>
+                const stableId = token.id || `${token.party_id}-${token.uid}`;
+
+                // Preparar valores con validación y valores por defecto
+                const values = [
+                    stableId,
+                    token.party_id,
+                    token.country_code,
+                    token.uid,
+                    token.type,
+                    token.contract_id || null,
+                    token.visual_number || null,
+                    token.issuer || 'Unknown',
+                    token.group_id || null,
+                    token.valid !== undefined ? token.valid : true,
+                    token.whitelist || null,
+                    token.language || null,
+                    token.default_profile_type || null,
+                    token.energy_contract ? JSON.stringify(token.energy_contract) : null,
+                    token.last_updated || new Date().toISOString()
+                ];
+
+                console.log(`🔍 Procesando token: ${token.uid} (${token.party_id}_${token.country_code}) id=${stableId}`);
+
+                // Insertar o actualizar token
+                const [result] = await sequelize.query(`
+                    INSERT INTO emsp_tokens (
+                        id, emsp_party_id, emsp_country_code, token_uid, type, contract_id, 
+                        visual_number, issuer, group_id, valid, whitelist, language, 
+                        default_profile_type, energy_contract, last_updated, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    ON CONFLICT (id) 
+                    DO UPDATE SET
+                        emsp_party_id = EXCLUDED.emsp_party_id,
+                        emsp_country_code = EXCLUDED.emsp_country_code,
+                        token_uid = EXCLUDED.token_uid,
+                        type = EXCLUDED.type,
+                        contract_id = EXCLUDED.contract_id,
+                        visual_number = EXCLUDED.visual_number,
+                        issuer = EXCLUDED.issuer,
+                        group_id = EXCLUDED.group_id,
+                        valid = EXCLUDED.valid,
+                        whitelist = EXCLUDED.whitelist,
+                        language = EXCLUDED.language,
+                        default_profile_type = EXCLUDED.default_profile_type,
+                        energy_contract = EXCLUDED.energy_contract,
+                        last_updated = EXCLUDED.last_updated,
+                        updated_at = NOW()
+                `, {
+                    replacements: values
+                });
+                
+                savedCount++;
+                console.log(`✅ Token ${token.uid} guardado exitosamente`);
+                
+            } catch (tokenError) {
+                console.error(`❌ Error guardando token ${token.id || token.uid}:`, tokenError);
+                errors.push(`Token ${token.id || token.uid}: ${tokenError.message}`);
+            }
+        }
+
+        console.log(`✅ ${savedCount} tokens guardados exitosamente en emsp_tokens`);
+
+        res.status(200).json({
+            status_code: 1000,
+            data: {
+                message: `${savedCount} tokens guardados exitosamente`,
+                total_received: tokens.length,
+                saved_count: savedCount,
+                errors: errors.length > 0 ? errors : null
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error guardando tokens eMSP:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error saving EMSP tokens',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// POST /emsp/actions/save-cpo-tariffs - Guardar tariffs de un CPO externo
+router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
+    try {
+        const { tariffs } = req.body;
+        
+        if (!tariffs || !Array.isArray(tariffs)) {
+            return res.status(400).json({
+                status_code: 2000,
+                status_message: 'Missing required fields: tariffs array',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        console.log(`🌐 Guardando ${tariffs.length} tariffs del CPO externo`);
+        
+        let savedCount = 0;
+        let errors = [];
+
+        for (const tariff of tariffs) {
+            try {
+                // Validar campos obligatorios
+                if (!tariff.party_id || !tariff.country_code || !tariff.id) {
+                    console.warn(`⚠️ Tariff sin campos obligatorios party_id/country_code/id, saltando...`);
+                    continue;
+                }
+
+                // Preparar valores con validación y valores por defecto
+                const values = [
+                    tariff.id,
+                    tariff.party_id,
+                    tariff.country_code,
+                    tariff.id, // tariff_id es el mismo que id
+                    tariff.currency || 'EUR',
+                    tariff.type || 'REGULAR', // Campo obligatorio type
+                    JSON.stringify(tariff.elements || []),
+                    tariff.start_date_time || null,
+                    tariff.end_date_time || null,
+                    tariff.last_updated || new Date().toISOString()
+                ];
+
+                console.log(`🔍 Procesando tariff: ${tariff.id} (${tariff.party_id}_${tariff.country_code})`);
+
+                // Insertar o actualizar tariff
+                const [result] = await sequelize.query(`
+                    INSERT INTO emsp_tariffs (
+                        id, emsp_party_id, emsp_country_code, tariff_id, currency, type, 
+                        elements, start_date_time, end_date_time, last_updated, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    ON CONFLICT (id) 
+                    DO UPDATE SET
+                        emsp_party_id = EXCLUDED.emsp_party_id,
+                        emsp_country_code = EXCLUDED.emsp_country_code,
+                        tariff_id = EXCLUDED.tariff_id,
+                        currency = EXCLUDED.currency,
+                        type = EXCLUDED.type,
+                        elements = EXCLUDED.elements,
+                        start_date_time = EXCLUDED.start_date_time,
+                        end_date_time = EXCLUDED.end_date_time,
+                        last_updated = EXCLUDED.last_updated,
+                        updated_at = NOW()
+                `, {
+                    replacements: values
+                });
+                
+                savedCount++;
+                console.log(`✅ Tariff ${tariff.id} guardado exitosamente`);
+                
+            } catch (tariffError) {
+                console.error(`❌ Error guardando tariff ${tariff.id}:`, tariffError);
+                errors.push(`Tariff ${tariff.id}: ${tariffError.message}`);
+            }
+        }
+
+        console.log(`✅ ${savedCount} tariffs guardados exitosamente en emsp_tariffs`);
+
+        res.status(200).json({
+            status_code: 1000,
+            data: {
+                message: `${savedCount} tariffs guardados exitosamente`,
+                total_received: tariffs.length,
+                saved_count: savedCount,
+                errors: errors.length > 0 ? errors : null
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error guardando tariffs del CPO:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error saving CPO tariffs',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = { router };
