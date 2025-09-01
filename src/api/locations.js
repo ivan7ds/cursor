@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { Location, EVSE } = require('../models');
 const logger = require('../utils/logger');
+const emspNotificationService = require('../services/emspNotificationService');
 
 /**
  * @swagger
@@ -81,6 +82,9 @@ router.get('/', async (req, res) => {
     const where = {};
     if (country_code) where.country_code = country_code;
     if (party_id) where.party_id = party_id;
+    
+    // Filtrar locations eliminadas (soft delete)
+    where.deleted_at = null;
     
     // First get total count
     const totalCount = await Location.count({ where });
@@ -372,6 +376,12 @@ router.post('/', async (req, res) => {
 
     const location = await Location.create(locationData);
 
+    // Notificar a los EMSPs sobre la nueva location (en segundo plano)
+    emspNotificationService.notifyLocationCreated(location)
+      .catch(error => {
+        logger.error('Error notificando a EMSPs sobre nueva location:', error);
+      });
+
     res.status(201).json({
       status_code: 1000,
       data: location,
@@ -420,6 +430,12 @@ router.put('/:id', async (req, res) => {
       last_updated: new Date()
     });
 
+    // Notificar a los EMSPs sobre la location actualizada (en segundo plano)
+    emspNotificationService.notifyLocationUpdated(location)
+      .catch(error => {
+        logger.error('Error notificando a EMSPs sobre location actualizada:', error);
+      });
+
     res.status(200).json({
       status_code: 1000,
       data: location,
@@ -463,15 +479,19 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    await location.destroy();
+    // Soft delete: marcar como eliminada en lugar de destruir
+    await location.update({
+      deleted_at: new Date(),
+      last_updated: new Date()
+    });
 
     res.status(200).json({
       status_code: 1000,
-      status_message: 'Location deleted successfully',
+      status_message: 'Location soft deleted successfully',
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    logger.error('Error deleting location:', error);
+    logger.error('Error soft deleting location:', error);
     res.status(500).json({
       status_code: 2000,
       status_message: 'Internal server error',

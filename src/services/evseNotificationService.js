@@ -195,8 +195,8 @@ class EVSENotificationService {
     
     // Construir la URL del endpoint de locations según OCPI 2.2
     // Formato: {base_url}/ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
-    // Usamos evse_uid (campo 'id' de la BD) en lugar de evse_id para la URL
-    return `${baseUrl}/ocpi/emsp/2.2/locations/${emsp.country_code}/${emsp.party_id}/${evseChange.location_id}/${evseChange.evse_uid}`;
+    // Usamos nuestro party_id (IPD) y country_code (ES) para identificar nuestro CPO
+    return `${baseUrl}/ocpi/emsp/2.2/locations/ES/IPD/${evseChange.location_id}/${evseChange.evse_uid}`;
   }
 
   /**

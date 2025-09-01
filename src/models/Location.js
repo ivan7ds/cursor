@@ -128,6 +128,11 @@ const Location = sequelize.define('Location', {
     allowNull: true,
     defaultValue: true,
     comment: 'Whether this location should be published'
+  },
+  deleted_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Timestamp when this location was soft deleted'
   }
 }, {
   tableName: 'locations',
@@ -138,6 +143,9 @@ const Location = sequelize.define('Location', {
     },
     {
       fields: ['last_updated']
+    },
+    {
+      fields: ['deleted_at']
     }
   ]
 });

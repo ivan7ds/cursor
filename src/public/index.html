@@ -165,6 +165,9 @@
                             <i class="bi bi-geo-alt"></i> Locations
                         </h5>
                         <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createLocationBtn">
+                                <i class="bi bi-plus-circle"></i> Crear Location
+                            </button>
                             <button type="button" class="btn btn-outline-primary btn-sm" id="refreshLocations">
                                 <i class="bi bi-arrow-clockwise"></i> Actualizar
                             </button>
@@ -183,6 +186,7 @@
                                         <th>Dirección</th>
                                         <th>EVSEs</th>
                                         <th>Última Actualización</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="locationsTableBody">
@@ -206,6 +210,9 @@
                             <i class="bi bi-ev-station"></i> EVSEs
                         </h5>
                         <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createEvseBtn">
+                                <i class="bi bi-plus-circle"></i> Crear EVSE
+                            </button>
                             <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEvses">
                                 <i class="bi bi-arrow-clockwise"></i> Actualizar
                             </button>
@@ -242,11 +249,12 @@
                                         <th>Estado</th>
                                         <th>Conectores</th>
                                         <th>Última Actualización</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="evsesTableBody">
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">
+                                        <td colspan="7" class="text-center text-muted">
                                             <i class="bi bi-hourglass-split"></i> Cargando EVSEs...
                                         </td>
                                     </tr>
@@ -808,6 +816,537 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-success" id="saveTariffBtn">
                         <i class="bi bi-check-circle"></i> Crear Tarifa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear location -->
+    <div class="modal fade" id="createLocationModal" tabindex="-1" aria-labelledby="createLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createLocationModalLabel">
+                        <i class="bi bi-geo-alt"></i> Crear Nueva Location
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createLocationForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationId" class="form-label">ID de Location *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="locationId" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateLocationIdBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">ID único autogenerado (UUID)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationName" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="locationName" required placeholder="Nombre de la ubicación">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationCountry" class="form-label">País *</label>
+                                <select class="form-select" id="locationCountry" required>
+                                    <option value="">Seleccionar país...</option>
+                                    <option value="ESP">España</option>
+                                    <option value="PRT">Portugal</option>
+                                    <option value="FRA">Francia</option>
+                                    <option value="DEU">Alemania</option>
+                                    <option value="ITA">Italia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationCity" class="form-label">Ciudad *</label>
+                                <input type="text" class="form-control" id="locationCity" required placeholder="Nombre de la ciudad">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationAddress" class="form-label">Dirección *</label>
+                                <input type="text" class="form-control" id="locationAddress" required placeholder="Dirección completa">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationPostalCode" class="form-label">Código Postal</label>
+                                <input type="text" class="form-control" id="locationPostalCode" placeholder="Código postal">
+                            </div>
+                        </div>
+
+                        <!-- Coordenadas -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationLatitude" class="form-label">Latitud *</label>
+                                <input type="number" class="form-control" id="locationLatitude" step="0.000001" required placeholder="40.4168">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationLongitude" class="form-label">Longitud *</label>
+                                <input type="number" class="form-control" id="locationLongitude" step="0.000001" required placeholder="-3.7038">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationParkingType" class="form-label">Tipo de Parking *</label>
+                                <select class="form-select" id="locationParkingType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="ON_STREET">En la calle</option>
+                                    <option value="PARKING_GARAGE">Garaje</option>
+                                    <option value="UNDERGROUND_GARAGE">Garaje subterráneo</option>
+                                    <option value="PARKING_LOT">Aparcamiento</option>
+                                    <option value="ALONG_MOTORWAY">Junto a la autopista</option>
+                                    <option value="ON_DRIVEWAY">En el camino de entrada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationTimeZone" class="form-label">Zona Horaria *</label>
+                                <select class="form-select" id="locationTimeZone" required>
+                                    <option value="">Seleccionar zona horaria...</option>
+                                    <option value="Europe/Madrid">Europe/Madrid (España)</option>
+                                    <option value="Europe/Lisbon">Europe/Lisbon (Portugal)</option>
+                                    <option value="Europe/Paris">Europe/Paris (Francia)</option>
+                                    <option value="Europe/Berlin">Europe/Berlin (Alemania)</option>
+                                    <option value="Europe/Rome">Europe/Rome (Italia)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Información de contacto -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationPhone" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="locationPhone" placeholder="+34 900 123 456">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="locationEmail" placeholder="info@location.com">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationWebsite" class="form-label">Sitio Web</label>
+                                <input type="url" class="form-control" id="locationWebsite" placeholder="https://...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationOperator" class="form-label">Operador</label>
+                                <input type="text" class="form-control" id="locationOperator" placeholder="Nombre del operador">
+                            </div>
+                        </div>
+
+                        <!-- Horarios -->
+                        <div class="mb-3">
+                            <label class="form-label">Horarios de Operación</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="locationOpen24h" class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="locationOpen24h">
+                                         Abierto 24/7
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="locationAccessPublic" class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="locationAccessPublic" checked>
+                                         Acceso público
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveLocationBtn">
+                        <i class="bi bi-check-circle"></i> Crear Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar location -->
+    <div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editLocationModalLabel">
+                        <i class="bi bi-pencil"></i> Editar Location
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editLocationForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationId" class="form-label">ID de Location *</label>
+                                <input type="text" class="form-control" id="editLocationId" required readonly>
+                                <small class="form-text text-muted">ID único (no editable)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationName" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="editLocationName" required placeholder="Nombre de la ubicación">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationCountry" class="form-label">País *</label>
+                                <select class="form-select" id="editLocationCountry" required>
+                                    <option value="">Seleccionar país...</option>
+                                    <option value="ESP">España</option>
+                                    <option value="PRT">Portugal</option>
+                                    <option value="FRA">Francia</option>
+                                    <option value="DEU">Alemania</option>
+                                    <option value="ITA">Italia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationCity" class="form-label">Ciudad *</label>
+                                <input type="text" class="form-control" id="editLocationCity" required placeholder="Nombre de la ciudad">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationAddress" class="form-label">Dirección *</label>
+                                <input type="text" class="form-control" id="editLocationAddress" required placeholder="Dirección completa">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationPostalCode" class="form-label">Código Postal</label>
+                                <input type="text" class="form-control" id="editLocationPostalCode" placeholder="Código postal">
+                            </div>
+                        </div>
+
+                        <!-- Coordenadas -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationLatitude" class="form-label">Latitud *</label>
+                                <input type="number" class="form-control" id="editLocationLatitude" step="0.000001" required placeholder="40.4168">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationLongitude" class="form-label">Longitud *</label>
+                                <input type="number" class="form-control" id="editLocationLongitude" step="0.000001" required placeholder="-3.7038">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationParkingType" class="form-label">Tipo de Parking *</label>
+                                <select class="form-select" id="editLocationParkingType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="ON_STREET">En la calle</option>
+                                    <option value="PARKING_GARAGE">Garaje</option>
+                                    <option value="UNDERGROUND_GARAGE">Garaje subterráneo</option>
+                                    <option value="PARKING_LOT">Aparcamiento</option>
+                                    <option value="ALONG_MOTORWAY">Junto a la autopista</option>
+                                    <option value="ON_DRIVEWAY">En el camino de entrada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationTimeZone" class="form-label">Zona Horaria *</label>
+                                <select class="form-select" id="editLocationTimeZone" required>
+                                    <option value="">Seleccionar zona horaria...</option>
+                                    <option value="Europe/Madrid">Europe/Madrid (España)</option>
+                                    <option value="Europe/Lisbon">Europe/Lisbon (Portugal)</option>
+                                    <option value="Europe/Paris">Europe/Paris (Francia)</option>
+                                    <option value="Europe/Berlin">Europe/Berlin (Alemania)</option>
+                                    <option value="Europe/Rome">Europe/Rome (Italia)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Información de contacto -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationPhone" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="editLocationPhone" placeholder="+34 900 123 456">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editLocationEmail" placeholder="info@location.com">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationWebsite" class="form-label">Sitio Web</label>
+                                <input type="url" class="form-control" id="editLocationWebsite" placeholder="https://...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationOperator" class="form-label">Operador</label>
+                                <input type="text" class="form-control" id="editLocationOperator" placeholder="Nombre del operador">
+                            </div>
+                        </div>
+
+                        <!-- Horarios -->
+                        <div class="mb-3">
+                            <label class="form-label">Horarios de Operación</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="editLocationOpen24h" class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="editLocationOpen24h">
+                                         Abierto 24/7
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editLocationAccessPublic" class="form-label">
+                                        <input type="checkbox" class="form-check-input" id="editLocationAccessPublic" checked>
+                                         Acceso público
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateLocationBtn">
+                        <i class="bi bi-check-circle"></i> Actualizar Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear EVSE -->
+    <div class="modal fade" id="createEvseModal" tabindex="-1" aria-labelledby="createEvseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createEvseModalLabel">
+                        <i class="bi bi-ev-station"></i> Crear Nuevo EVSE
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createEvseForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="evseUid" class="form-label">UID *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="evseUid" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateEvseUidBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">UID único autogenerado (UUID)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="evseLocation" class="form-label">Location *</label>
+                                <select class="form-select" id="evseLocation" required>
+                                    <option value="">Seleccionar location...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="evseStatus" class="form-label">Estado *</label>
+                                <select class="form-select" id="evseStatus" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="BLOCKED">Bloqueado</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="REMOVED">Removido</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="evsePhysicalReference" class="form-label">Referencia Física</label>
+                                <input type="text" class="form-control" id="evsePhysicalReference" placeholder="Ej: Zona A - Nivel 1">
+                            </div>
+                        </div>
+
+                        <!-- Capabilities -->
+                        <div class="mb-3">
+                            <label class="form-label">Capabilities *</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CHARGING_PROFILE_CAPABLE" value="CHARGING_PROFILE_CAPABLE">
+                                        <label class="form-check-label" for="capability_CHARGING_PROFILE_CAPABLE">
+                                            CHARGING_PROFILE_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CREDIT_CARD_PAYABLE" value="CREDIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="capability_CREDIT_CARD_PAYABLE">
+                                            CREDIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_REMOTE_START_STOP_CAPABLE" value="REMOTE_START_STOP_CAPABLE">
+                                        <label class="form-check-label" for="capability_REMOTE_START_STOP_CAPABLE">
+                                            REMOTE_START_STOP_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_RESERVABLE" value="RESERVABLE">
+                                        <label class="form-check-label" for="capability_RESERVABLE">
+                                            RESERVABLE
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_RFID_READER" value="RFID_READER">
+                                        <label class="form-check-label" for="capability_RFID_READER">
+                                            RFID_READER
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_UNLOCK_CAPABLE" value="UNLOCK_CAPABLE">
+                                        <label class="form-check-label" for="capability_UNLOCK_CAPABLE">
+                                            UNLOCK_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CHARGING_PREFERENCES_CAPABLE" value="CHARGING_PREFERENCES_CAPABLE">
+                                        <label class="form-check-label" for="capability_CHARGING_PREFERENCES_CAPABLE">
+                                            CHARGING_PREFERENCES_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CHIP_CARD_SUPPORT" value="CHIP_CARD_SUPPORT">
+                                        <label class="form-check-label" for="capability_CHIP_CARD_SUPPORT">
+                                            CHIP_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CONTACTLESS_CARD_SUPPORT" value="CONTACTLESS_CARD_SUPPORT">
+                                        <label class="form-check-label" for="capability_CONTACTLESS_CARD_SUPPORT">
+                                            CONTACTLESS_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_PED_TERMINAL" value="PED_TERMINAL">
+                                        <label class="form-check-label" for="capability_PED_TERMINAL">
+                                            PED_TERMINAL
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_DEBIT_CARD_PAYABLE" value="DEBIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="capability_DEBIT_CARD_PAYABLE">
+                                            DEBIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_TOKEN_GROUP_CAPABLE" value="TOKEN_GROUP_CAPABLE">
+                                        <label class="form-check-label" for="capability_TOKEN_GROUP_CAPABLE">
+                                            TOKEN_GROUP_CAPABLE
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conectores -->
+                        <div class="mb-3">
+                            <label class="form-label">Conectores *</label>
+                            <div id="evseConnectorsContainer">
+                                <div class="evse-connector border rounded p-3 mb-2">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="form-label">ID del Conector</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control connector-id" required readonly>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm generate-connector-id">
+                                                    <i class="bi bi-arrow-clockwise"></i> Generar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Standard</label>
+                                            <select class="form-select connector-standard" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="CHADEMO">CHADEMO (DC)</option>
+                                                <option value="CHAOJI">CHAOJI (DC)</option>
+                                                <option value="DOMESTIC_A">DOMESTIC_A (NEMA 1-15)</option>
+                                                <option value="DOMESTIC_B">DOMESTIC_B (NEMA 5-15)</option>
+                                                <option value="DOMESTIC_C">DOMESTIC_C (CEE 7/17)</option>
+                                                <option value="DOMESTIC_D">DOMESTIC_D (3 pin)</option>
+                                                <option value="DOMESTIC_E">DOMESTIC_E (CEE 7/5)</option>
+                                                <option value="DOMESTIC_F">DOMESTIC_F (Schuko)</option>
+                                                <option value="DOMESTIC_G">DOMESTIC_G (BS 1363)</option>
+                                                <option value="DOMESTIC_H">DOMESTIC_H (SI-32)</option>
+                                                <option value="DOMESTIC_I">DOMESTIC_I (AS 3112)</option>
+                                                <option value="DOMESTIC_J">DOMESTIC_J (SEV 1011)</option>
+                                                <option value="IEC_62196_T1">IEC_62196_T1 (Type 1)</option>
+                                                <option value="IEC_62196_T1_COMBO">IEC_62196_T1_COMBO</option>
+                                                <option value="IEC_62196_T2">IEC_62196_T2 (Type 2)</option>
+                                                <option value="IEC_62196_T2_COMBO">IEC_62196_T2_COMBO</option>
+                                                <option value="IEC_62196_T3A">IEC_62196_T3A</option>
+                                                <option value="IEC_62196_T3C">IEC_62196_T3C</option>
+                                                <option value="TESLA_R">TESLA_R</option>
+                                                <option value="TESLA_S">TESLA_S</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Format</label>
+                                            <select class="form-select connector-format" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="SOCKET">SOCKET (Enchufe)</option>
+                                                <option value="CABLE">CABLE (Cable adjunto)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Power Type</label>
+                                            <select class="form-select connector-power-type" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="AC_1_PHASE">AC_1_PHASE (AC monofásico)</option>
+                                                <option value="AC_2_PHASE">AC_2_PHASE (AC bifásico)</option>
+                                                <option value="AC_2_PHASE_SPLIT">AC_2_PHASE_SPLIT (AC bifásico split)</option>
+                                                <option value="AC_3_PHASE">AC_3_PHASE (AC trifásico)</option>
+                                                <option value="DC">DC (Corriente continua)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Voltaje (V)</label>
+                                            <input type="number" class="form-control connector-voltage" value="230" min="0" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Amperaje (A)</label>
+                                            <input type="number" class="form-control connector-amperage" value="32" min="0" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Potencia Máxima (W)</label>
+                                            <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addEvseConnector">
+                                <i class="bi bi-plus-circle"></i> Agregar Conector
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveEvseBtn">
+                        <i class="bi bi-check-circle"></i> Crear EVSE
                     </button>
                 </div>
             </div>

@@ -17,6 +17,7 @@ services:
       - OCPI_PARTY_ID=IPD
       - OCPI_COUNTRY_CODE=ES
       - OCPI_BASE_URL=https://f106470a83a3.ngrok-free.app
+      - EVSE_NOTIFICATION_INTERVAL_MS=30000
     depends_on:
       - postgres
       - redis

@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { EVSE, Location } = require('../models');
 const logger = require('../utils/logger');
+const emspNotificationService = require('../services/emspNotificationService');
 
 /**
  * @swagger
@@ -39,6 +40,8 @@ router.get('/', async (req, res) => {
     if (party_id) where.party_id = party_id;
     if (location_id) where.location_id = location_id;
     if (status) where.status = status;
+    // Filtrar EVSEs eliminados (soft delete)
+    where.deleted_at = null;
     
     const evses = await EVSE.findAndCountAll({
       where,
@@ -142,6 +145,12 @@ router.post('/', async (req, res) => {
 
     const evse = await EVSE.create(evseData);
 
+    // Notificar a los EMSPs sobre el nuevo EVSE (en segundo plano)
+    emspNotificationService.notifyEVSECreated(evse)
+      .catch(error => {
+        logger.error('Error notificando a EMSPs sobre nuevo EVSE:', error);
+      });
+
     res.status(201).json({
       status_code: 1000,
       data: evse,
@@ -233,11 +242,15 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    await evse.destroy();
+    // Soft delete: marcar como eliminado en lugar de destruir
+    await evse.update({
+      deleted_at: new Date(),
+      last_updated: new Date()
+    });
 
     res.status(200).json({
       status_code: 1000,
-      status_message: 'EVSE deleted successfully',
+      status_message: 'EVSE soft deleted successfully',
       timestamp: new Date().toISOString()
     });
   } catch (error) {

@@ -207,6 +207,17 @@ if (refreshEmspTariffs) {
                 console.warn('⚠️ Elemento createTariffBtn no encontrado');
             }
 
+            const createLocationBtn = document.getElementById('createLocationBtn');
+            if (createLocationBtn) {
+                createLocationBtn.addEventListener('click', () => {
+                    console.log('📍 Botón createLocationBtn clickeado');
+                    this.showCreateLocationModal();
+                });
+                console.log('✅ Event listener para createLocationBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento createLocationBtn no encontrado');
+            }
+
 const refreshEmspTokens = document.getElementById('refreshEmspTokens');
 if (refreshEmspTokens) {
     refreshEmspTokens.addEventListener('click', () => {
@@ -439,6 +450,24 @@ if (refreshEmspTokens) {
             
             // Event listeners para el modal de creación de tarifas
             this.setupTariffModalEventListeners();
+            
+            // Event listeners para el modal de creación de locations
+            this.setupLocationModalEventListeners();
+            
+            // Event listeners para botones de borrado de locations
+            this.setupLocationDeleteEventListeners();
+            
+            // Event listeners para botones de edición de locations
+            this.setupLocationEditEventListeners();
+            
+            // Event listeners del modal de edición de locations
+            this.setupEditLocationModalEventListeners();
+            
+            // Event listeners para botones de creación de EVSEs
+            this.setupEvseModalEventListeners();
+            
+            // Event listeners para botones de borrado de EVSEs
+            this.setupEvseDeleteEventListeners();
             
             // Crear botón de prueba
             this.createTestButton();
@@ -1028,7 +1057,7 @@ if (refreshEmspTokens) {
         if (locations.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-muted">
+                    <td colspan="8" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay locations disponibles
                     </td>
                 </tr>
@@ -1037,7 +1066,7 @@ if (refreshEmspTokens) {
         }
 
         tbody.innerHTML = locations.map(location => `
-            <tr class="fade-in">
+            <tr class="fade-in" data-location-id="${location.id}">
                 <td><code>${location.id}</code></td>
                 <td>${location.name || 'N/A'}</td>
                 <td>${location.country_code}</td>
@@ -1045,6 +1074,22 @@ if (refreshEmspTokens) {
                 <td>${location.address || 'N/A'}</td>
                 <td><span class="badge bg-secondary">${location.evses?.length || 0}</span></td>
                 <td>${new Date(location.last_updated).toLocaleString()}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm edit-location-btn me-1" 
+                                data-location-id="${location.id}" 
+                                data-location-name="${location.name || 'N/A'}"
+                                title="Editar location">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm delete-location-btn" 
+                                data-location-id="${location.id}" 
+                                data-location-name="${location.name || 'N/A'}"
+                                title="Eliminar location">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
             </tr>
         `).join('');
         
@@ -1119,7 +1164,7 @@ if (refreshEmspTokens) {
         if (evses.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
+                    <td colspan="7" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay EVSEs disponibles
                     </td>
                 </tr>
@@ -1128,13 +1173,23 @@ if (refreshEmspTokens) {
         }
 
         tbody.innerHTML = evses.map(evse => `
-            <tr class="fade-in">
+            <tr class="fade-in" data-evse-id="${evse.id}">
                 <td><code>${evse.evse_id}</code></td>
                 <td><code>${evse.id}</code></td>
                 <td><code>${evse.location_id}</code></td>
                 <td><span class="badge status-badge status-${evse.status}">${evse.status}</span></td>
                 <td>${evse.connectors?.length || 0}</td>
                 <td>${new Date(evse.last_updated).toLocaleString()}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-danger btn-sm delete-evse-btn"
+                                data-evse-id="${evse.id}"
+                                data-evse-name="${evse.evse_id || 'N/A'}"
+                                title="Eliminar EVSE">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
             </tr>
         `).join('');
         
@@ -1732,6 +1787,1497 @@ if (refreshEmspTokens) {
             console.log('✅ Event listeners del modal de tarifas configurados');
         } catch (error) {
             console.error('❌ Error configurando event listeners del modal de tarifas:', error);
+        }
+    }
+
+    // ===== FUNCIONES DEL MODAL DE CREACIÓN DE LOCATIONS =====
+
+    setupLocationModalEventListeners() {
+        try {
+            console.log('🔧 Configurando event listeners del modal de locations...');
+            
+            // Botón para guardar location
+            const saveLocationBtn = document.getElementById('saveLocationBtn');
+            if (saveLocationBtn) {
+                saveLocationBtn.addEventListener('click', () => {
+                    this.saveLocation();
+                });
+                console.log('✅ Event listener para saveLocationBtn agregado');
+            }
+
+            // Botón para generar ID automáticamente
+            const generateLocationIdBtn = document.getElementById('generateLocationIdBtn');
+            if (generateLocationIdBtn) {
+                generateLocationIdBtn.addEventListener('click', () => {
+                    this.generateLocationId();
+                });
+                console.log('✅ Event listener para generateLocationIdBtn agregado');
+            }
+
+            // Event listeners para cerrar el modal
+            this.setupLocationModalCloseEventListeners();
+
+            console.log('✅ Event listeners del modal de locations configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners del modal de locations:', error);
+        }
+    }
+
+    setupLocationModalCloseEventListeners() {
+        try {
+            // Botón de cerrar (X)
+            const closeBtn = document.querySelector('#createLocationModal .btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.closeLocationModal();
+                });
+            }
+
+            // Botón Cancelar
+            const cancelBtn = document.querySelector('#createLocationModal .btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.closeLocationModal();
+                });
+            }
+
+            // Cerrar al hacer clic en el backdrop
+            const modalElement = document.getElementById('createLocationModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', (event) => {
+                    if (event.target === modalElement) {
+                        this.closeLocationModal();
+                    }
+                });
+            }
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modalElement && modalElement.classList.contains('show')) {
+                    this.closeLocationModal();
+                }
+            });
+
+            console.log('✅ Event listeners de cierre del modal de locations configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners de cierre del modal de locations:', error);
+        }
+    }
+
+    closeLocationModal() {
+        try {
+            const modalElement = document.getElementById('createLocationModal');
+            if (modalElement) {
+                // Intentar usar Bootstrap API si está disponible
+                try {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) {
+                            modal.hide();
+                            console.log('✅ Modal cerrado usando Bootstrap API');
+                            return;
+                        }
+                    }
+                } catch (bootstrapError) {
+                    console.log('⚠️ Bootstrap API no disponible, usando fallback manual');
+                }
+                
+                // Fallback: cerrar manualmente
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                modalElement.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+                
+                // Remover backdrop
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                
+                // Limpiar formulario
+                this.resetLocationForm();
+                
+                console.log('✅ Modal de location cerrado manualmente');
+            }
+        } catch (error) {
+            console.error('❌ Error cerrando modal de location:', error);
+        }
+    }
+
+    resetLocationForm() {
+        try {
+            const form = document.getElementById('createLocationForm');
+            if (form) {
+                form.reset();
+                
+                // Restablecer valores por defecto
+                document.getElementById('locationAccessPublic').checked = true;
+                
+                // Generar nuevo ID único
+                this.generateLocationId();
+                
+                console.log('✅ Formulario de location reseteado');
+            }
+        } catch (error) {
+            console.error('❌ Error reseteando formulario de location:', error);
+        }
+    }
+
+    showCreateLocationModal() {
+        try {
+            console.log('📍 Mostrando modal de creación de location...');
+            
+            const modalElement = document.getElementById('createLocationModal');
+            if (!modalElement) {
+                throw new Error('Elemento modal de location no encontrado');
+            }
+            
+            // Intentar usar Bootstrap API si está disponible
+            try {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                    console.log('✅ Modal mostrado usando Bootstrap API');
+                } else {
+                    throw new Error('Bootstrap API no disponible');
+                }
+            } catch (bootstrapError) {
+                console.log('⚠️ Bootstrap API no disponible, usando fallback manual');
+                
+                // Fallback: mostrar el modal manualmente
+                modalElement.classList.add('show');
+                modalElement.style.display = 'block';
+                modalElement.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+                
+                // Agregar backdrop
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+                
+                console.log('✅ Modal mostrado manualmente');
+            }
+            
+            // Generar ID automáticamente al abrir el modal
+            this.generateLocationId();
+            
+        } catch (error) {
+            console.error('❌ Error mostrando modal de creación de location:', error);
+        }
+    }
+
+    generateLocationId() {
+        try {
+            console.log('🆔 Generando ID único para location...');
+            
+            // Generar UUID v4
+            const uuid = this.generateUUID();
+            
+            // Asignar al campo
+            const locationIdField = document.getElementById('locationId');
+            if (locationIdField) {
+                locationIdField.value = uuid;
+                console.log('✅ ID único generado:', uuid);
+            } else {
+                console.warn('⚠️ Campo locationId no encontrado');
+            }
+        } catch (error) {
+            console.error('❌ Error generando ID de location:', error);
+        }
+    }
+
+    generateUUID() {
+        try {
+            // Implementación de UUID v4
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        } catch (error) {
+            console.error('❌ Error generando UUID:', error);
+            // Fallback: timestamp + random
+            return 'loc-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+    }
+
+    async saveLocation() {
+        try {
+            console.log('💾 Guardando location...');
+            
+            // Validar formulario
+            if (!this.validateLocationForm()) {
+                return;
+            }
+            
+            // Recopilar datos del formulario
+            const locationData = this.collectLocationFormData();
+            
+            // Enviar al backend
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify(locationData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Location creada exitosamente:', result);
+            
+            // Mostrar notificación de éxito
+            this.showNotification('Location creada exitosamente', 'success');
+            
+            // Cerrar modal
+            this.closeLocationModal();
+            
+            // Recargar lista de locations
+            this.loadLocations();
+            
+        } catch (error) {
+            console.error('❌ Error guardando location:', error);
+            this.showNotification(`Error al crear location: ${error.message}`, 'error');
+        }
+    }
+
+    validateLocationForm() {
+        try {
+            const form = document.getElementById('createLocationForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Error validando formulario de location:', error);
+            return false;
+        }
+    }
+
+    collectLocationFormData() {
+        try {
+            const formData = {
+                id: document.getElementById('locationId').value,
+                name: document.getElementById('locationName').value,
+                country: document.getElementById('locationCountry').value,
+                city: document.getElementById('locationCity').value,
+                address: document.getElementById('locationAddress').value,
+                postal_code: document.getElementById('locationPostalCode').value || null,
+                coordinates: {
+                    latitude: parseFloat(document.getElementById('locationLatitude').value),
+                    longitude: parseFloat(document.getElementById('locationLongitude').value)
+                },
+                parking_type: document.getElementById('locationParkingType').value,
+                time_zone: document.getElementById('locationTimeZone').value,
+                phone: document.getElementById('locationPhone').value || null,
+                email: document.getElementById('locationEmail').value || null,
+                website: document.getElementById('locationWebsite').value || null,
+                operator: document.getElementById('locationOperator').value || null,
+                open_24h: document.getElementById('locationOpen24h').checked,
+                access_public: document.getElementById('locationAccessPublic').checked,
+                country_code: 'ES', // Por defecto España
+                party_id: 'IPD', // Por defecto IPD
+                last_updated: new Date().toISOString()
+            };
+            
+            console.log('📊 Datos de location recopilados:', formData);
+            return formData;
+        } catch (error) {
+            console.error('❌ Error recopilando datos de location:', error);
+            return null;
+        }
+    }
+
+    // ===== FUNCIONES DEL MODAL DE CREACIÓN DE EVSEs =====
+
+    setupEvseModalEventListeners() {
+        try {
+            console.log('🔌 Configurando event listeners del modal de EVSEs...');
+            
+            // Botón para crear EVSE
+            const createEvseBtn = document.getElementById('createEvseBtn');
+            if (createEvseBtn) {
+                createEvseBtn.addEventListener('click', () => {
+                    this.showCreateEvseModal();
+                });
+                console.log('✅ Event listener para createEvseBtn agregado');
+            }
+
+            // Botón para generar UID de EVSE
+            const generateEvseUidBtn = document.getElementById('generateEvseUidBtn');
+            if (generateEvseUidBtn) {
+                generateEvseUidBtn.addEventListener('click', () => {
+                    this.generateEvseUid();
+                });
+                console.log('✅ Event listener para generateEvseUidBtn agregado');
+            }
+
+            // Botón para agregar conector
+            const addEvseConnectorBtn = document.getElementById('addEvseConnector');
+            if (addEvseConnectorBtn) {
+                addEvseConnectorBtn.addEventListener('click', () => {
+                    this.addEvseConnector();
+                });
+                console.log('✅ Event listener para addEvseConnector agregado');
+            }
+
+            // Botón para guardar EVSE
+            const saveEvseBtn = document.getElementById('saveEvseBtn');
+            if (saveEvseBtn) {
+                saveEvseBtn.addEventListener('click', () => {
+                    this.saveEvse();
+                });
+                console.log('✅ Event listener para saveEvseBtn agregado');
+            }
+
+            // Event listeners para cerrar el modal
+            this.setupEvseModalCloseEventListeners();
+
+            console.log('✅ Event listeners del modal de EVSEs configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners del modal de EVSEs:', error);
+        }
+    }
+
+    setupEvseModalCloseEventListeners() {
+        try {
+            // Botón de cerrar (X)
+            const closeBtn = document.querySelector('#createEvseModal .btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.closeEvseModal();
+                });
+            }
+
+            // Botón Cancelar
+            const cancelBtn = document.querySelector('#createEvseModal .btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.closeEvseModal();
+                });
+            }
+
+            // Cerrar al hacer clic en el backdrop
+            const modalElement = document.getElementById('createEvseModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', (event) => {
+                    if (event.target === modalElement) {
+                        this.closeEvseModal();
+                    }
+                });
+            }
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modalElement && modalElement.classList.contains('show')) {
+                    this.closeEvseModal();
+                }
+            });
+
+            console.log('✅ Event listeners de cierre del modal de EVSEs configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners de cierre del modal de EVSEs:', error);
+        }
+    }
+
+    closeEvseModal() {
+        try {
+            const modalElement = document.getElementById('createEvseModal');
+            if (modalElement) {
+                // Intentar usar Bootstrap API si está disponible
+                try {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        if (modal) {
+                            modal.hide();
+                            console.log('✅ Modal de EVSE cerrado usando Bootstrap API');
+                            return;
+                        }
+                    }
+                } catch (bootstrapError) {
+                    console.log('⚠️ Bootstrap API no disponible, usando fallback manual');
+                }
+                
+                // Fallback: cerrar manualmente
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                modalElement.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+                
+                // Remover backdrop
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                
+                // Limpiar formulario
+                this.resetEvseForm();
+                
+                console.log('✅ Modal de EVSE cerrado manualmente');
+            }
+        } catch (error) {
+            console.error('❌ Error cerrando modal de EVSE:', error);
+        }
+    }
+
+    resetEvseForm() {
+        try {
+            const form = document.getElementById('createEvseForm');
+            if (form) {
+                form.reset();
+                
+                // Restablecer valores por defecto
+                document.getElementById('evseStatus').value = 'AVAILABLE';
+                
+                // Generar nuevos UIDs
+                this.generateEvseUid();
+                this.generateConnectorIds();
+                
+                // Limpiar contenedor de conectores (mantener solo uno)
+                const container = document.getElementById('evseConnectorsContainer');
+                if (container) {
+                    container.innerHTML = '';
+                    this.addEvseConnector(); // Agregar un conector por defecto
+                }
+                
+                console.log('✅ Formulario de EVSE reseteado');
+            }
+        } catch (error) {
+            console.error('❌ Error reseteando formulario de EVSE:', error);
+        }
+    }
+
+    showCreateEvseModal() {
+        try {
+            console.log('🔌 Mostrando modal de creación de EVSE...');
+            
+            const modalElement = document.getElementById('createEvseModal');
+            if (!modalElement) {
+                throw new Error('Elemento modal de EVSE no encontrado');
+            }
+            
+            // Intentar usar Bootstrap API si está disponible
+            try {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                    console.log('✅ Modal mostrado usando Bootstrap API');
+                } else {
+                    throw new Error('Bootstrap API no disponible');
+                }
+            } catch (bootstrapError) {
+                console.log('⚠️ Bootstrap API no disponible, usando fallback manual');
+                
+                // Fallback: mostrar el modal manualmente
+                modalElement.classList.add('show');
+                modalElement.style.display = 'block';
+                modalElement.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+                
+                // Agregar backdrop
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+                
+                console.log('✅ Modal mostrado manualmente');
+            }
+            
+            // Generar UIDs automáticamente al abrir el modal
+            this.generateEvseUid();
+            this.generateConnectorIds();
+            
+            // Cargar locations para el selector
+            this.loadLocationsForEvse();
+            
+            // Configurar valores por defecto
+            document.getElementById('evseStatus').value = 'AVAILABLE';
+            
+        } catch (error) {
+            console.error('❌ Error mostrando modal de creación de EVSE:', error);
+        }
+    }
+
+    generateEvseUid() {
+        try {
+            console.log('🆔 Generando UID único para EVSE...');
+            
+            // Generar UUID v4
+            const uuid = this.generateUUID();
+            
+            // Asignar al campo
+            const evseUidField = document.getElementById('evseUid');
+            if (evseUidField) {
+                evseUidField.value = uuid;
+                console.log('✅ UID único generado:', uuid);
+            } else {
+                console.warn('⚠️ Campo evseUid no encontrado');
+            }
+        } catch (error) {
+            console.error('❌ Error generando UID de EVSE:', error);
+        }
+    }
+
+    generateConnectorIds() {
+        try {
+            console.log('🔌 Generando IDs únicos para conectores...');
+            
+            const connectorElements = document.querySelectorAll('.evse-connector');
+            connectorElements.forEach((connectorElement, index) => {
+                const idField = connectorElement.querySelector('.connector-id');
+                if (idField && !idField.value) {
+                    const uuid = this.generateUUID();
+                    idField.value = uuid;
+                    console.log(`✅ ID de conector ${index + 1} generado:`, uuid);
+                }
+            });
+        } catch (error) {
+            console.error('❌ Error generando IDs de conectores:', error);
+        }
+    }
+
+    addEvseConnector() {
+        try {
+            console.log('🔌 Agregando nuevo conector...');
+            
+            const container = document.getElementById('evseConnectorsContainer');
+            if (!container) {
+                throw new Error('Contenedor de conectores no encontrado');
+            }
+            
+            const connectorHtml = `
+                <div class="evse-connector border rounded p-3 mb-2">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">ID del Conector</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control connector-id" required readonly>
+                                <button type="button" class="btn btn-outline-secondary btn-sm generate-connector-id">
+                                    <i class="bi bi-arrow-clockwise"></i> Generar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Standard</label>
+                            <select class="form-select connector-standard" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="CHADEMO">CHADEMO (DC)</option>
+                                <option value="CHAOJI">CHAOJI (DC)</option>
+                                <option value="DOMESTIC_A">DOMESTIC_A (NEMA 1-15)</option>
+                                <option value="DOMESTIC_B">DOMESTIC_B (NEMA 5-15)</option>
+                                <option value="DOMESTIC_C">DOMESTIC_C (CEE 7/17)</option>
+                                <option value="DOMESTIC_D">DOMESTIC_D (3 pin)</option>
+                                <option value="DOMESTIC_E">DOMESTIC_E (CEE 7/5)</option>
+                                <option value="DOMESTIC_F">DOMESTIC_F (Schuko)</option>
+                                <option value="DOMESTIC_G">DOMESTIC_G (BS 1363)</option>
+                                <option value="DOMESTIC_H">DOMESTIC_H (SI-32)</option>
+                                <option value="DOMESTIC_I">DOMESTIC_I (AS 3112)</option>
+                                <option value="DOMESTIC_J">DOMESTIC_J (SEV 1011)</option>
+                                <option value="IEC_62196_T1">IEC_62196_T1 (Type 1)</option>
+                                <option value="IEC_62196_T1_COMBO">IEC_62196_T1_COMBO</option>
+                                <option value="IEC_62196_T2">IEC_62196_T2 (Type 2)</option>
+                                <option value="IEC_62196_T2_COMBO">IEC_62196_T2_COMBO</option>
+                                <option value="IEC_62196_T3A">IEC_62196_T3A</option>
+                                <option value="IEC_62196_T3C">IEC_62196_T3C</option>
+                                <option value="TESLA_R">TESLA_R</option>
+                                <option value="TESLA_S">TESLA_S</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Format</label>
+                            <select class="form-select connector-format" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="SOCKET">SOCKET (Enchufe)</option>
+                                <option value="CABLE">CABLE (Cable adjunto)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Power Type</label>
+                            <select class="form-select connector-power-type" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="AC_1_PHASE">AC_1_PHASE (AC monofásico)</option>
+                                <option value="AC_2_PHASE">AC_2_PHASE (AC bifásico)</option>
+                                <option value="AC_2_PHASE_SPLIT">AC_2_PHASE_SPLIT (AC bifásico split)</option>
+                                <option value="AC_3_PHASE">AC_3_PHASE (AC trifásico)</option>
+                                <option value="DC">DC (Corriente continua)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Voltaje (V)</label>
+                            <input type="number" class="form-control connector-voltage" value="230" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Amperaje (A)</label>
+                            <input type="number" class="form-control connector-amperage" value="32" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Potencia Máxima (W)</label>
+                            <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-connector">
+                                <i class="bi bi-trash"></i> Eliminar Conector
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', connectorHtml);
+            
+            // Generar ID para el nuevo conector
+            const newConnector = container.lastElementChild;
+            const idField = newConnector.querySelector('.connector-id');
+            if (idField) {
+                idField.value = this.generateUUID();
+            }
+            
+            // Event listener para el botón de generar ID
+            const generateBtn = newConnector.querySelector('.generate-connector-id');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', () => {
+                    idField.value = this.generateUUID();
+                });
+            }
+            
+            // Event listener para el botón de eliminar
+            const removeBtn = newConnector.querySelector('.remove-connector');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    if (container.children.length > 1) {
+                        newConnector.remove();
+                    } else {
+                        this.showNotification('Debe mantener al menos un conector', 'warning');
+                    }
+                });
+            }
+            
+            // Event listeners para calcular potencia máxima
+            const voltageField = newConnector.querySelector('.connector-voltage');
+            const amperageField = newConnector.querySelector('.connector-amperage');
+            const maxPowerField = newConnector.querySelector('.connector-max-power');
+            
+            if (voltageField && amperageField && maxPowerField) {
+                const calculatePower = () => {
+                    const voltage = parseFloat(voltageField.value) || 0;
+                    const amperage = parseFloat(amperageField.value) || 0;
+                    const maxPower = voltage * amperage;
+                    maxPowerField.value = maxPower;
+                };
+                
+                voltageField.addEventListener('input', calculatePower);
+                amperageField.addEventListener('input', calculatePower);
+                
+                // Calcular potencia inicial
+                calculatePower();
+            }
+            
+            console.log('✅ Nuevo conector agregado');
+        } catch (error) {
+            console.error('❌ Error agregando conector:', error);
+        }
+    }
+
+    async loadLocationsForEvse() {
+        try {
+            console.log('📍 Cargando locations para selector de EVSE...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations?limit=1000`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            
+            const data = await response.json();
+            const locations = data.data || [];
+            
+            // Llenar selector de locations
+            const locationSelect = document.getElementById('evseLocation');
+            if (locationSelect) {
+                locationSelect.innerHTML = '<option value="">Seleccionar location...</option>';
+                
+                locations.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = `${location.name} - ${location.city}`;
+                    locationSelect.appendChild(option);
+                });
+                
+                console.log(`✅ ${locations.length} locations cargadas en el selector`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando locations para EVSE:', error);
+            this.showNotification(`Error al cargar locations: ${error.message}`, 'error');
+        }
+    }
+
+    async saveEvse() {
+        try {
+            console.log('💾 Guardando EVSE...');
+            
+            // Validar formulario
+            if (!this.validateEvseForm()) {
+                return;
+            }
+            
+            // Recopilar datos del formulario
+            const evseData = this.collectEvseFormData();
+            
+            // Enviar al backend
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify(evseData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ EVSE creado exitosamente:', result);
+            
+            // Mostrar notificación de éxito
+            this.showNotification('EVSE creado exitosamente', 'success');
+            
+            // Cerrar modal
+            this.closeEvseModal();
+            
+            // Recargar lista de EVSEs
+            this.loadEvses();
+            
+        } catch (error) {
+            console.error('❌ Error guardando EVSE:', error);
+            this.showNotification(`Error al crear EVSE: ${error.message}`, 'error');
+        }
+    }
+
+    validateEvseForm() {
+        try {
+            const form = document.getElementById('createEvseForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+            
+            // Verificar que al menos un capability esté seleccionado
+            const capabilities = document.querySelectorAll('input[type="checkbox"]:checked');
+            if (capabilities.length === 0) {
+                this.showNotification('Debe seleccionar al menos una capability', 'warning');
+                return false;
+            }
+            
+            // Verificar que al menos un conector esté configurado
+            const connectors = document.querySelectorAll('.evse-connector');
+            if (connectors.length === 0) {
+                this.showNotification('Debe configurar al menos un conector', 'warning');
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Error validando formulario de EVSE:', error);
+            return false;
+        }
+    }
+
+    collectEvseFormData() {
+        try {
+            // Obtener location seleccionada
+            const locationId = document.getElementById('evseLocation').value;
+            const locationSelect = document.getElementById('evseLocation');
+            const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+            const locationName = selectedOption.textContent.split(' - ')[0];
+            
+            // Obtener capabilities seleccionadas
+            const capabilities = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            // Obtener conectores
+            const connectors = Array.from(document.querySelectorAll('.evse-connector')).map(connector => {
+                const voltage = parseFloat(connector.querySelector('.connector-voltage').value) || 0;
+                const amperage = parseFloat(connector.querySelector('.connector-amperage').value) || 0;
+                const maxPower = voltage * amperage;
+                
+                return {
+                    id: connector.querySelector('.connector-id').value,
+                    standard: connector.querySelector('.connector-standard').value,
+                    format: connector.querySelector('.connector-format').value,
+                    power_type: connector.querySelector('.connector-power-type').value,
+                    max_voltage: voltage,
+                    max_amperage: amperage,
+                    max_electric_power: maxPower,
+                    tariff_ids: [],
+                    last_updated: new Date().toISOString()
+                };
+            });
+            
+            const formData = {
+                uid: document.getElementById('evseUid').value,
+                evse_id: `ES*IPD*${locationName}*${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+                country_code: 'ES',
+                party_id: 'IPD',
+                location_id: locationId,
+                status: document.getElementById('evseStatus').value,
+                capabilities: capabilities,
+                connectors: connectors,
+                physical_reference: document.getElementById('evsePhysicalReference').value || null,
+                last_updated: new Date().toISOString()
+            };
+            
+            console.log('📊 Datos de EVSE recopilados:', formData);
+            return formData;
+        } catch (error) {
+            console.error('❌ Error recopilando datos de EVSE:', error);
+            return null;
+        }
+    }
+
+    // ===== FUNCIONES DE BORRADO DE EVSEs =====
+
+    async getEvsesCountForLocation(locationId) {
+        try {
+            console.log(`🔍 Contando EVSEs para location: ${locationId}`);
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}&limit=1`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            const evsesCount = data.pagination?.total || 0;
+            
+            console.log(`📊 Location ${locationId} tiene ${evsesCount} EVSE(s) asociado(s)`);
+            return evsesCount;
+            
+        } catch (error) {
+            console.error(`❌ Error contando EVSEs para location ${locationId}:`, error);
+            throw error;
+        }
+    }
+
+    async deleteEvsesForLocation(locationId) {
+        try {
+            console.log(`🗑️ Eliminando EVSEs para location: ${locationId}`);
+            
+            // Obtener todos los EVSEs de esta location
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}&limit=1000`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            const evses = data.data || [];
+            
+            if (evses.length === 0) {
+                console.log(`📭 No hay EVSEs para eliminar en location ${locationId}`);
+                return;
+            }
+            
+            console.log(`🗑️ Eliminando ${evses.length} EVSE(s) de location ${locationId}`);
+            
+            // Eliminar cada EVSE uno por uno
+            const deletePromises = evses.map(async (evse) => {
+                try {
+                    const deleteResponse = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evse.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                        }
+                    });
+                    
+                    if (!deleteResponse.ok) {
+                        const errorText = await deleteResponse.text();
+                        throw new Error(`HTTP ${deleteResponse.status}: ${errorText}`);
+                    }
+                    
+                    console.log(`✅ EVSE ${evse.id} eliminado exitosamente`);
+                    return true;
+                } catch (error) {
+                    console.error(`❌ Error eliminando EVSE ${evse.id}:`, error);
+                    throw error;
+                }
+            });
+            
+            // Esperar a que se completen todas las eliminaciones
+            await Promise.all(deletePromises);
+            
+            console.log(`✅ Todos los EVSEs de location ${locationId} eliminados exitosamente`);
+            
+        } catch (error) {
+            console.error(`❌ Error eliminando EVSEs para location ${locationId}:`, error);
+            throw error;
+        }
+    }
+
+    setupEvseDeleteEventListeners() {
+        try {
+            console.log('🗑️ Configurando event listeners para borrado de EVSEs...');
+            
+            document.addEventListener('click', (event) => {
+                if (event.target.closest('.delete-evse-btn')) {
+                    const button = event.target.closest('.delete-evse-btn');
+                    const evseId = button.getAttribute('data-evse-id');
+                    const evseName = button.getAttribute('data-evse-name');
+                    this.confirmDeleteEvse(evseId, evseName);
+                }
+            });
+            
+            console.log('✅ Event listeners para borrado de EVSEs configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners para borrado de EVSEs:', error);
+        }
+    }
+
+    confirmDeleteEvse(evseId, evseName) {
+        try {
+            console.log(`🗑️ Confirmando borrado de EVSE: ${evseId} (${evseName})`);
+            
+            const confirmed = confirm(`¿Estás seguro de que quieres eliminar el EVSE "${evseName}"?\n\nEsta acción marcará el EVSE como eliminado (soft delete) y no se mostrará en la lista, pero los datos permanecerán en la base de datos.\n\nID: ${evseId}`);
+            
+            if (confirmed) {
+                this.deleteEvse(evseId, evseName);
+            } else {
+                console.log('❌ Borrado de EVSE cancelado por el usuario');
+            }
+        } catch (error) {
+            console.error('❌ Error confirmando borrado de EVSE:', error);
+        }
+    }
+
+    async deleteEvse(evseId, evseName) {
+        try {
+            console.log(`🗑️ Eliminando EVSE: ${evseId} (${evseName})`);
+            
+            const button = document.querySelector(`[data-evse-id="${evseId}"] .delete-evse-btn`);
+            if (button) {
+                // Cambiar estado del botón
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                button.disabled = true;
+                
+                // Enviar petición DELETE
+                const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evseId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                // Mostrar notificación de éxito
+                this.showNotification(`EVSE "${evseName}" eliminado exitosamente`, 'success');
+                
+                // Recargar lista de EVSEs
+                this.loadEvses();
+                
+                console.log(`✅ EVSE ${evseId} eliminado exitosamente`);
+            } else {
+                throw new Error('Botón de borrado no encontrado');
+            }
+        } catch (error) {
+            console.error(`❌ Error eliminando EVSE ${evseId}:`, error);
+            this.showNotification(`Error al eliminar EVSE: ${error.message}`, 'error');
+            
+            // Restaurar botón en caso de error
+            const button = document.querySelector(`[data-evse-id="${evseId}"] .delete-evse-btn`);
+            if (button) {
+                button.innerHTML = '<i class="bi bi-trash"></i>';
+                button.disabled = false;
+            }
+        }
+    }
+
+    // ===== FUNCIONES DE EDICIÓN DE LOCATIONS =====
+
+    setupLocationEditEventListeners() {
+        try {
+            console.log('✏️ Configurando event listeners para edición de locations...');
+            
+            document.addEventListener('click', (event) => {
+                if (event.target.closest('.edit-location-btn')) {
+                    const button = event.target.closest('.edit-location-btn');
+                    const locationId = button.getAttribute('data-location-id');
+                    const locationName = button.getAttribute('data-location-name');
+                    this.showEditLocationModal(locationId, locationName);
+                }
+            });
+            
+            console.log('✅ Event listeners para edición de locations configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners para edición de locations:', error);
+        }
+    }
+
+    async showEditLocationModal(locationId, locationName) {
+        try {
+            console.log(`✏️ Mostrando modal de edición para location: ${locationId} (${locationName})`);
+            
+            // Cargar datos de la location
+            await this.loadLocationData(locationId);
+            
+            // Mostrar modal
+            const modal = document.getElementById('editLocationModal');
+            if (modal) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bootstrapModal = new bootstrap.Modal(modal);
+                    bootstrapModal.show();
+                } else {
+                    // Fallback manual
+                    modal.classList.add('show');
+                    modal.style.display = 'block';
+                    modal.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add('modal-open');
+                    
+                    // Agregar backdrop
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    document.body.appendChild(backdrop);
+                }
+                console.log('✅ Modal de edición de location mostrado');
+            } else {
+                throw new Error('Modal de edición de location no encontrado');
+            }
+        } catch (error) {
+            console.error('❌ Error mostrando modal de edición de location:', error);
+            this.showNotification(`Error al mostrar modal de edición: ${error.message}`, 'error');
+        }
+    }
+
+    async loadLocationData(locationId) {
+        try {
+            console.log(`📡 Cargando datos de location: ${locationId}`);
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationId}`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            const location = data.data;
+            
+            console.log('📊 Datos de location cargados:', location);
+            
+            // Llenar formulario con datos existentes
+            this.populateEditLocationForm(location);
+            
+        } catch (error) {
+            console.error(`❌ Error cargando datos de location ${locationId}:`, error);
+            throw error;
+        }
+    }
+
+    populateEditLocationForm(location) {
+        try {
+            console.log('📝 Llenando formulario de edición con datos de location');
+            
+            // Campos básicos
+            document.getElementById('editLocationId').value = location.id || '';
+            document.getElementById('editLocationName').value = location.name || '';
+            document.getElementById('editLocationCountry').value = location.country || 'ESP';
+            document.getElementById('editLocationCity').value = location.city || '';
+            document.getElementById('editLocationAddress').value = location.address || '';
+            document.getElementById('editLocationPostalCode').value = location.postal_code || '';
+            
+            // Coordenadas
+            if (location.coordinates) {
+                document.getElementById('editLocationLatitude').value = location.coordinates.latitude || '';
+                document.getElementById('editLocationLongitude').value = location.coordinates.longitude || '';
+            }
+            
+            // Campos adicionales
+            document.getElementById('editLocationParkingType').value = location.parking_type || '';
+            document.getElementById('editLocationTimeZone').value = location.time_zone || 'Europe/Madrid';
+            document.getElementById('editLocationPhone').value = location.phone || '';
+            document.getElementById('editLocationEmail').value = location.email || '';
+            document.getElementById('editLocationWebsite').value = location.website || '';
+            document.getElementById('editLocationOperator').value = location.operator || '';
+            
+            // Checkboxes
+            document.getElementById('editLocationOpen24h').checked = location.open_24_7 === true;
+            document.getElementById('editLocationAccessPublic').checked = location.access_public !== false;
+            
+            console.log('✅ Formulario de edición llenado correctamente');
+            
+        } catch (error) {
+            console.error('❌ Error llenando formulario de edición:', error);
+        }
+    }
+
+    setupEditLocationModalEventListeners() {
+        try {
+            console.log('🔧 Configurando event listeners del modal de edición de location...');
+            
+            // Botón de actualizar
+            const updateLocationBtn = document.getElementById('updateLocationBtn');
+            if (updateLocationBtn) {
+                updateLocationBtn.addEventListener('click', () => {
+                    this.updateLocation();
+                });
+                console.log('✅ Event listener para updateLocationBtn agregado');
+            }
+            
+            // Configurar event listeners de cierre
+            this.setupEditLocationModalCloseEventListeners();
+            
+            console.log('✅ Event listeners del modal de edición de location configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners del modal de edición de location:', error);
+        }
+    }
+
+    setupEditLocationModalCloseEventListeners() {
+        try {
+            // Botón de cerrar (X)
+            const closeBtn = document.querySelector('#editLocationModal .btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.closeEditLocationModal();
+                });
+            }
+
+            // Botón Cancelar
+            const cancelBtn = document.querySelector('#editLocationModal .btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.closeEditLocationModal();
+                });
+            }
+
+            // Cerrar al hacer clic en el backdrop
+            const modalElement = document.getElementById('editLocationModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', (event) => {
+                    if (event.target === modalElement) {
+                        this.closeEditLocationModal();
+                    }
+                });
+            }
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modalElement && modalElement.classList.contains('show')) {
+                    this.closeEditLocationModal();
+                }
+            });
+            
+            console.log('✅ Event listeners de cierre del modal de edición configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners de cierre del modal de edición:', error);
+        }
+    }
+
+    closeEditLocationModal() {
+        try {
+            const modal = document.getElementById('editLocationModal');
+            if (modal) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                    if (bootstrapModal) {
+                        bootstrapModal.hide();
+                    } else {
+                        modal.classList.remove('show');
+                        modal.style.display = 'none';
+                    }
+                } else {
+                    // Fallback manual
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
+                    modal.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('modal-open');
+                    
+                    // Remover backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+                console.log('✅ Modal de edición de location cerrado');
+            }
+        } catch (error) {
+            console.error('❌ Error cerrando modal de edición de location:', error);
+        }
+    }
+
+    async updateLocation() {
+        try {
+            console.log('🔄 Actualizando location...');
+            
+            // Validar formulario
+            if (!this.validateEditLocationForm()) {
+                return;
+            }
+            
+            // Recopilar datos del formulario
+            const locationData = this.collectEditLocationFormData();
+            
+            // Mostrar indicador de carga
+            const updateBtn = document.getElementById('updateLocationBtn');
+            if (updateBtn) {
+                const originalContent = updateBtn.innerHTML;
+                updateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Actualizando...';
+                updateBtn.disabled = true;
+                
+                try {
+                    // Enviar petición PUT
+                    const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationData.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                        },
+                        body: JSON.stringify(locationData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('✅ Location actualizada exitosamente:', result);
+                    
+                    // Mostrar notificación de éxito
+                    this.showNotification('Location actualizada exitosamente', 'success');
+                    
+                    // Cerrar modal
+                    this.closeEditLocationModal();
+                    
+                    // Recargar lista de locations
+                    this.loadLocations();
+                    
+                } finally {
+                    // Restaurar botón
+                    updateBtn.innerHTML = originalContent;
+                    updateBtn.disabled = false;
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error actualizando location:', error);
+            this.showNotification(`Error al actualizar location: ${error.message}`, 'error');
+        }
+    }
+
+    validateEditLocationForm() {
+        try {
+            const requiredFields = [
+                'editLocationName',
+                'editLocationCountry',
+                'editLocationCity',
+                'editLocationAddress',
+                'editLocationLatitude',
+                'editLocationLongitude',
+                'editLocationParkingType',
+                'editLocationTimeZone'
+            ];
+            
+            for (const fieldId of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field || !field.value.trim()) {
+                    this.showNotification(`El campo ${fieldId.replace('editLocation', '')} es obligatorio`, 'error');
+                    return false;
+                }
+            }
+            
+            // Validar coordenadas
+            const lat = parseFloat(document.getElementById('editLocationLatitude').value);
+            const lng = parseFloat(document.getElementById('editLocationLongitude').value);
+            
+            if (isNaN(lat) || lat < -90 || lat > 90) {
+                this.showNotification('La latitud debe estar entre -90 y 90', 'error');
+                return false;
+            }
+            
+            if (isNaN(lng) || lng < -180 || lng > 180) {
+                this.showNotification('La longitud debe estar entre -180 y 180', 'error');
+                return false;
+            }
+            
+            return true;
+            
+        } catch (error) {
+            console.error('❌ Error validando formulario de edición:', error);
+            return false;
+        }
+    }
+
+    collectEditLocationFormData() {
+        try {
+            const locationData = {
+                id: document.getElementById('editLocationId').value,
+                name: document.getElementById('editLocationName').value,
+                country: document.getElementById('editLocationCountry').value,
+                city: document.getElementById('editLocationCity').value,
+                address: document.getElementById('editLocationAddress').value,
+                postal_code: document.getElementById('editLocationPostalCode').value || null,
+                coordinates: {
+                    latitude: parseFloat(document.getElementById('editLocationLatitude').value),
+                    longitude: parseFloat(document.getElementById('editLocationLongitude').value)
+                },
+                parking_type: document.getElementById('editLocationParkingType').value,
+                time_zone: document.getElementById('editLocationTimeZone').value,
+                phone: document.getElementById('editLocationPhone').value || null,
+                email: document.getElementById('editLocationEmail').value || null,
+                website: document.getElementById('editLocationWebsite').value || null,
+                operator: document.getElementById('editLocationOperator').value || null,
+                open_24_7: document.getElementById('editLocationOpen24h').checked,
+                access_public: document.getElementById('editLocationAccessPublic').checked,
+                last_updated: new Date().toISOString()
+            };
+            
+            console.log('📝 Datos del formulario de edición recopilados:', locationData);
+            return locationData;
+            
+        } catch (error) {
+            console.error('❌ Error recopilando datos del formulario de edición:', error);
+            throw error;
+        }
+    }
+
+    // ===== FUNCIONES DE BORRADO DE LOCATIONS =====
+
+    setupLocationDeleteEventListeners() {
+        try {
+            console.log('🗑️ Configurando event listeners para borrado de locations...');
+            
+            // Usar event delegation para los botones de borrado
+            document.addEventListener('click', (event) => {
+                if (event.target.closest('.delete-location-btn')) {
+                    const button = event.target.closest('.delete-location-btn');
+                    const locationId = button.getAttribute('data-location-id');
+                    const locationName = button.getAttribute('data-location-name');
+                    
+                    this.confirmDeleteLocation(locationId, locationName);
+                }
+            });
+            
+            console.log('✅ Event listeners para borrado de locations configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners para borrado de locations:', error);
+        }
+    }
+
+    async confirmDeleteLocation(locationId, locationName) {
+        try {
+            console.log(`🗑️ Confirmando borrado de location: ${locationId} (${locationName})`);
+            
+            // Verificar si la location tiene EVSEs asociados
+            const evsesCount = await this.getEvsesCountForLocation(locationId);
+            
+            let message = `¿Estás seguro de que quieres eliminar la location "${locationName}"?\n\n`;
+            
+            if (evsesCount > 0) {
+                message += `⚠️ ATENCIÓN: Esta location tiene ${evsesCount} EVSE(s) asociado(s).\n\n`;
+                message += `Al eliminar la location, todos los EVSEs asociados también serán marcados como eliminados (soft delete).\n\n`;
+            }
+            
+            message += `Esta acción marcará la location como eliminada (soft delete) y no se mostrará en la lista, pero los datos permanecerán en la base de datos.\n\nID: ${locationId}`;
+            
+            const confirmed = confirm(message);
+            
+            if (confirmed) {
+                this.deleteLocation(locationId, locationName);
+            } else {
+                console.log('❌ Borrado de location cancelado por el usuario');
+            }
+        } catch (error) {
+            console.error('❌ Error confirmando borrado de location:', error);
+            this.showNotification(`Error al verificar EVSEs asociados: ${error.message}`, 'error');
+        }
+    }
+
+    async deleteLocation(locationId, locationName) {
+        try {
+            console.log(`🗑️ Eliminando location: ${locationId} (${locationName})`);
+            
+            // Mostrar indicador de carga en el botón
+            const button = document.querySelector(`[data-location-id="${locationId}"] .delete-location-btn`);
+            if (button) {
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                button.disabled = true;
+                
+                // Primero eliminar todos los EVSEs asociados a esta location
+                await this.deleteEvsesForLocation(locationId);
+                
+                // Luego eliminar la location
+                const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                // Mostrar notificación de éxito
+                this.showNotification(`Location "${locationName}" y sus EVSEs asociados eliminados exitosamente`, 'success');
+                
+                // Recargar listas de locations y EVSEs
+                this.loadLocations();
+                this.loadEvses();
+                
+                console.log(`✅ Location ${locationId} y sus EVSEs asociados eliminados exitosamente`);
+                
+            } else {
+                throw new Error('Botón de borrado no encontrado');
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error eliminando location ${locationId}:`, error);
+            this.showNotification(`Error al eliminar location: ${error.message}`, 'error');
+            
+            // Restaurar botón en caso de error
+            const button = document.querySelector(`[data-location-id="${locationId}"] .delete-location-btn`);
+            if (button) {
+                button.innerHTML = '<i class="bi bi-trash"></i>';
+                button.disabled = false;
+            }
         }
     }
 
