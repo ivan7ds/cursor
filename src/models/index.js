@@ -5,6 +5,7 @@ const Session = require('./Session');
 const CDR = require('./CDR');
 const Tariff = require('./Tariff');
 const Token = require('./Token');
+const EmspToken = require('./EmspToken');
 const Credentials = require('./Credentials');
 const OCPIToken = require('./OCPIToken');
 
@@ -53,6 +54,7 @@ module.exports = {
   CDR,
   Tariff,
   Token,
+  EmspToken,
   Credentials,
   OCPIToken
 };

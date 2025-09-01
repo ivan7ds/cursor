@@ -175,15 +175,26 @@ class DashboardApp {
             }
 
             const refreshEmspTariffs = document.getElementById('refreshEmspTariffs');
-            if (refreshEmspTariffs) {
-                refreshEmspTariffs.addEventListener('click', () => {
-                    console.log('📍 Botón refreshEmspTariffs clickeado');
-                    this.loadEmspTariffs();
-                });
-                console.log('✅ Event listener para refreshEmspTariffs agregado');
-            } else {
-                console.warn('⚠️ Elemento refreshEmspTariffs no encontrado');
-            }
+if (refreshEmspTariffs) {
+    refreshEmspTariffs.addEventListener('click', () => {
+        console.log('📍 Botón refreshEmspTariffs clickeado');
+        this.loadEmspTariffs();
+    });
+    console.log('✅ Event listener para refreshEmspTariffs agregado');
+} else {
+    console.warn('⚠️ Elemento refreshEmspTariffs no encontrado');
+}
+
+const refreshEmspTokens = document.getElementById('refreshEmspTokens');
+if (refreshEmspTokens) {
+    refreshEmspTokens.addEventListener('click', () => {
+        console.log('🔑 Botón refreshEmspTokens clickeado');
+        this.loadEmspTokens();
+    });
+    console.log('✅ Event listener para refreshEmspTokens agregado');
+} else {
+    console.warn('⚠️ Elemento refreshEmspTokens no encontrado');
+}
 
             // Botones de acciones EMSP
             const getCpoVersions = document.getElementById('getCpoVersions');
@@ -632,7 +643,7 @@ class DashboardApp {
                     console.log('📝 Pestaña de EMSP CDRs - no requiere carga de datos');
                     break;
                 case 'emsp-tokens':
-                    this.loadTokens(); // Usar la misma función que tokens normales
+                    this.loadEmspTokens(); // Cargar tokens de EMSP específicamente
                     break;
                 case 'emsp-contracts':
                     console.log('📝 Pestaña de EMSP contracts - no requiere carga de datos');
@@ -1497,6 +1508,77 @@ class DashboardApp {
             console.warn('⚠️ Error parseando elements:', error);
             return 0;
         }
+    }
+
+    // Cargar tokens de eMSPs
+    async loadEmspTokens() {
+        try {
+            console.log('🔄 Cargando EMSP tokens...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tokens/stored`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 EMSP Tokens data:', data);
+            
+            this.renderEmspTokens(data.data || []);
+            this.updateCount('emspTokensCount', data.data?.length || 0);
+            
+            console.log('✅ EMSP Tokens cargados exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando EMSP tokens:', error);
+            this.showTableError('emspTokensTableBody', `Error al cargar EMSP tokens: ${error.message}`);
+        }
+    }
+
+    renderEmspTokens(tokens) {
+        const tbody = document.getElementById('emspTokensTableBody');
+        if (!tbody) {
+            console.warn('⚠️ Elemento emspTokensTableBody no encontrado');
+            return;
+        }
+        
+        if (tokens.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No hay EMSP tokens disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = tokens.map(token => `
+            <tr class="fade-in">
+                <td><code>${token.id}</code></td>
+                <td><span class="badge bg-info">${token.party_id}</span></td>
+                <td><code>${token.uid}</code></td>
+                <td><span class="badge bg-secondary">${token.type}</span></td>
+                <td><span class="badge bg-warning">${token.auth_method || 'N/A'}</span></td>
+                <td>${token.issuer || 'N/A'}</td>
+                <td>
+                    <span class="badge ${token.valid ? 'bg-success' : 'bg-danger'}">
+                        ${token.valid ? 'Sí' : 'No'}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-info">${token.whitelist || 'N/A'}</span>
+                </td>
+                <td>${new Date(token.last_updated).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        
+        console.log(`✅ ${tokens.length} EMSP tokens renderizados`);
     }
 
     // Funciones de filtrado EMSP

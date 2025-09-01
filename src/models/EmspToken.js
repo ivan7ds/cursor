@@ -1,24 +1,24 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../database/connection');
 
-const Token = sequelize.define('Token', {
+const EmspToken = sequelize.define('EmspToken', {
   id: {
     type: DataTypes.STRING(36),
     primaryKey: true,
     allowNull: false,
-    comment: 'Unique identifier for the token'
+    comment: 'Unique identifier for the EMSP token'
   },
-  country_code: {
+  emsp_party_id: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+    comment: 'EMSP party ID'
+  },
+  emsp_country_code: {
     type: DataTypes.STRING(2),
     allowNull: false,
     comment: 'ISO 3166-1 alpha-2 country code'
   },
-  party_id: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    comment: 'CPO ID of the party that owns this token'
-  },
-  uid: {
+  token_uid: {
     type: DataTypes.STRING(36),
     allowNull: false,
     comment: 'Unique identifier for the token'
@@ -28,23 +28,18 @@ const Token = sequelize.define('Token', {
     allowNull: false,
     comment: 'Type of token'
   },
-  auth_method: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-    comment: 'Authentication method for the token'
-  },
   contract_id: {
     type: DataTypes.STRING(36),
     allowNull: true,
     comment: 'Contract identifier'
   },
   visual_number: {
-    type: DataTypes.STRING(64),
+    type: DataTypes.STRING(255),
     allowNull: true,
     comment: 'Visual number of the token'
   },
   issuer: {
-    type: DataTypes.STRING(64),
+    type: DataTypes.STRING(100),
     allowNull: false,
     comment: 'Issuer of the token'
   },
@@ -69,7 +64,7 @@ const Token = sequelize.define('Token', {
     comment: 'Language code for this token'
   },
   default_profile_type: {
-    type: DataTypes.ENUM('CHEAP', 'FAST', 'GREEN', 'REGULAR'),
+    type: DataTypes.STRING(50),
     allowNull: true,
     comment: 'Default profile type for this token'
   },
@@ -84,23 +79,11 @@ const Token = sequelize.define('Token', {
     comment: 'Timestamp when this token was last updated'
   }
 }, {
-  tableName: 'tokens',
+  tableName: 'emsp_tokens',
   timestamps: true,
   indexes: [
     {
-      fields: ['country_code', 'party_id']
-    },
-    {
-      fields: ['uid']
-    },
-    {
-      fields: ['contract_id']
-    },
-    {
-      fields: ['type']
-    },
-    {
-      fields: ['valid']
+      fields: ['emsp_party_id', 'emsp_country_code']
     },
     {
       fields: ['last_updated']
@@ -108,8 +91,4 @@ const Token = sequelize.define('Token', {
   ]
 });
 
-module.exports = Token;
-
-
-
-
+module.exports = EmspToken;
