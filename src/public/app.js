@@ -2013,7 +2013,7 @@ if (refreshEmspTokens) {
             // Recopilar datos del formulario
             const locationData = this.collectLocationFormData();
             
-            // Enviar al backend
+            // Enviar al backend usando POST para crear la location
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 method: 'POST',
                 headers: {

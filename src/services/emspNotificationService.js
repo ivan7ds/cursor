@@ -22,7 +22,7 @@ class EMSPNotificationService {
             
             // Notificar a cada organización
             const notificationPromises = organizations.map(org => 
-                this.notifyOrganizationAboutLocation(org, locationData, 'POST')
+                this.notifyOrganizationAboutLocation(org, locationData, 'PUT')
             );
             
             await Promise.allSettled(notificationPromises);
@@ -133,10 +133,11 @@ class EMSPNotificationService {
      * @param {Object} locationData - Datos de la location
      * @param {string} method - Método HTTP (POST para crear, PUT para actualizar)
      */
-    async notifyOrganizationAboutLocation(organization, locationData, method = 'POST') {
+    async notifyOrganizationAboutLocation(organization, locationData, method = 'PUT') {
         try {
             // Construir la URL correcta usando nuestro party_id (IPD) y country_code (ES)
-            const endpoint = `${organization.url}/ocpi/cpo/2.2/locations/ES/IPD/${locationData.id}`;
+            // Usamos /ocpi/emsp/ para consistencia con los PATCH requests
+            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/ES/IPD/${locationData.id}`;
             
             logger.info(`📤 Notificando location ${locationData.id} a organización ${organization.party_id} en ${endpoint}`);
             
@@ -219,6 +220,7 @@ class EMSPNotificationService {
             country: locationData.country,
             coordinates: locationData.coordinates,
             time_zone: locationData.time_zone,
+            publish: locationData.publish || true, // Asegurar que publish sea un booleano
             last_updated: new Date().toISOString()
         };
     }
