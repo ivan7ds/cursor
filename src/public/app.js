@@ -185,6 +185,28 @@ if (refreshEmspTariffs) {
     console.warn('⚠️ Elemento refreshEmspTariffs no encontrado');
 }
 
+            const refreshTariffs = document.getElementById('refreshTariffs');
+            if (refreshTariffs) {
+                refreshTariffs.addEventListener('click', () => {
+                    console.log('💰 Botón refreshTariffs clickeado');
+                    this.loadTariffs();
+                });
+                console.log('✅ Event listener para refreshTariffs agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshTariffs no encontrado');
+            }
+
+            const createTariffBtn = document.getElementById('createTariffBtn');
+            if (createTariffBtn) {
+                createTariffBtn.addEventListener('click', () => {
+                    console.log('💰 Botón createTariffBtn clickeado');
+                    this.showCreateTariffModal();
+                });
+                console.log('✅ Event listener para createTariffBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento createTariffBtn no encontrado');
+            }
+
 const refreshEmspTokens = document.getElementById('refreshEmspTokens');
 if (refreshEmspTokens) {
     refreshEmspTokens.addEventListener('click', () => {
@@ -373,6 +395,29 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento refreshTokens no encontrado');
             }
 
+            // Event listeners para paginado de EVSEs
+            const evsesPrevPage = document.getElementById('evsesPrevPage');
+            if (evsesPrevPage) {
+                evsesPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior EVSEs clickeado');
+                    this.goToEvsesPrevPage();
+                });
+                console.log('✅ Event listener para evsesPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento evsesPrevPage no encontrado');
+            }
+
+            const evsesNextPage = document.getElementById('evsesNextPage');
+            if (evsesNextPage) {
+                evsesNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente EVSEs clickeado');
+                    this.goToEvsesNextPage();
+                });
+                console.log('✅ Event listener para evsesNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento evsesNextPage no encontrado');
+            }
+
             // Tabs - Navegación manual (Bootstrap no funciona por CSP)
             const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
             console.log('📑 Tabs encontrados:', tabs.length);
@@ -391,6 +436,9 @@ if (refreshEmspTokens) {
             }, 500);
 
             console.log('✅ Todos los event listeners simples configurados');
+            
+            // Event listeners para el modal de creación de tarifas
+            this.setupTariffModalEventListeners();
             
             // Crear botón de prueba
             this.createTestButton();
@@ -635,6 +683,9 @@ if (refreshEmspTokens) {
                     break;
                 case 'emsp-tariffs':
                     this.loadEmspTariffs();
+                    break;
+                case 'tariffs':
+                    this.loadTariffs();
                     break;
                 case 'emsp-sessions':
                     console.log('📝 Pestaña de EMSP sessions - no requiere carga de datos');
@@ -1024,7 +1075,8 @@ if (refreshEmspTokens) {
         try {
             console.log('🔄 Cargando EVSEs...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?limit=200`, {
+            // Cargar todos los EVSEs para paginado
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?limit=1000`, {
                 headers: { 
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
                 }
@@ -1041,8 +1093,13 @@ if (refreshEmspTokens) {
             const data = await response.json();
             console.log('📊 EVSEs data:', data);
             
-            this.renderEvses(data.data || []);
-            this.updateCount('evsesCount', data.data?.length || 0);
+            // Almacenar todos los EVSEs y configurar paginado
+            this.allEvses = data.data || [];
+            this.currentEvsesPage = 1;
+            this.evsesPerPage = 20;
+            
+            this.renderEvsesPage();
+            this.updateCount('evsesCount', this.allEvses.length);
             
             console.log('✅ EVSEs cargados exitosamente');
             
@@ -1082,6 +1139,66 @@ if (refreshEmspTokens) {
         `).join('');
         
         console.log(`✅ ${evses.length} EVSEs renderizados`);
+    }
+
+    // Renderizar página específica de EVSEs
+    renderEvsesPage() {
+        if (!this.allEvses || this.allEvses.length === 0) {
+            this.renderEvses([]);
+            this.updatePaginationInfo(0, 0, 0);
+            return;
+        }
+
+        const startIndex = (this.currentEvsesPage - 1) * this.evsesPerPage;
+        const endIndex = startIndex + this.evsesPerPage;
+        const pageEvses = this.allEvses.slice(startIndex, endIndex);
+
+        this.renderEvses(pageEvses);
+        this.updatePaginationInfo(startIndex + 1, endIndex, this.allEvses.length);
+        this.updatePaginationButtons();
+    }
+
+    // Actualizar información de paginado
+    updatePaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('evsesPageInfo');
+        const totalCount = document.getElementById('evsesTotalCount');
+        
+        if (pageInfo) pageInfo.textContent = `${start}-${Math.min(end, total)}`;
+        if (totalCount) totalCount.textContent = total;
+    }
+
+    // Actualizar botones de paginado
+    updatePaginationButtons() {
+        const prevButton = document.getElementById('evsesPrevPage');
+        const nextButton = document.getElementById('evsesNextPage');
+        
+        if (prevButton) {
+            prevButton.disabled = this.currentEvsesPage <= 1;
+            prevButton.parentElement.classList.toggle('disabled', this.currentEvsesPage <= 1);
+        }
+        
+        if (nextButton) {
+            const totalPages = Math.ceil(this.allEvses.length / this.evsesPerPage);
+            nextButton.disabled = this.currentEvsesPage >= totalPages;
+            nextButton.parentElement.classList.toggle('disabled', this.currentEvsesPage >= totalPages);
+        }
+    }
+
+    // Ir a página anterior
+    goToEvsesPrevPage() {
+        if (this.currentEvsesPage > 1) {
+            this.currentEvsesPage--;
+            this.renderEvsesPage();
+        }
+    }
+
+    // Ir a página siguiente
+    goToEvsesNextPage() {
+        const totalPages = Math.ceil(this.allEvses.length / this.evsesPerPage);
+        if (this.currentEvsesPage < totalPages) {
+            this.currentEvsesPage++;
+            this.renderEvsesPage();
+        }
     }
 
     async loadConnections() {
@@ -1507,6 +1624,489 @@ if (refreshEmspTokens) {
         } catch (error) {
             console.warn('⚠️ Error parseando elements:', error);
             return 0;
+        }
+    }
+
+    // Cargar tariffs del CPO
+    async loadTariffs() {
+        try {
+            console.log('🔄 Cargando tariffs del CPO...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 Tariffs data:', data);
+            
+            this.renderTariffs(data.data || []);
+            this.updateCount('tariffsCount', data.data?.length || 0);
+            
+            console.log('✅ Tariffs del CPO cargados exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando tariffs del CPO:', error);
+            this.showTableError('tariffsTableBody', `Error al cargar tariffs: ${error.message}`);
+        }
+    }
+
+    renderTariffs(tariffs) {
+        const tbody = document.getElementById('tariffsTableBody');
+        if (!tbody) {
+            console.warn('⚠️ Elemento tariffsTableBody no encontrado');
+            return;
+        }
+        
+        if (tariffs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center text-muted">
+                        <i class="bi bi-inbox"></i> No hay tariffs disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = tariffs.map(tariff => `
+            <tr class="fade-in">
+                <td><code>${tariff.id || 'N/A'}</code></td>
+                <td><span class="badge bg-primary">${tariff.party_id || 'N/A'}</span></td>
+                <td><span class="badge bg-secondary">${tariff.type || 'N/A'}</span></td>
+                <td><span class="badge bg-info">${tariff.currency || 'N/A'}</span></td>
+                <td>${this.getElementsCount(tariff.elements)} elementos</td>
+                <td>${tariff.min_price ? `${tariff.min_price} ${tariff.currency}` : 'N/A'}</td>
+                <td>${tariff.max_price ? `${tariff.max_price} ${tariff.currency}` : 'N/A'}</td>
+                <td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</td>
+                <td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</td>
+                <td>${new Date(tariff.last_updated).toLocaleString()}</td>
+            </tr>
+        `).join('');
+        
+        console.log(`✅ ${tariffs.length} tariffs renderizados`);
+    }
+
+    // ===== FUNCIONES DEL MODAL DE CREACIÓN DE TARIFAS =====
+
+    setupTariffModalEventListeners() {
+        try {
+            console.log('🔧 Configurando event listeners del modal de tarifas...');
+            
+            // Botón para agregar elemento de tarifa
+            const addTariffElement = document.getElementById('addTariffElement');
+            if (addTariffElement) {
+                addTariffElement.addEventListener('click', () => {
+                    this.addTariffElement();
+                });
+                console.log('✅ Event listener para addTariffElement agregado');
+            }
+
+            // Botón para guardar tarifa
+            const saveTariffBtn = document.getElementById('saveTariffBtn');
+            if (saveTariffBtn) {
+                saveTariffBtn.addEventListener('click', () => {
+                    this.saveTariff();
+                });
+                console.log('✅ Event listener para saveTariffBtn agregado');
+            }
+
+            // Cambio de moneda para actualizar los sufijos de precio
+            const tariffCurrency = document.getElementById('tariffCurrency');
+            if (tariffCurrency) {
+                tariffCurrency.addEventListener('change', () => {
+                    this.updateCurrencySuffixes();
+                });
+                console.log('✅ Event listener para cambio de moneda agregado');
+            }
+
+            // Event listeners para cerrar el modal
+            this.setupModalCloseEventListeners();
+
+            console.log('✅ Event listeners del modal de tarifas configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners del modal de tarifas:', error);
+        }
+    }
+
+    setupModalCloseEventListeners() {
+        try {
+            // Botón de cerrar (X)
+            const closeBtn = document.querySelector('#createTariffModal .btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.closeTariffModal();
+                });
+            }
+
+            // Botón Cancelar
+            const cancelBtn = document.querySelector('#createTariffModal .btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.closeTariffModal();
+                });
+            }
+
+            // Cerrar al hacer clic en el backdrop
+            const modalElement = document.getElementById('createTariffModal');
+            if (modalElement) {
+                modalElement.addEventListener('click', (event) => {
+                    if (event.target === modalElement) {
+                        this.closeTariffModal();
+                    }
+                });
+            }
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modalElement && modalElement.classList.contains('show')) {
+                    this.closeTariffModal();
+                }
+            });
+
+            console.log('✅ Event listeners de cierre del modal configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners de cierre del modal:', error);
+        }
+    }
+
+    closeTariffModal() {
+        try {
+            const modalElement = document.getElementById('createTariffModal');
+            if (modalElement) {
+                // Intentar usar Bootstrap API
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                } else {
+                    // Fallback: cerrar manualmente
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    modalElement.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('modal-open');
+                    
+                    // Remover backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+                
+                // Limpiar formulario
+                this.resetTariffForm();
+                
+                console.log('✅ Modal cerrado correctamente');
+            }
+        } catch (error) {
+            console.error('❌ Error cerrando modal:', error);
+        }
+    }
+
+    resetTariffForm() {
+        try {
+            const form = document.getElementById('createTariffForm');
+            if (form) {
+                form.reset();
+                
+                // Limpiar elementos de tarifa adicionales
+                const container = document.getElementById('tariffElementsContainer');
+                if (container) {
+                    const elements = container.querySelectorAll('.tariff-element');
+                    // Mantener solo el primer elemento
+                    for (let i = 1; i < elements.length; i++) {
+                        elements[i].remove();
+                    }
+                }
+                
+                // Limpiar sufijos de moneda
+                this.updateCurrencySuffixes();
+                
+                console.log('✅ Formulario de tarifa reseteado');
+            }
+        } catch (error) {
+            console.error('❌ Error reseteando formulario:', error);
+        }
+    }
+
+    showCreateTariffModal() {
+        try {
+            console.log('💰 Mostrando modal de creación de tarifa...');
+            
+            // Cargar ubicaciones disponibles
+            this.loadLocationsForTariff();
+            
+            // Configurar fecha actual como valor por defecto
+            const now = new Date();
+            const nowString = now.toISOString().slice(0, 16);
+            document.getElementById('tariffStartDate').value = nowString;
+            
+            // Mostrar el modal usando la API correcta de Bootstrap 5
+            const modalElement = document.getElementById('createTariffModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+                console.log('✅ Modal de creación de tarifa mostrado');
+            } else {
+                throw new Error('Elemento modal no encontrado');
+            }
+        } catch (error) {
+            console.error('❌ Error mostrando modal de creación de tarifa:', error);
+            // Fallback: intentar mostrar el modal usando jQuery si está disponible
+            try {
+                if (typeof $ !== 'undefined' && $.fn.modal) {
+                    $('#createTariffModal').modal('show');
+                    console.log('✅ Modal mostrado usando jQuery fallback');
+                } else {
+                    // Fallback final: mostrar el modal manualmente
+                    const modalElement = document.getElementById('createTariffModal');
+                    if (modalElement) {
+                        modalElement.classList.add('show');
+                        modalElement.style.display = 'block';
+                        modalElement.setAttribute('aria-hidden', 'false');
+                        document.body.classList.add('modal-open');
+                        
+                        // Agregar backdrop
+                        const backdrop = document.createElement('div');
+                        backdrop.className = 'modal-backdrop fade show';
+                        document.body.appendChild(backdrop);
+                        
+                        console.log('✅ Modal mostrado manualmente');
+                    }
+                }
+            } catch (fallbackError) {
+                console.error('❌ Error en fallback del modal:', fallbackError);
+            }
+        }
+    }
+
+    async loadLocationsForTariff() {
+        try {
+            console.log('📍 Cargando ubicaciones para tarifa...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            
+            const data = await response.json();
+            const locations = data.data || [];
+            
+            const locationSelect = document.getElementById('tariffLocation');
+            if (locationSelect) {
+                locationSelect.innerHTML = '<option value="">Seleccionar ubicación...</option>';
+                
+                locations.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = `${location.name} - ${location.city} (${location.country})`;
+                    locationSelect.appendChild(option);
+                });
+                
+                console.log(`✅ ${locations.length} ubicaciones cargadas para tarifa`);
+            }
+        } catch (error) {
+            console.error('❌ Error cargando ubicaciones para tarifa:', error);
+        }
+    }
+
+    addTariffElement() {
+        try {
+            console.log('➕ Agregando elemento de tarifa...');
+            
+            const container = document.getElementById('tariffElementsContainer');
+            if (!container) return;
+            
+            const elementDiv = document.createElement('div');
+            elementDiv.className = 'tariff-element border rounded p-3 mb-2';
+            elementDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo de Componente</label>
+                        <select class="form-select tariff-component-type" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="ENERGY">ENERGY</option>
+                            <option value="FLAT">FLAT</option>
+                            <option value="PARKING_TIME">PARKING_TIME</option>
+                            <option value="TIME">TIME</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Precio</label>
+                        <input type="number" class="form-control tariff-component-price" step="0.001" min="0" required placeholder="0.000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Paso</label>
+                        <input type="number" class="form-control tariff-component-step" step="0.1" min="0" placeholder="0.0">
+                    </div>
+                </div>
+                <div class="text-end mt-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-tariff-element">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            `;
+            
+            // Event listener para eliminar elemento
+            const removeBtn = elementDiv.querySelector('.remove-tariff-element');
+            removeBtn.addEventListener('click', () => {
+                elementDiv.remove();
+            });
+            
+            container.appendChild(elementDiv);
+            console.log('✅ Elemento de tarifa agregado');
+        } catch (error) {
+            console.error('❌ Error agregando elemento de tarifa:', error);
+        }
+    }
+
+    updateCurrencySuffixes() {
+        try {
+            const currency = document.getElementById('tariffCurrency').value;
+            const minPriceCurrency = document.getElementById('tariffMinPriceCurrency');
+            const maxPriceCurrency = document.getElementById('tariffMaxPriceCurrency');
+            
+            if (minPriceCurrency && maxPriceCurrency) {
+                minPriceCurrency.textContent = currency;
+                maxPriceCurrency.textContent = currency;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando sufijos de moneda:', error);
+        }
+    }
+
+    async saveTariff() {
+        try {
+            console.log('💾 Guardando tarifa...');
+            
+            // Validar formulario
+            if (!this.validateTariffForm()) {
+                return;
+            }
+            
+            // Recopilar datos del formulario
+            const tariffData = this.collectTariffFormData();
+            
+            // Enviar al backend
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify(tariffData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Tarifa creada exitosamente:', result);
+            
+            // Mostrar notificación de éxito
+            this.showNotification('Tarifa creada exitosamente', 'success');
+            
+            // Cerrar modal usando la API correcta de Bootstrap 5
+            const modalElement = document.getElementById('createTariffModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                } else {
+                    // Fallback: cerrar manualmente
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    modalElement.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('modal-open');
+                    
+                    // Remover backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            }
+            
+            // Recargar lista de tarifas
+            this.loadTariffs();
+            
+        } catch (error) {
+            console.error('❌ Error guardando tarifa:', error);
+            this.showNotification(`Error al crear tarifa: ${error.message}`, 'error');
+        }
+    }
+
+    validateTariffForm() {
+        try {
+            const form = document.getElementById('createTariffForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+            
+            // Validar que al menos un elemento de tarifa esté configurado
+            const elements = document.querySelectorAll('.tariff-element');
+            if (elements.length === 0) {
+                this.showNotification('Debe configurar al menos un elemento de tarifa', 'error');
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Error validando formulario de tarifa:', error);
+            return false;
+        }
+    }
+
+    collectTariffFormData() {
+        try {
+            const formData = {
+                id: document.getElementById('tariffId').value,
+                type: document.getElementById('tariffType').value,
+                currency: document.getElementById('tariffCurrency').value,
+                location_id: document.getElementById('tariffLocation').value,
+                start_date_time: document.getElementById('tariffStartDate').value || null,
+                end_date_time: document.getElementById('tariffEndDate').value || null,
+                min_price: parseFloat(document.getElementById('tariffMinPrice').value) || null,
+                max_price: parseFloat(document.getElementById('tariffMaxPrice').value) || null,
+                tariff_alt_text: document.getElementById('tariffAltText').value || null,
+                tariff_alt_url: document.getElementById('tariffAltUrl').value || null,
+                elements: []
+            };
+            
+            // Recopilar elementos de tarifa
+            const elements = document.querySelectorAll('.tariff-element');
+            elements.forEach(element => {
+                const type = element.querySelector('.tariff-component-type').value;
+                const price = parseFloat(element.querySelector('.tariff-component-price').value);
+                const step = parseFloat(element.querySelector('.tariff-component-step').value) || null;
+                
+                if (type && !isNaN(price)) {
+                    formData.elements.push({
+                        component_type: type,
+                        price: price,
+                        step: step
+                    });
+                }
+            });
+            
+            console.log('📊 Datos de tarifa recopilados:', formData);
+            return formData;
+        } catch (error) {
+            console.error('❌ Error recopilando datos de tarifa:', error);
+            return null;
         }
     }
 

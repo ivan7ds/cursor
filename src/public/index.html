@@ -49,6 +49,11 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tariffs-tab" data-bs-toggle="tab" data-bs-target="#tariffs" type="button" role="tab">
+                    <i class="bi bi-currency-dollar"></i> Tariffs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tokens-tab" data-bs-toggle="tab" data-bs-target="#tokens" type="button" role="tab">
                     <i class="bi bi-key"></i> Tokens
                 </button>
@@ -247,6 +252,27 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="evsesPageInfo">0-0</span> de <span id="evsesTotalCount">0</span> EVSEs
+                            </div>
+                            <nav aria-label="Navegación de páginas de EVSEs">
+                                <ul class="pagination pagination-sm mb-0" id="evsesPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="evsesPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="evsesNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -482,6 +508,53 @@
                 </div>
             </div>
 
+            <!-- Tab de Tariffs -->
+            <div class="tab-pane fade" id="tariffs" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-currency-dollar"></i> Tariffs del CPO
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createTariffBtn">
+                                <i class="bi bi-plus-circle"></i> Crear Tarifa
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTariffs">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="tariffsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="tariffsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>CPO</th>
+                                        <th>Tipo</th>
+                                        <th>Moneda</th>
+                                        <th>Elementos</th>
+                                        <th>Precio Mín</th>
+                                        <th>Precio Máx</th>
+                                        <th>Válido Desde</th>
+                                        <th>Válido Hasta</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tariffsTableBody">
+                                    <tr>
+                                        <td colspan="10" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando tariffs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab de EMSP Tokens -->
             <div class="tab-pane fade" id="emsp-tokens" role="tabpanel">
                 <div class="card">
@@ -599,6 +672,143 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear tarifa -->
+    <div class="modal fade" id="createTariffModal" tabindex="-1" aria-labelledby="createTariffModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTariffModalLabel">
+                        <i class="bi bi-currency-dollar"></i> Crear Nueva Tarifa
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTariffForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffId" class="form-label">ID de Tarifa *</label>
+                                <input type="text" class="form-control" id="tariffId" required placeholder="Ej: TARIFF001">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffType" class="form-label">Tipo de Tarifa *</label>
+                                <select class="form-select" id="tariffType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="REGULAR">REGULAR</option>
+                                    <option value="AD_HOC_PAYMENT">AD_HOC_PAYMENT</option>
+                                    <option value="PROFILE_CHEAP">PROFILE_CHEAP</option>
+                                    <option value="PROFILE_FAST">PROFILE_FAST</option>
+                                    <option value="PROFILE_GREEN">PROFILE_GREEN</option>
+                                    <option value="REGULAR_1">REGULAR_1</option>
+                                    <option value="REGULAR_2">REGULAR_2</option>
+                                    <option value="REGULAR_3">REGULAR_3</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffCurrency" class="form-label">Moneda *</label>
+                                <select class="form-select" id="tariffCurrency" required>
+                                    <option value="">Seleccionar moneda...</option>
+                                    <option value="EUR">EUR (Euro)</option>
+                                    <option value="USD">USD (Dólar)</option>
+                                    <option value="GBP">GBP (Libra)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffLocation" class="form-label">Ubicación *</label>
+                                <select class="form-select" id="tariffLocation" required>
+                                    <option value="">Seleccionar ubicación...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Fechas de validez -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffStartDate" class="form-label">Válido Desde</label>
+                                <input type="datetime-local" class="form-control" id="tariffStartDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffEndDate" class="form-label">Válido Hasta</label>
+                                <input type="datetime-local" class="form-control" id="tariffEndDate">
+                            </div>
+                        </div>
+
+                        <!-- Precios -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffMinPrice" class="form-label">Precio Mínimo</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="tariffMinPrice" step="0.01" min="0" placeholder="0.00">
+                                    <span class="input-group-text" id="tariffMinPriceCurrency"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffMaxPrice" class="form-label">Precio Máximo</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="tariffMaxPrice" step="0.01" min="0" placeholder="0.00">
+                                    <span class="input-group-text" id="tariffMaxPriceCurrency"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Elementos de tarifa -->
+                        <div class="mb-3">
+                            <label class="form-label">Elementos de Tarifa</label>
+                            <div id="tariffElementsContainer">
+                                <div class="tariff-element border rounded p-3 mb-2">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Tipo de Componente</label>
+                                            <select class="form-select tariff-component-type" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="ENERGY">ENERGY</option>
+                                                <option value="FLAT">FLAT</option>
+                                                <option value="PARKING_TIME">PARKING_TIME</option>
+                                                <option value="TIME">TIME</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Precio</label>
+                                            <input type="number" class="form-control tariff-component-price" step="0.001" min="0" required placeholder="0.000">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Paso</label>
+                                            <input type="number" class="form-control tariff-component-step" step="0.1" min="0" placeholder="0.0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addTariffElement">
+                                <i class="bi bi-plus-circle"></i> Agregar Elemento
+                            </button>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffAltText" class="form-label">Texto Alternativo</label>
+                                <input type="text" class="form-control" id="tariffAltText" placeholder="Descripción de la tarifa">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffAltUrl" class="form-label">URL Alternativa</label>
+                                <input type="url" class="form-control" id="tariffAltUrl" placeholder="https://...">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveTariffBtn">
+                        <i class="bi bi-check-circle"></i> Crear Tarifa
+                    </button>
                 </div>
             </div>
         </div>
