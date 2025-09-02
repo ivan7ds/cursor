@@ -551,11 +551,12 @@
                                         <th>Válido Desde</th>
                                         <th>Válido Hasta</th>
                                         <th>Última Actualización</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tariffsTableBody">
                                     <tr>
-                                        <td colspan="10" class="text-center text-muted">
+                                        <td colspan="11" class="text-center text-muted">
                                             <i class="bi bi-hourglass-split"></i> Cargando tariffs...
                                         </td>
                                     </tr>
@@ -712,7 +713,13 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="tariffId" class="form-label">ID de Tarifa *</label>
-                                <input type="text" class="form-control" id="tariffId" required placeholder="Ej: TARIFF001">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="tariffId" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateTariffIdBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">ID único autogenerado (UUID)</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="tariffType" class="form-label">Tipo de Tarifa *</label>

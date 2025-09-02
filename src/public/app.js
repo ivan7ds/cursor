@@ -2201,7 +2201,7 @@ if (refreshEmspTokens) {
         if (tariffs.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="10" class="text-center text-muted">
+                    <td colspan="11" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay tariffs disponibles
                     </td>
                 </tr>
@@ -2221,6 +2221,13 @@ if (refreshEmspTokens) {
                 <td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</td>
                 <td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</td>
                 <td>${new Date(tariff.last_updated).toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" 
+                            onclick="window.dashboardApp.deleteTariff('${tariff.id}')"
+                            title="Eliminar tarifa">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
             </tr>
         `).join('');
         
@@ -2232,6 +2239,15 @@ if (refreshEmspTokens) {
     setupTariffModalEventListeners() {
         try {
             console.log('🔧 Configurando event listeners del modal de tarifas...');
+            
+            // Botón para generar ID de tarifa
+            const generateTariffIdBtn = document.getElementById('generateTariffIdBtn');
+            if (generateTariffIdBtn) {
+                generateTariffIdBtn.addEventListener('click', () => {
+                    this.generateTariffId();
+                });
+                console.log('✅ Event listener para generateTariffIdBtn agregado');
+            }
             
             // Botón para agregar elemento de tarifa
             const addTariffElement = document.getElementById('addTariffElement');
@@ -2462,6 +2478,27 @@ if (refreshEmspTokens) {
             }
         } catch (error) {
             console.error('❌ Error generando ID de location:', error);
+        }
+    }
+    
+    generateTariffId() {
+        try {
+            console.log('🆔 Generando ID único para tarifa...');
+            
+            // Generar UUID v4
+            const uuid = this.generateUUID();
+            
+            // Asignar al campo
+            const tariffIdField = document.getElementById('tariffId');
+            if (tariffIdField) {
+                tariffIdField.value = uuid;
+                console.log('✅ ID único generado para tarifa:', uuid);
+            } else {
+                console.warn('⚠️ Campo tariffId no encontrado');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error generando ID de tarifa:', error);
         }
     }
 
@@ -4492,6 +4529,9 @@ if (refreshEmspTokens) {
             // Cargar ubicaciones disponibles
             this.loadLocationsForTariff();
             
+            // Generar ID único para la tarifa
+            this.generateTariffId();
+            
             // Configurar fecha actual como valor por defecto
             const now = new Date();
             const nowString = now.toISOString().slice(0, 16);
@@ -4666,8 +4706,15 @@ if (refreshEmspTokens) {
             const result = await response.json();
             console.log('✅ Tarifa creada exitosamente:', result);
             
-            // Mostrar notificación de éxito
-            this.showNotification('Tarifa creada exitosamente', 'success');
+            // Mostrar notificación de éxito con información de EVSEs asociados
+            const associatedEvses = result.data?.associated_evses || 0;
+            let message = 'Tarifa creada exitosamente';
+            
+            if (associatedEvses > 0) {
+                message += ` y asociada a ${associatedEvses} EVSE(s)`;
+            }
+            
+            this.showNotification(message, 'success');
             
             // Cerrar modal usando la API correcta de Bootstrap 5
             const modalElement = document.getElementById('createTariffModal');
@@ -4693,9 +4740,61 @@ if (refreshEmspTokens) {
             // Recargar lista de tarifas
             this.loadTariffs();
             
+            // Recargar lista de EVSEs para mostrar los cambios en tariff_ids
+            this.loadEvses();
+            
         } catch (error) {
             console.error('❌ Error guardando tarifa:', error);
             this.showNotification(`Error al crear tarifa: ${error.message}`, 'error');
+        }
+    }
+
+    async deleteTariff(tariffId) {
+        try {
+            console.log(`🗑️ Eliminando tarifa ${tariffId}...`);
+            
+            // Confirmar eliminación
+            const confirmed = confirm(`¿Estás seguro de que quieres eliminar la tarifa ${tariffId}?\n\nEsta acción también desasociará la tarifa de todos los EVSEs que la usen.`);
+            if (!confirmed) {
+                return;
+            }
+            
+            // Enviar petición DELETE al backend
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs/${tariffId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Tarifa eliminada exitosamente:', result);
+            
+            // Mostrar notificación de éxito con información de EVSEs desasociados
+            const evsesDisassociated = result.data?.evses_disassociated || 0;
+            let message = 'Tarifa eliminada exitosamente';
+            
+            if (evsesDisassociated > 0) {
+                message += ` y desasociada de ${evsesDisassociated} EVSE(s)`;
+            }
+            
+            this.showNotification(message, 'success');
+            
+            // Recargar lista de tarifas
+            this.loadTariffs();
+            
+            // Recargar lista de EVSEs para mostrar los cambios en tariff_ids
+            this.loadEvses();
+            
+        } catch (error) {
+            console.error('❌ Error eliminando tarifa:', error);
+            this.showNotification(`Error al eliminar tarifa: ${error.message}`, 'error');
         }
     }
 

@@ -50,6 +50,11 @@ const Tariff = sequelize.define('Tariff', {
     allowNull: false,
     defaultValue: DataTypes.NOW,
     comment: 'Timestamp when this tariff was last updated'
+  },
+  deleted_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Timestamp when this tariff was soft deleted'
   }
 }, {
   tableName: 'tariffs',
@@ -72,6 +77,9 @@ const Tariff = sequelize.define('Tariff', {
     },
     {
       fields: ['last_updated']
+    },
+    {
+      fields: ['deleted_at']
     }
   ]
 });

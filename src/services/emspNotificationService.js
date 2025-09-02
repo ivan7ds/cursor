@@ -324,6 +324,120 @@ class EMSPNotificationService {
             last_updated: new Date().toISOString()
         };
     }
+
+    /**
+     * Notificar a todas las organizaciones sobre una nueva tarifa
+     * @param {Object} tariffData - Datos de la tarifa creada
+     */
+    async notifyTariffCreated(tariffData) {
+        try {
+            logger.info('🔔 Notificando a organizaciones sobre nueva tarifa:', tariffData.id);
+            
+            // Obtener todas las organizaciones configuradas (excluyendo nuestro CPO)
+            const organizations = await this.getConfiguredOrganizations();
+            
+            if (organizations.length === 0) {
+                logger.info('📭 No hay organizaciones configuradas para notificar');
+                return;
+            }
+            
+            logger.info(`📤 Notificando a ${organizations.length} organización(es) sobre tarifa ${tariffData.id}`);
+            
+            // Notificar a cada organización
+            const notificationPromises = organizations.map(org => 
+                this.notifyOrganizationAboutTariff(org, tariffData, 'PUT')
+            );
+            
+            await Promise.allSettled(notificationPromises);
+            
+            logger.info('✅ Notificaciones de tarifa enviadas a todas las organizaciones');
+            
+        } catch (error) {
+            logger.error('❌ Error notificando a organizaciones sobre tarifa:', error);
+        }
+    }
+
+    /**
+     * Notificar a una organización específica sobre una tarifa
+     * @param {Object} organization - Datos de la organización
+     * @param {Object} tariffData - Datos de la tarifa
+     * @param {string} method - Método HTTP (PUT o PATCH)
+     */
+    async notifyOrganizationAboutTariff(organization, tariffData, method = 'PUT') {
+        try {
+            const url = `${organization.url}/ocpi/emsp/2.2/tariffs/${tariffData.country_code}/${tariffData.party_id}/${tariffData.id}`;
+            
+            logger.info(`📤 Enviando ${method} de tarifa a ${organization.party_id} (${organization.url})`);
+            
+            const payload = this.buildTariffPayload(tariffData);
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Token ${organization.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                logger.warn(`⚠️ Error notificando tarifa a organización ${organization.party_id}: HTTP ${response.status} - ${errorText}`);
+                return;
+            }
+            
+            logger.info(`✅ Notificación ${method} de tarifa enviada exitosamente a ${organization.party_id}`);
+            
+        } catch (error) {
+            logger.error(`❌ Error notificando tarifa a organización ${organization.party_id}:`, error);
+        }
+    }
+
+    /**
+     * Construir el payload de tarifa según especificación OCPI 2.2
+     * @param {Object} tariffData - Datos de la tarifa
+     * @returns {Object} Payload formateado
+     */
+    buildTariffPayload(tariffData) {
+        // Transformar elements para cumplir con OCPI 2.2
+        const elements = tariffData.elements ? tariffData.elements.map(element => {
+            // Si ya tiene price_components, usarlo directamente
+            if (element.price_components) {
+                return {
+                    price_components: element.price_components
+                };
+            }
+            
+            // Si tiene la estructura antigua, transformarla
+            if (element.component_type && element.price !== undefined) {
+                return {
+                    price_components: [{
+                        type: element.component_type,
+                        price: element.price,
+                        vat: element.vat || 0,
+                        step_size: element.step || 1
+                    }]
+                };
+            }
+            
+            // Si no tiene estructura válida, devolver vacío
+            return {
+                price_components: []
+            };
+        }) : [];
+
+        return {
+            country_code: tariffData.country_code,
+            party_id: tariffData.party_id,
+            id: tariffData.id,
+            currency: tariffData.currency,
+            type: tariffData.type,
+            elements: elements,
+            start_date_time: tariffData.start_date_time || null,
+            end_date_time: tariffData.end_date_time || null,
+            last_updated: tariffData.last_updated || new Date().toISOString()
+        };
+    }
 }
 
 module.exports = new EMSPNotificationService();
