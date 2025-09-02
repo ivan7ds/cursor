@@ -325,3 +325,66 @@ body {
     opacity: 0;
     transition: all 0.3s ease-in;
 }
+
+/* Estilos para tooltips informativos */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.tooltip {
+    font-size: 0.875rem;
+}
+
+.tooltip-inner {
+    max-width: 400px;
+    text-align: left;
+    background-color: #2c3e50;
+    border: 1px solid #34495e;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-start .tooltip-arrow::before {
+    border-left-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-end .tooltip-arrow::before {
+    border-right-color: #2c3e50;
+}
+
+/* Estilo para el badge de conectores con tooltip */
+.badge.bg-info.cursor-pointer {
+    transition: all 0.2s ease;
+}
+
+.badge.bg-info.cursor-pointer:hover {
+    background-color: #0dcaf0 !important;
+    transform: scale(1.05);
+}
+
+/* Estilos para tooltips de locations */
+.location-name-tooltip {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.location-name-tooltip:hover {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.badge.bg-secondary.cursor-pointer {
+    transition: all 0.2s ease;
+}
+
+.badge.bg-secondary.cursor-pointer:hover {
+    background-color: #6c757d !important;
+    transform: scale(1.05);
+}

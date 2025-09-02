@@ -345,6 +345,7 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento emspEvseSearchFilter no encontrado');
             }
             
+
             console.log('✅ Event listeners EMSP configurados');
                             
                 // Event listener directo en el DOM
@@ -1057,8 +1058,11 @@ if (refreshEmspTokens) {
             const data = await response.json();
             console.log('📊 Locations data:', data);
             
-            this.renderLocations(data.data || []);
-            this.updateCount('locationsCount', data.data?.length || 0);
+            // Almacenar locations para uso en tooltips
+            this.allLocations = data.data || [];
+            
+            this.renderLocations(this.allLocations);
+            this.updateCount('locationsCount', this.allLocations.length);
             
             console.log('✅ Locations cargadas exitosamente');
             
@@ -1089,11 +1093,23 @@ if (refreshEmspTokens) {
         tbody.innerHTML = locations.map(location => `
             <tr class="fade-in" data-location-id="${location.id}">
                 <td><code>${location.id}</code></td>
-                <td>${location.name || 'N/A'}</td>
+                <td>
+                    <span class="location-name-tooltip" 
+                          data-location-id="${location.id}"
+                          data-tooltip-type="location">
+                        ${location.name || 'N/A'}
+                    </span>
+                </td>
                 <td>${location.country_code}</td>
                 <td>${location.city || 'N/A'}</td>
                 <td>${location.address || 'N/A'}</td>
-                <td><span class="badge bg-secondary">${location.evses?.length || 0}</span></td>
+                <td>
+                    <span class="badge bg-secondary cursor-pointer location-evses-tooltip" 
+                          data-location-id="${location.id}"
+                          data-tooltip-type="location-evses">
+                        ${location.evses?.length || 0}
+                    </span>
+                </td>
                 <td>${new Date(location.last_updated).toLocaleString()}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
@@ -1115,6 +1131,356 @@ if (refreshEmspTokens) {
         `).join('');
         
         console.log(`✅ ${locations.length} locations renderizadas`);
+        
+        // Inicializar tooltips de Bootstrap para locations
+        this.initializeLocationTooltips();
+    }
+
+
+
+    // ===== FUNCIONALIDAD DE CAMBIO DE ESTADO EVSE =====
+    
+    // Mostrar modal de cambio de estado
+    showChangeEvseStatusModal() {
+        try {
+            console.log('🔄 Abriendo modal de cambio de estado EVSE...');
+            
+            // Cargar locations para el selector
+            this.loadLocationsForStatusChange();
+            
+            // Mostrar modal
+            const modal = document.getElementById('changeEvseStatusModal');
+            if (modal) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
+                } else {
+                    // Fallback manual
+                    modal.style.display = 'block';
+                    modal.classList.add('show');
+                    document.body.classList.add('modal-open');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error abriendo modal de cambio de estado:', error);
+            this.showNotification('Error abriendo modal: ' + error.message, 'error');
+        }
+    }
+    
+    // Cargar locations para el selector de cambio de estado
+    async loadLocationsForStatusChange() {
+        try {
+            console.log('🔄 Cargando locations para cambio de estado...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            
+            const data = await response.json();
+            const locations = data.data || [];
+            
+            const selector = document.getElementById('changeEvseLocation');
+            if (!selector) {
+                console.warn('⚠️ Selector changeEvseLocation no encontrado');
+                return;
+            }
+            
+            // Limpiar opciones existentes (excepto la primera)
+            selector.innerHTML = '<option value="">Seleccionar location...</option>';
+            
+            // Agregar locations al selector
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location.id;
+                option.textContent = `${location.name || 'Sin nombre'} (${location.evses?.length || 0} EVSEs)`;
+                option.dataset.locationData = JSON.stringify(location);
+                selector.appendChild(option);
+            });
+            
+            console.log(`✅ ${locations.length} locations cargadas para cambio de estado`);
+            
+        } catch (error) {
+            console.error('❌ Error cargando locations para cambio de estado:', error);
+            this.showNotification('Error cargando locations: ' + error.message, 'error');
+        }
+    }
+    
+    // Cargar EVSEs cuando se selecciona una location
+    async loadEvsesForStatusChange() {
+        try {
+            const locationId = document.getElementById('changeEvseLocation').value;
+            const evseSelector = document.getElementById('changeEvseSelector');
+            
+            if (!locationId) {
+                evseSelector.innerHTML = '<option value="">Primero selecciona una location</option>';
+                evseSelector.disabled = true;
+                return;
+            }
+            
+            console.log('🔄 Cargando EVSEs para location:', locationId);
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            
+            const data = await response.json();
+            const evses = data.data || [];
+            
+            // Limpiar opciones existentes
+            evseSelector.innerHTML = '<option value="">Seleccionar EVSE...</option>';
+            
+            // Agregar EVSEs al selector
+            evses.forEach(evse => {
+                const option = document.createElement('option');
+                option.value = evse.id;
+                option.textContent = `${evse.evse_id || evse.id} - ${evse.status}`;
+                option.dataset.evseData = JSON.stringify(evse);
+                evseSelector.appendChild(option);
+            });
+            
+            evseSelector.disabled = false;
+            console.log(`✅ ${evses.length} EVSEs cargados para location ${locationId}`);
+            
+        } catch (error) {
+            console.error('❌ Error cargando EVSEs para cambio de estado:', error);
+            this.showNotification('Error cargando EVSEs: ' + error.message, 'error');
+        }
+    }
+    
+    // Mostrar información del EVSE seleccionado
+    showSelectedEvseInfo() {
+        try {
+            const evseId = document.getElementById('changeEvseSelector').value;
+            const infoElement = document.getElementById('selectedEvseInfo');
+            
+            if (!evseId) {
+                infoElement.innerHTML = '<span class="text-muted">Selecciona un EVSE para ver su información</span>';
+                return;
+            }
+            
+            const selector = document.getElementById('changeEvseSelector');
+            const selectedOption = selector.options[selector.selectedIndex];
+            const evseData = JSON.parse(selectedOption.dataset.evseData);
+            
+            infoElement.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>EVSE ID:</strong> ${evseData.evse_id || evseData.id}<br>
+                        <strong>UID:</strong> ${evseData.id}<br>
+                        <strong>Estado Actual:</strong> <span class="badge status-badge status-${evseData.status}">${evseData.status}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Conectores:</strong> ${evseData.connectors?.length || 0}<br>
+                        <strong>Capabilities:</strong> ${evseData.capabilities?.join(', ') || 'Ninguna'}<br>
+                        <strong>Última Actualización:</strong> ${new Date(evseData.last_updated).toLocaleString()}
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('❌ Error mostrando información del EVSE:', error);
+        }
+    }
+    
+    // Cambiar estado del EVSE
+    async changeEvseStatus() {
+        try {
+            const evseId = document.getElementById('changeEvseSelector').value;
+            const newStatus = document.getElementById('newEvseStatus').value;
+            const reason = document.getElementById('evseStatusReason').value;
+            
+            if (!evseId || !newStatus) {
+                this.showNotification('Por favor selecciona un EVSE y un nuevo estado', 'warning');
+                return;
+            }
+            
+            console.log('🔄 Cambiando estado del EVSE:', evseId, 'a:', newStatus);
+            
+            // Obtener datos del EVSE seleccionado
+            const selector = document.getElementById('changeEvseSelector');
+            const selectedOption = selector.options[selector.selectedIndex];
+            const evseData = JSON.parse(selectedOption.dataset.evseData);
+            
+            // Preparar payload para actualización
+            const updatePayload = {
+                status: newStatus,
+                last_updated: new Date().toISOString()
+            };
+            
+            if (reason) {
+                updatePayload.status_message = reason;
+            }
+            
+            // Actualizar EVSE en base de datos
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evseId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify(updatePayload)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const updatedEvse = await response.json();
+            console.log('✅ EVSE actualizado exitosamente:', updatedEvse);
+            
+            // Mostrar notificación de éxito
+            this.showNotification(`Estado del EVSE ${evseData.evse_id || evseData.id} cambiado a ${newStatus}`, 'success');
+            
+            // Cerrar modal
+            this.closeChangeEvseStatusModal();
+            
+            // Recargar lista de EVSEs
+            this.loadEvses();
+            
+        } catch (error) {
+            console.error('❌ Error cambiando estado del EVSE:', error);
+            this.showNotification('Error cambiando estado: ' + error.message, 'error');
+        }
+    }
+    
+    // Cerrar modal de cambio de estado
+    closeChangeEvseStatusModal() {
+        try {
+            const modal = document.getElementById('changeEvseStatusModal');
+            if (modal) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                } else {
+                    // Fallback manual
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                    document.body.classList.remove('modal-open');
+                }
+            }
+            
+            // Limpiar formulario
+            document.getElementById('changeEvseStatusForm').reset();
+            document.getElementById('changeEvseSelector').disabled = true;
+            document.getElementById('selectedEvseInfo').innerHTML = '<span class="text-muted">Selecciona un EVSE para ver su información</span>';
+            
+        } catch (error) {
+            console.error('❌ Error cerrando modal de cambio de estado:', error);
+        }
+    }
+
+    // Inicializar tooltips de Bootstrap para locations
+    initializeLocationTooltips() {
+        try {
+            console.log('🔧 Inicializando tooltips de locations...');
+            console.log('📊 allLocations disponibles:', this.allLocations?.length || 0);
+            
+            // Destruir tooltips existentes para evitar duplicados
+            const existingTooltips = document.querySelectorAll('.location-name-tooltip, .location-evses-tooltip');
+            existingTooltips.forEach(element => {
+                const tooltip = bootstrap.Tooltip.getInstance(element);
+                if (tooltip) {
+                    tooltip.dispose();
+                }
+            });
+            
+            // Configurar tooltips para nombre de location
+            const locationNameTooltips = document.querySelectorAll('.location-name-tooltip');
+            console.log(`🔍 Encontrados ${locationNameTooltips.length} elementos para tooltip de nombre`);
+            
+            locationNameTooltips.forEach(element => {
+                const locationId = element.dataset.locationId;
+                console.log(`🔍 Buscando location con ID: ${locationId}`);
+                
+                const location = this.allLocations?.find(l => l.id === locationId);
+                console.log(`📍 Location encontrada:`, location);
+                
+                if (location) {
+                    const tooltipContent = `
+                        <strong>Location ID:</strong> ${location.id}<br>
+                        <strong>Nombre:</strong> ${location.name || 'N/A'}<br>
+                        <strong>País:</strong> ${location.country_code}<br>
+                        <strong>Ciudad:</strong> ${location.city || 'N/A'}<br>
+                        <strong>Dirección:</strong> ${location.address || 'N/A'}<br>
+                        <strong>Coordenadas:</strong> ${location.coordinates ? `${location.coordinates.latitude}, ${location.coordinates.longitude}` : 'N/A'}<br>
+                        <strong>Tipo de parking:</strong> ${location.parking_type || 'N/A'}<br>
+                        <strong>EVSEs:</strong> ${location.evses?.length || 0}<br>
+                        <strong>Última actualización:</strong> ${new Date(location.last_updated).toLocaleString()}
+                    `;
+                    
+                    console.log(`📝 Tooltip content para ${locationId}:`, tooltipContent);
+                    
+                    new bootstrap.Tooltip(element, {
+                        html: true,
+                        placement: 'top',
+                        delay: { show: 500, hide: 100 },
+                        title: tooltipContent
+                    });
+                } else {
+                    console.warn(`⚠️ No se encontró location con ID: ${locationId}`);
+                }
+            });
+            
+            // Configurar tooltips para EVSEs de location
+            const locationEvsesTooltips = document.querySelectorAll('.location-evses-tooltip');
+            console.log(`🔍 Encontrados ${locationEvsesTooltips.length} elementos para tooltip de EVSEs`);
+            
+            locationEvsesTooltips.forEach(element => {
+                const locationId = element.dataset.locationId;
+                console.log(`🔍 Buscando EVSEs para location ID: ${locationId}`);
+                
+                const location = this.allLocations?.find(l => l.id === locationId);
+                console.log(`📍 Location para EVSEs:`, location);
+                console.log(`🔌 EVSEs en location:`, location?.evses);
+                
+                if (location && location.evses && location.evses.length > 0) {
+                    const evsesContent = location.evses.map((evse, index) => `
+                        <strong>EVSE ${index + 1}:</strong><br>
+                        • ID: ${evse.evse_id || evse.uid || evse.id}<br>
+                        • UID: ${evse.uid || evse.id}<br>
+                        • Estado: ${evse.status}<br>
+                        • Conectores: ${evse.connectors?.length || 0}<br>
+                        • Capabilities: ${evse.capabilities?.join(', ') || 'Ninguna'}<br>
+                        ${index < location.evses.length - 1 ? '<br>' : ''}
+                    `).join('');
+                    
+                    console.log(`📝 EVSEs content para ${locationId}:`, evsesContent);
+                    
+                    new bootstrap.Tooltip(element, {
+                        html: true,
+                        placement: 'top',
+                        delay: { show: 500, hide: 100 },
+                        title: evsesContent
+                    });
+                } else {
+                    console.log(`📝 No hay EVSEs para ${locationId}, usando mensaje por defecto`);
+                    new bootstrap.Tooltip(element, {
+                        html: true,
+                        placement: 'top',
+                        delay: { show: 500, hide: 100 },
+                        title: 'No hay EVSEs configurados en esta location'
+                    });
+                }
+            });
+            
+            console.log(`✅ ${locationNameTooltips.length + locationEvsesTooltips.length} tooltips de locations inicializados`);
+        } catch (error) {
+            console.error('❌ Error inicializando tooltips de locations:', error);
+        }
     }
 
     showTableError(tbodyId, message) {
@@ -1194,32 +1560,119 @@ if (refreshEmspTokens) {
         }
 
         tbody.innerHTML = evses.map(evse => `
-            <tr class="fade-in" data-evse-id="${evse.id}">
-                <td><code>${evse.evse_id}</code></td>
-                <td><code>${evse.id}</code></td>
-                <td><code>${evse.location_id}</code></td>
-                <td><span class="badge status-badge status-${evse.status}">${evse.status}</span></td>
-                <td>${evse.connectors?.length || 0}</td>
-                <td>${new Date(evse.last_updated).toLocaleString()}</td>
-                <td>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary btn-sm edit-evse-btn"
-                                data-evse-id="${evse.id}"
-                                title="Editar EVSE">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm delete-evse-btn"
-                                data-evse-id="${evse.id}"
-                                data-evse-name="${evse.evse_id || 'N/A'}"
-                                title="Eliminar EVSE">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+                <tr class="fade-in" data-evse-id="${evse.id}">
+                    <td>
+                        <code class="evse-id-tooltip" 
+                              data-evse-id="${evse.id}"
+                              data-tooltip-type="evse">
+                            ${evse.evse_id}
+                        </code>
+                    </td>
+                    <td><code>${evse.id}</code></td>
+                    <td><code>${evse.location_id}</code></td>
+                    <td><span class="badge status-badge status-${evse.status}">${evse.status}</span></td>
+                    <td>
+                        <span class="badge bg-info cursor-pointer connectors-tooltip" 
+                              data-evse-id="${evse.id}"
+                              data-tooltip-type="connectors">
+                            ${evse.connectors?.length || 0}
+                        </span>
+                    </td>
+                    <td>${new Date(evse.last_updated).toLocaleString()}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm edit-evse-btn"
+                                    data-evse-id="${evse.id}"
+                                    title="Editar EVSE">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm delete-evse-btn"
+                                    data-evse-id="${evse.id}"
+                                    data-evse-name="${evse.evse_id || 'N/A'}"
+                                    title="Eliminar EVSE">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         
         console.log(`✅ ${evses.length} EVSEs renderizados`);
+        
+        // Inicializar tooltips de Bootstrap
+        this.initializeTooltips();
+    }
+
+    // Inicializar tooltips de Bootstrap
+    initializeTooltips() {
+        try {
+            // Destruir tooltips existentes para evitar duplicados
+            const existingTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            existingTooltips.forEach(element => {
+                const tooltip = bootstrap.Tooltip.getInstance(element);
+                if (tooltip) {
+                    tooltip.dispose();
+                }
+            });
+            
+            // Configurar tooltips para EVSE ID
+            const evseIdTooltips = document.querySelectorAll('.evse-id-tooltip');
+            evseIdTooltips.forEach(element => {
+                const evseId = element.dataset.evseId;
+                const evse = this.allEvses?.find(e => e.id === evseId);
+                if (evse) {
+                    const tooltipContent = `
+                        <strong>EVSE ID:</strong> ${evse.evse_id || 'N/A'}<br>
+                        <strong>UID:</strong> ${evse.id}<br>
+                        <strong>Estado:</strong> ${evse.status}<br>
+                        <strong>Location:</strong> ${evse.location_id}<br>
+                        <strong>Conectores:</strong> ${evse.connectors?.length || 0}<br>
+                        <strong>Capabilities:</strong> ${evse.capabilities?.join(', ') || 'Ninguna'}<br>
+                        <strong>Última actualización:</strong> ${new Date(evse.last_updated).toLocaleString()}
+                    `;
+                    
+                    new bootstrap.Tooltip(element, {
+                        html: true,
+                        placement: 'top',
+                        delay: { show: 500, hide: 100 },
+                        title: tooltipContent
+                    });
+                }
+            });
+            
+            // Configurar tooltips para conectores
+            const connectorsTooltips = document.querySelectorAll('.connectors-tooltip');
+            connectorsTooltips.forEach(element => {
+                const evseId = element.dataset.evseId;
+                const evse = this.allEvses?.find(e => e.id === evseId);
+                if (evse) {
+                    const connectorsContent = evse.connectors && evse.connectors.length > 0 
+                        ? evse.connectors.map((conn, index) => `
+                            <strong>Conector ${index + 1}:</strong><br>
+                            • ID: ${conn.id}<br>
+                            • Estándar: ${conn.standard || 'N/A'}<br>
+                            • Formato: ${conn.format || 'N/A'}<br>
+                            • Tipo: ${conn.power_type || 'N/A'}<br>
+                            • Voltaje: ${conn.max_voltage || 'N/A'}V<br>
+                            • Amperaje: ${conn.max_amperage || 'N/A'}A<br>
+                            • Potencia: ${conn.max_electric_power || 'N/A'}W<br>
+                            ${index < evse.connectors.length - 1 ? '<br>' : ''}
+                        `).join('')
+                        : 'No hay conectores configurados';
+                    
+                    new bootstrap.Tooltip(element, {
+                        html: true,
+                        placement: 'top',
+                        delay: { show: 500, hide: 100 },
+                        title: connectorsContent
+                    });
+                }
+            });
+            
+            console.log(`✅ ${evseIdTooltips.length + connectorsTooltips.length} tooltips inicializados`);
+        } catch (error) {
+            console.error('❌ Error inicializando tooltips:', error);
+        }
     }
 
     // Renderizar página específica de EVSEs
@@ -2135,6 +2588,15 @@ if (refreshEmspTokens) {
                 });
                 console.log('✅ Event listener para createEvseBtn agregado');
             }
+            
+            // Botón para cambiar estado de EVSE
+            const changeEvseStatusBtn = document.getElementById('changeEvseStatusBtn');
+            if (changeEvseStatusBtn) {
+                changeEvseStatusBtn.addEventListener('click', () => {
+                    this.showChangeEvseStatusModal();
+                });
+                console.log('✅ Event listener para changeEvseStatusBtn agregado');
+            }
 
             // Botón para generar UID de EVSE
             const generateEvseUidBtn = document.getElementById('generateEvseUidBtn');
@@ -2165,10 +2627,79 @@ if (refreshEmspTokens) {
 
             // Event listeners para cerrar el modal
             this.setupEvseModalCloseEventListeners();
+            
+            // Event listeners para el modal de cambio de estado
+            this.setupChangeEvseStatusModalEventListeners();
 
             console.log('✅ Event listeners del modal de EVSEs configurados');
         } catch (error) {
             console.error('❌ Error configurando event listeners del modal de EVSEs:', error);
+        }
+    }
+    
+    // Configurar event listeners para el modal de cambio de estado
+    setupChangeEvseStatusModalEventListeners() {
+        try {
+            console.log('🔌 Configurando event listeners del modal de cambio de estado...');
+            
+            // Selector de location
+            const changeEvseLocation = document.getElementById('changeEvseLocation');
+            if (changeEvseLocation) {
+                changeEvseLocation.addEventListener('change', () => {
+                    this.loadEvsesForStatusChange();
+                });
+                console.log('✅ Event listener para changeEvseLocation agregado');
+            }
+            
+            // Selector de EVSE
+            const changeEvseSelector = document.getElementById('changeEvseSelector');
+            if (changeEvseSelector) {
+                changeEvseSelector.addEventListener('change', () => {
+                    this.showSelectedEvseInfo();
+                });
+                console.log('✅ Event listener para changeEvseSelector agregado');
+            }
+            
+            // Botón de confirmar cambio
+            const confirmChangeEvseStatusBtn = document.getElementById('confirmChangeEvseStatusBtn');
+            if (confirmChangeEvseStatusBtn) {
+                confirmChangeEvseStatusBtn.addEventListener('click', () => {
+                    this.changeEvseStatus();
+                });
+                console.log('✅ Event listener para confirmChangeEvseStatusBtn agregado');
+            }
+            
+            // Event listeners para cerrar el modal
+            this.setupChangeEvseStatusModalCloseEventListeners();
+            
+            console.log('✅ Event listeners del modal de cambio de estado configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners del modal de cambio de estado:', error);
+        }
+    }
+    
+    // Configurar event listeners para cerrar el modal de cambio de estado
+    setupChangeEvseStatusModalCloseEventListeners() {
+        try {
+            // Botón de cerrar (X)
+            const closeBtn = document.querySelector('#changeEvseStatusModal .btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.closeChangeEvseStatusModal();
+                });
+            }
+
+            // Botón Cancelar
+            const cancelBtn = document.querySelector('#changeEvseStatusModal .btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.closeChangeEvseStatusModal();
+                });
+            }
+            
+            console.log('✅ Event listeners de cierre del modal de cambio de estado configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners de cierre del modal de cambio de estado:', error);
         }
     }
 

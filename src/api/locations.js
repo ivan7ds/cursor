@@ -99,6 +99,8 @@ router.get('/', async (req, res) => {
       include: [{
         model: EVSE,
         as: 'evseList',
+        where: { deleted_at: null }, // Solo incluir EVSEs activos (no soft-deleted)
+        required: false, // LEFT JOIN para incluir locations sin EVSEs
         attributes: ['id', 'country_code', 'party_id', 'evse_id', 'status', 'capabilities', 'connectors', 'physical_reference', 'last_updated']
       }],
       offset: offsetInt,
@@ -325,9 +327,12 @@ router.get('/:id', async (req, res) => {
     
     const { id } = req.params;
     const location = await Location.findByPk(id, {
+      where: { deleted_at: null }, // Solo incluir location activa
       include: [{
         model: EVSE,
         as: 'evseList',
+        where: { deleted_at: null }, // Solo incluir EVSEs activos (no soft-deleted)
+        required: false, // LEFT JOIN para incluir location sin EVSEs
         attributes: ['id', 'evse_id', 'status', 'capabilities', 'connectors', 'physical_reference', 'last_updated']
       }]
     });

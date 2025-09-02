@@ -213,6 +213,9 @@
                             <button type="button" class="btn btn-success btn-sm" id="createEvseBtn">
                                 <i class="bi bi-plus-circle"></i> Crear EVSE
                             </button>
+                            <button type="button" class="btn btn-warning btn-sm" id="changeEvseStatusBtn">
+                                <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+                            </button>
                             <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEvses">
                                 <i class="bi bi-arrow-clockwise"></i> Actualizar
                             </button>
@@ -1517,8 +1520,95 @@
         </div>
     </div>
 
+    <!-- Modal para cambiar estado de EVSE -->
+    <div class="modal fade" id="changeEvseStatusModal" tabindex="-1" aria-labelledby="changeEvseStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeEvseStatusModalLabel">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Estado de EVSE
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Información:</strong> Esta acción actualizará el estado del EVSE en la base de datos y enviará una notificación PATCH a todos los EMSPs conectados.
+                    </div>
+                    
+                    <form id="changeEvseStatusForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="changeEvseLocation" class="form-label">Location *</label>
+                                <select class="form-select" id="changeEvseLocation" required>
+                                    <option value="">Seleccionar location...</option>
+                                </select>
+                                <div class="form-text">Selecciona la location que contiene el EVSE</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="changeEvseSelector" class="form-label">EVSE *</label>
+                                <select class="form-select" id="changeEvseSelector" required disabled>
+                                    <option value="">Primero selecciona una location</option>
+                                </select>
+                                <div class="form-text">Selecciona el EVSE a modificar</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="newEvseStatus" class="form-label">Nuevo Estado *</label>
+                                <select class="form-select" id="newEvseStatus" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="AVAILABLE">AVAILABLE - Disponible</option>
+                                    <option value="BLOCKED">BLOCKED - Bloqueado</option>
+                                    <option value="CHARGING">CHARGING - Cargando</option>
+                                    <option value="INOPERATIVE">INOPERATIVE - Inoperativo</option>
+                                    <option value="OUTOFORDER">OUTOFORDER - Fuera de servicio</option>
+                                    <option value="PLANNED">PLANNED - Planificado</option>
+                                    <option value="REMOVED">REMOVED - Eliminado</option>
+                                    <option value="RESERVED">RESERVED - Reservado</option>
+                                    <option value="UNKNOWN">UNKNOWN - Desconocido</option>
+                                </select>
+                                <div class="form-text">Estado OCPI 2.2 para el EVSE</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="evseStatusReason" class="form-label">Motivo del Cambio (Opcional)</label>
+                                <input type="text" class="form-control" id="evseStatusReason" 
+                                       placeholder="Describe el motivo del cambio...">
+                                <div class="form-text">Información adicional sobre el cambio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-info-circle"></i> Información del EVSE Seleccionado
+                                        </h6>
+                                    </div>
+                                    <div class="card-body" id="selectedEvseInfo">
+                                        <span class="text-muted">Selecciona un EVSE para ver su información</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning" id="confirmChangeEvseStatusBtn">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="bootstrap.bundle.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
