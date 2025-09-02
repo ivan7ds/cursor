@@ -18,11 +18,9 @@ router.get('/', async (req, res) => {
   try {
     logger.ocpi('/credentials', 'GET', { query: req.query });
     
+    // Mostrar todas las conexiones (tanto CPO como EMSP)
     const credentials = await Credentials.findAll({
-      where: {
-        country_code: req.query.country_code || process.env.OCPI_COUNTRY_CODE,
-        party_id: req.query.party_id || process.env.OCPI_PARTY_ID
-      }
+      order: [['last_updated', 'DESC']]
     });
 
     res.status(200).json({
