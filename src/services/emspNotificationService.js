@@ -86,7 +86,7 @@ class EMSPNotificationService {
             
             // Notificar a cada organización
             const notificationPromises = organizations.map(org => 
-                this.notifyOrganizationAboutEVSE(org, evseData, 'POST')
+                this.notifyOrganizationAboutEVSE(org, evseData, 'PUT')
             );
             
             await Promise.allSettled(notificationPromises);
@@ -204,10 +204,10 @@ class EMSPNotificationService {
      * @param {Object} evseData - Datos del EVSE
      * @param {string} method - Método HTTP (POST para crear, PUT para actualizar)
      */
-    async notifyOrganizationAboutEVSE(organization, evseData, method = 'POST') {
+    async notifyOrganizationAboutEVSE(organization, evseData, method = 'PUT') {
         try {
-            // Construir la URL correcta usando nuestro party_id (IPD) y country_code (ES)
-            const endpoint = `${organization.url}/ocpi/cpo/2.2/evses/ES/IPD/${evseData.id}`;
+            // Construir la URL correcta según OCPI 2.2: /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
+            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/ES/IPD/${evseData.location_id}/${evseData.id}`;
             
             logger.info(`📤 Notificando EVSE ${evseData.id} a organización ${organization.party_id} en ${endpoint}`);
             
@@ -260,24 +260,67 @@ class EMSPNotificationService {
     /**
      * Preparar payload de EVSE para enviar a la organización
      * @param {Object} evseData - Datos del EVSE
-     * @returns {Object} Payload formateado
+     * @returns {Object} Payload formateado según OCPI 2.2
      */
     prepareEVSEPayload(evseData) {
+        // Filtrar capabilities válidas según OCPI 2.2
+        const validCapabilities = [
+            'CHARGING_PROFILE_CAPABLE',
+            'CREDIT_CARD_PAYABLE', 
+            'REMOTE_START_STOP_CAPABLE',
+            'RESERVABLE',
+            'RFID_READER',
+            'UNLOCK_CAPABLE',
+            'CHARGING_PREFERENCES_CAPABLE',
+            'CHIP_CARD_SUPPORT',
+            'CONTACTLESS_CARD_SUPPORT',
+            'PED_TERMINAL',
+            'DEBIT_CARD_PAYABLE',
+            'TOKEN_GROUP_CAPABLE'
+        ];
+        
+        const filteredCapabilities = (evseData.capabilities || [])
+            .filter(cap => validCapabilities.includes(cap))
+            .filter((cap, index, arr) => arr.indexOf(cap) === index); // Eliminar duplicados
+        
+        // Procesar connectors para asegurar tipos correctos y omitir campos nulos
+        const processedConnectors = (evseData.connectors || []).map(connector => {
+            const processedConnector = { ...connector };
+            
+            // Solo incluir campos numéricos si tienen valor válido
+            if (connector.max_voltage && !isNaN(parseInt(connector.max_voltage, 10))) {
+                processedConnector.max_voltage = parseInt(connector.max_voltage, 10);
+            } else {
+                delete processedConnector.max_voltage;
+            }
+            
+            if (connector.max_amperage && !isNaN(parseInt(connector.max_amperage, 10))) {
+                processedConnector.max_amperage = parseInt(connector.max_amperage, 10);
+            } else {
+                delete processedConnector.max_amperage;
+            }
+            
+            if (connector.max_electric_power && !isNaN(parseInt(connector.max_electric_power, 10))) {
+                processedConnector.max_electric_power = parseInt(connector.max_electric_power, 10);
+            } else {
+                delete processedConnector.max_electric_power;
+            }
+            
+            return processedConnector;
+        });
+
         return {
-            uid: evseData.uid,
-            evse_id: evseData.evse_id,
-            country_code: evseData.country_code,
-            party_id: evseData.party_id,
-            location_id: evseData.location_id,
+            uid: evseData.id, // El UID es el ID del EVSE
+            evse_id: evseData.evse_id || evseData.id, // Usar evse_id si existe, sino el ID
             status: evseData.status,
-            capabilities: evseData.capabilities,
-            connectors: evseData.connectors,
-            floor_level: evseData.floor_level,
-            coordinates: evseData.coordinates,
-            physical_reference: evseData.physical_reference,
-            directions: evseData.directions,
-            parking_restrictions: evseData.parking_restrictions,
-            group_id: evseData.group_id,
+            capabilities: filteredCapabilities,
+            connectors: processedConnectors,
+            floor_level: evseData.floor_level || null,
+            physical_reference: evseData.physical_reference || null,
+            coordinates: evseData.coordinates || null,
+            directions: evseData.directions || null,
+            parking_restrictions: evseData.parking_restrictions || null,
+            group_id: evseData.group_id || null,
             last_updated: new Date().toISOString()
         };
     }

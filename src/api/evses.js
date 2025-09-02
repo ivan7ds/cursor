@@ -200,9 +200,13 @@ router.put('/:id', async (req, res) => {
     });
 
     // Notificar a los EMSPs sobre la actualización del EVSE (en segundo plano)
+    logger.info(`🔔 Iniciando notificación de EVSE actualizado: ${evse.id}`);
     emspNotificationService.notifyEVSEUpdated(evse)
+      .then(() => {
+        logger.info(`✅ Notificación de EVSE actualizado completada: ${evse.id}`);
+      })
       .catch(error => {
-        logger.error('Error notificando a EMSPs sobre actualización de EVSE:', error);
+        logger.error(`❌ Error notificando a EMSPs sobre actualización de EVSE ${evse.id}:`, error);
       });
 
     res.status(200).json({

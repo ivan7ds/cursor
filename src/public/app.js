@@ -2255,7 +2255,7 @@ if (refreshEmspTokens) {
                 const container = document.getElementById('evseConnectorsContainer');
                 if (container) {
                     container.innerHTML = '';
-                    this.addEvseConnector(); // Agregar un conector por defecto
+                    // No agregar conector adicional, ya hay uno en el HTML
                 }
                 
                 console.log('✅ Formulario de EVSE reseteado');
@@ -2634,8 +2634,8 @@ if (refreshEmspTokens) {
             const selectedOption = locationSelect.options[locationSelect.selectedIndex];
             const locationName = selectedOption.textContent.split(' - ')[0];
             
-            // Obtener capabilities seleccionadas
-            const capabilities = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+            // Obtener capabilities seleccionadas (solo las del formulario de creación de EVSE)
+            const capabilities = Array.from(document.querySelectorAll('#createEvseForm input[type="checkbox"]:checked'))
                 .map(checkbox => checkbox.value);
             
             // Obtener conectores
@@ -3342,9 +3342,11 @@ if (refreshEmspTokens) {
                     standard: connectorElement.querySelector('.connector-standard').value.trim(),
                     format: connectorElement.querySelector('.connector-format').value.trim(),
                     power_type: connectorElement.querySelector('.connector-power-type').value.trim(),
-                    voltage: parseInt(connectorElement.querySelector('.connector-voltage').value) || 230,
-                    amperage: parseInt(connectorElement.querySelector('.connector-amperage').value) || 32,
-                    max_power: parseInt(connectorElement.querySelector('.connector-max-power').value) || null
+                    max_voltage: parseInt(connectorElement.querySelector('.connector-voltage').value) || 230,
+                    max_amperage: parseInt(connectorElement.querySelector('.connector-amperage').value) || 32,
+                    max_electric_power: parseInt(connectorElement.querySelector('.connector-max-power').value) || null,
+                    tariff_ids: [],
+                    last_updated: new Date().toISOString()
                 };
                 
                 // Validar conector
