@@ -36,6 +36,9 @@ class DashboardApp {
             this.setupSimpleEventListeners();
             this.updateConnectionStatus();
             
+            // Cargar conexiones CPO para el selector
+            this.loadCpoConnections();
+            
             console.log('✅ Configuración básica completada');
         } catch (error) {
             console.error('❌ Error en setupBasic:', error);
@@ -294,6 +297,18 @@ if (refreshEmspTokens) {
                 console.log('✅ Event listener para clearCpoResponse agregado');
             } else {
                 console.warn('⚠️ Elemento clearCpoResponse no encontrado');
+            }
+
+            // Selector de conexión CPO
+            const cpoConnection = document.getElementById('cpoConnection');
+            if (cpoConnection) {
+                cpoConnection.addEventListener('change', () => {
+                    console.log('🔗 Selector de conexión CPO cambiado');
+                    this.onCpoConnectionChange();
+                });
+                console.log('✅ Event listener para cpoConnection agregado');
+            } else {
+                console.warn('⚠️ Elemento cpoConnection no encontrado');
             }
 
             // Filtros EMSP
@@ -4327,6 +4342,69 @@ if (refreshEmspTokens) {
     }
 
     // ===== FUNCIONES PARA CONSULTAR CPOs (ROL EMSP) =====
+    
+    // Cargar conexiones disponibles en el selector
+    async loadCpoConnections() {
+        try {
+            console.log('🔄 Cargando conexiones CPO...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/credentials`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            const connections = data.data || [];
+            
+            const select = document.getElementById('cpoConnection');
+            if (select) {
+                // Limpiar opciones existentes (excepto la primera)
+                select.innerHTML = '<option value="">Seleccionar conexión...</option>';
+                
+                // Agregar opciones para cada conexión
+                connections.forEach(conn => {
+                    const option = document.createElement('option');
+                    option.value = conn.id;
+                    option.textContent = `${conn.party_id} - ${conn.business_details?.name || 'Sin nombre'}`;
+                    option.dataset.url = conn.url;
+                    option.dataset.token = conn.token;
+                    select.appendChild(option);
+                });
+                
+                console.log(`✅ ${connections.length} conexiones cargadas en el selector`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando conexiones CPO:', error);
+            this.showNotification(`Error cargando conexiones: ${error.message}`, 'error');
+        }
+    }
+    
+    // Manejar cambio de selección de conexión
+    onCpoConnectionChange() {
+        const select = document.getElementById('cpoConnection');
+        const selectedOption = select.options[select.selectedIndex];
+        
+        if (selectedOption.value) {
+            // Rellenar campos con los datos de la conexión seleccionada
+            document.getElementById('cpoUrl').value = selectedOption.dataset.url || '';
+            document.getElementById('cpoToken').value = selectedOption.dataset.token || '';
+            
+            console.log('✅ Campos URL y Token actualizados con la conexión seleccionada');
+        } else {
+            // Limpiar campos si no hay selección
+            document.getElementById('cpoUrl').value = '';
+            document.getElementById('cpoToken').value = '';
+            
+            console.log('🧹 Campos URL y Token limpiados');
+        }
+    }
     
     // Obtener versión del CPO
     async getCpoVersions() {

@@ -620,13 +620,21 @@
                                 <h6>Configuración de Conexión CPO</h6>
                                 <div class="row g-3">
                                     <div class="col-md-4">
+                                        <label for="cpoConnection" class="form-label">Conexión CPO</label>
+                                        <select class="form-select" id="cpoConnection" required>
+                                            <option value="">Seleccionar conexión...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
                                         <label for="cpoUrl" class="form-label">URL del CPO</label>
-                                        <input type="url" class="form-control" id="cpoUrl" placeholder="https://cpo.example.com">
+                                        <input type="url" class="form-control" id="cpoUrl" readonly>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="cpoToken" class="form-label">Token de Acceso</label>
-                                        <input type="text" class="form-control" id="cpoToken" placeholder="Token del CPO">
+                                        <input type="text" class="form-control" id="cpoToken" readonly>
                                     </div>
+                                </div>
+                                <div class="row g-3 mt-2">
                                     <div class="col-md-4">
                                         <label for="cpoVersion" class="form-label">Versión OCPI</label>
                                         <select class="form-select" id="cpoVersion">
