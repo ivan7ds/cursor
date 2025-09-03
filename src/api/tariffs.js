@@ -130,7 +130,17 @@ router.post('/', async (req, res) => {
     
     let updatedEvsesCount = 0;
     
-    // Asociar la tarifa a los EVSEs de la location seleccionada
+    // PRIMERO: Notificar a EMSPs sobre la nueva tarifa
+    try {
+      const emspNotificationService = require('../services/emspNotificationService');
+      await emspNotificationService.notifyTariffCreated(tariff);
+      logger.info(`📤 Notificación PUT de tarifa ${tariff.id} enviada a EMSPs`);
+    } catch (notificationError) {
+      logger.error('❌ Error notificando tarifa a EMSPs:', notificationError);
+      // No fallar la creación de la tarifa si falla la notificación
+    }
+
+    // SEGUNDO: Asociar la tarifa a los EVSEs de la location seleccionada
     if (req.body.location_id) {
       try {
         logger.info(`🔗 Asociando tarifa ${tariff.id} a location ${req.body.location_id}`);
@@ -219,16 +229,6 @@ router.post('/', async (req, res) => {
         logger.error('❌ Error asociando tarifa a EVSEs:', associationError);
         // No fallar la creación de la tarifa si falla la asociación
       }
-    }
-
-    // Notificar a EMSPs sobre la nueva tarifa
-    try {
-      const emspNotificationService = require('../services/emspNotificationService');
-      await emspNotificationService.notifyTariffCreated(tariff);
-      logger.info(`📤 Notificación de tarifa ${tariff.id} enviada a EMSPs`);
-    } catch (notificationError) {
-      logger.error('❌ Error notificando tarifa a EMSPs:', notificationError);
-      // No fallar la creación de la tarifa si falla la notificación
     }
 
     res.status(201).json({
