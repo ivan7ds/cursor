@@ -179,6 +179,16 @@ router.post('/', async (req, res) => {
 
     const token = await Token.create(tokenData);
 
+    // Notificar a operadores conectados sobre el nuevo token
+    try {
+      const emspNotificationService = require('../services/emspNotificationService');
+      await emspNotificationService.notifyTokenCreated(token);
+      logger.info(`📤 Notificación POST de token ${token.uid} enviada a operadores conectados`);
+    } catch (notificationError) {
+      logger.error('❌ Error notificando token a operadores:', notificationError);
+      // No fallar la creación del token si falla la notificación
+    }
+
     res.status(201).json({
       status_code: 1000,
       data: token,

@@ -422,6 +422,18 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento refreshTokens no encontrado');
             }
 
+            // Botón para crear token
+            const createTokenBtn = document.getElementById('createTokenBtn');
+            if (createTokenBtn) {
+                createTokenBtn.addEventListener('click', () => {
+                    console.log('🔑 Botón createTokenBtn clickeado');
+                    this.showCreateTokenModal();
+                });
+                console.log('✅ Event listener para createTokenBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento createTokenBtn no encontrado');
+            }
+
             // Event listeners para paginado de EVSEs
             const evsesPrevPage = document.getElementById('evsesPrevPage');
             if (evsesPrevPage) {
@@ -466,6 +478,9 @@ if (refreshEmspTokens) {
             
             // Event listeners para el modal de creación de tarifas
             this.setupTariffModalEventListeners();
+            
+            // Event listeners para el modal de creación de tokens
+            this.setupTokenModalEventListeners();
             
             // Event listeners para el modal de creación de locations
             this.setupLocationModalEventListeners();
@@ -2395,6 +2410,34 @@ if (refreshEmspTokens) {
             console.log('✅ Event listeners del modal de tarifas configurados');
         } catch (error) {
             console.error('❌ Error configurando event listeners del modal de tarifas:', error);
+        }
+    }
+
+    setupTokenModalEventListeners() {
+        try {
+            console.log('🔧 Configurando event listeners del modal de tokens...');
+            
+            // Botón para generar UID de token
+            const generateTokenUidBtn = document.getElementById('generateTokenUidBtn');
+            if (generateTokenUidBtn) {
+                generateTokenUidBtn.addEventListener('click', () => {
+                    this.generateTokenUid();
+                });
+                console.log('✅ Event listener para generateTokenUidBtn agregado');
+            }
+            
+            // Botón para guardar token
+            const saveTokenBtn = document.getElementById('saveTokenBtn');
+            if (saveTokenBtn) {
+                saveTokenBtn.addEventListener('click', () => {
+                    this.saveToken();
+                });
+                console.log('✅ Event listener para saveTokenBtn agregado');
+            }
+
+            console.log('✅ Event listeners del modal de tokens configurados');
+        } catch (error) {
+            console.error('❌ Error configurando event listeners del modal de tokens:', error);
         }
     }
 
@@ -4969,6 +5012,167 @@ if (refreshEmspTokens) {
             return formData;
         } catch (error) {
             console.error('❌ Error recopilando datos de tarifa:', error);
+            return null;
+        }
+    }
+
+    // ===== FUNCIONES DEL MODAL DE CREACIÓN DE TOKENS =====
+
+    showCreateTokenModal() {
+        try {
+            console.log('🔑 Mostrando modal de creación de token...');
+            
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('createTokenModal'));
+            modal.show();
+            
+            // Generar UID único para el token
+            this.generateTokenUid();
+            
+            // Limpiar formulario
+            this.resetTokenForm();
+            
+        } catch (error) {
+            console.error('❌ Error mostrando modal de token:', error);
+            this.showNotification('Error al mostrar el formulario de token', 'error');
+        }
+    }
+
+    generateTokenUid() {
+        try {
+            console.log('🆔 Generando UID único para token...');
+            
+            // Generar UUID v4
+            const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            
+            document.getElementById('tokenUid').value = uuid;
+            console.log('✅ UID generado:', uuid);
+            
+        } catch (error) {
+            console.error('❌ Error generando UID de token:', error);
+        }
+    }
+
+    resetTokenForm() {
+        try {
+            console.log('🔄 Reseteando formulario de token...');
+            
+            // Limpiar todos los campos
+            document.getElementById('createTokenForm').reset();
+            
+            // Generar nuevo UID
+            this.generateTokenUid();
+            
+            console.log('✅ Formulario de token reseteado');
+            
+        } catch (error) {
+            console.error('❌ Error reseteando formulario de token:', error);
+        }
+    }
+
+    async saveToken() {
+        try {
+            console.log('💾 Guardando token...');
+            
+            // Validar formulario
+            if (!this.validateTokenForm()) {
+                return;
+            }
+            
+            // Recopilar datos del formulario
+            const tokenData = this.collectTokenFormData();
+            
+            // Enviar al backend
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                },
+                body: JSON.stringify(tokenData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Token creado exitosamente:', result);
+            
+            // Mostrar notificación de éxito
+            this.showNotification('Token creado exitosamente y notificado a operadores conectados', 'success');
+            
+            // Cerrar modal usando la API correcta de Bootstrap 5
+            const modalElement = document.getElementById('createTokenModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                } else {
+                    // Fallback: cerrar manualmente
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    modalElement.setAttribute('aria-hidden', 'true');
+                    document.body.classList.remove('modal-open');
+                    
+                    // Remover backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            }
+            
+            // Recargar lista de tokens
+            this.loadTokens();
+            
+        } catch (error) {
+            console.error('❌ Error guardando token:', error);
+            this.showNotification(`Error al crear token: ${error.message}`, 'error');
+        }
+    }
+
+    validateTokenForm() {
+        try {
+            const form = document.getElementById('createTokenForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('❌ Error validando formulario de token:', error);
+            return false;
+        }
+    }
+
+    collectTokenFormData() {
+        try {
+            const formData = {
+                uid: document.getElementById('tokenUid').value,
+                type: document.getElementById('tokenType').value,
+                auth_method: document.getElementById('tokenAuthMethod').value,
+                issuer: document.getElementById('tokenIssuer').value,
+                contract_id: document.getElementById('tokenContractId').value || null,
+                valid: document.getElementById('tokenValid').value === 'true',
+                whitelist: document.getElementById('tokenWhitelist').value,
+                visual_number: document.getElementById('tokenVisualNumber').value || null,
+                group_id: document.getElementById('tokenGroupId').value || null,
+                language: document.getElementById('tokenLanguage').value || null,
+                default_profile_type: document.getElementById('tokenDefaultProfileType').value || null,
+                energy_contract: document.getElementById('tokenEnergyContract').value || null
+            };
+            
+            console.log('📊 Datos de token recopilados:', formData);
+            return formData;
+        } catch (error) {
+            console.error('❌ Error recopilando datos de token:', error);
             return null;
         }
     }

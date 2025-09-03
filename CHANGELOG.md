@@ -22,6 +22,38 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Implementación de notificación DELETE para tarifas eliminadas
 - Manejo de errores en notificaciones de eliminación sin fallar el soft delete
 
+## [0.3.0] - 2025-09-03
+
+### Added
+- Funcionalidad completa de creación de tokens desde el frontend
+- Modal de formulario para crear nuevos tokens con validación
+- Notificación automática de tokens creados a operadores conectados
+- Campo `auth_method` obligatorio en formulario de tokens
+- Método `notifyTokenCreated` en emspNotificationService
+- Método `notifyOrganizationAboutToken` para notificaciones específicas
+- Método `buildTokenPayload` para construir payload OCPI 2.2
+- Botón "Crear Token" en la pestaña de Tokens del dashboard
+
+### Changed
+- Método HTTP de notificación de tokens: PUT → POST según especificación OCPI 2.2
+- Endpoint POST de tokens ahora incluye notificación automática a EMSPs
+- Formulario de tokens incluye todos los campos OCPI 2.2 requeridos
+
+### Fixed
+- Error 500 al crear tokens por campo `auth_method` faltante
+- Validación de campos obligatorios en formulario de tokens
+- Método HTTP correcto para notificaciones de creación de tokens
+- Integración completa entre frontend y backend para creación de tokens
+
+### Technical Details
+- Implementación de notificación POST para tokens creados
+- Manejo de errores en notificaciones de tokens sin fallar la creación
+- Integración completa con servicio de notificaciones EMSP
+- Validación de formularios con campos obligatorios
+- Generación automática de UID único para tokens
+- Event listeners para modal de tokens en frontend
+- Métodos de validación y recolección de datos de formularios
+
 ## [0.2.0] - 2025-09-03
 
 ### Added
@@ -103,7 +135,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.2.0 (Estado actual)
+### Versión 0.3.0 (Estado actual)
+- **Funcionalidad completa de creación de tokens desde el frontend**
+- **Notificación automática de tokens a operadores conectados**
+- **Sistema de notificaciones automáticas POST/PUT/PATCH/DELETE**
+- **Implementación completa de funcionalidad EMSP**
+- **Soft delete y gestión avanzada de datos**
+- **Mejoras en UX/UI con tooltips y paginación**
+- **Correcciones de compatibilidad OCPI 2.2**
+- **Tooltips informativos completos en todas las pestañas**
+- **Soporte para estructuras de datos de tarifas antigua y nueva**
+- **Limpieza y documentación de scripts de base de datos**
+
+### Versión 0.2.0
 - **Implementación completa de funcionalidad EMSP**
 - **Sistema de notificaciones automáticas PUT/PATCH/DELETE**
 - **Soft delete y gestión avanzada de datos**

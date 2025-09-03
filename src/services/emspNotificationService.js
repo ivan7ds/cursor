@@ -385,6 +385,69 @@ class EMSPNotificationService {
     }
 
     /**
+     * Notifica a todas las organizaciones EMSP configuradas sobre un nuevo token
+     * @param {Object} tokenData - Datos del token
+     */
+    async notifyTokenCreated(tokenData) {
+        try {
+            const organizations = await this.getConfiguredOrganizations();
+            
+            if (organizations.length === 0) {
+                logger.warn('⚠️ No hay organizaciones EMSP configuradas para notificar sobre el nuevo token');
+                return;
+            }
+
+            logger.info(`📤 Notificando creación de token ${tokenData.uid} a ${organizations.length} organizaciones EMSP`);
+
+            const notificationPromises = organizations.map(organization => 
+                this.notifyOrganizationAboutToken(organization, tokenData, 'POST')
+            );
+
+            await Promise.allSettled(notificationPromises);
+            logger.info(`✅ Notificaciones de token ${tokenData.uid} enviadas a todas las organizaciones EMSP`);
+        } catch (error) {
+            logger.error('❌ Error notificando token a organizaciones EMSP:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Notificar a una organización específica sobre un token
+     * @param {Object} organization - Datos de la organización
+     * @param {Object} tokenData - Datos del token
+     * @param {string} method - Método HTTP (PUT o PATCH)
+     */
+    async notifyOrganizationAboutToken(organization, tokenData, method = 'PUT') {
+        try {
+            const url = `${organization.url}/ocpi/emsp/2.2/tokens/${tokenData.country_code}/${tokenData.party_id}/${tokenData.uid}`;
+            
+            logger.info(`📤 Enviando ${method} de token a ${organization.party_id} (${organization.url})`);
+            
+            const payload = this.buildTokenPayload(tokenData);
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Token ${organization.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                logger.warn(`⚠️ Error notificando token a organización ${organization.party_id}: HTTP ${response.status} - ${errorText}`);
+                return;
+            }
+            
+            logger.info(`✅ Notificación ${method} de token enviada exitosamente a ${organization.party_id}`);
+            
+        } catch (error) {
+            logger.error(`❌ Error notificando token a organización ${organization.party_id}:`, error);
+        }
+    }
+
+    /**
      * Notificar a una organización específica sobre una tarifa
      * @param {Object} organization - Datos de la organización
      * @param {Object} tariffData - Datos de la tarifa
@@ -464,6 +527,48 @@ class EMSPNotificationService {
             end_date_time: tariffData.end_date_time || null,
             last_updated: tariffData.last_updated || new Date().toISOString()
         };
+    }
+
+    /**
+     * Construir el payload de token según especificación OCPI 2.2
+     * @param {Object} tokenData - Datos del token
+     * @returns {Object} Payload formateado
+     */
+    buildTokenPayload(tokenData) {
+        const payload = {
+            country_code: tokenData.country_code,
+            party_id: tokenData.party_id,
+            uid: tokenData.uid,
+            type: tokenData.type,
+            contract_id: tokenData.contract_id,
+            issuer: tokenData.issuer,
+            valid: tokenData.valid,
+            whitelist: tokenData.whitelist,
+            last_updated: tokenData.last_updated || new Date().toISOString()
+        };
+
+        // Agregar campos opcionales si existen
+        if (tokenData.visual_number) {
+            payload.visual_number = tokenData.visual_number;
+        }
+        
+        if (tokenData.group_id) {
+            payload.group_id = tokenData.group_id;
+        }
+        
+        if (tokenData.language) {
+            payload.language = tokenData.language;
+        }
+        
+        if (tokenData.default_profile_type) {
+            payload.default_profile_type = tokenData.default_profile_type;
+        }
+        
+        if (tokenData.energy_contract) {
+            payload.energy_contract = tokenData.energy_contract;
+        }
+
+        return payload;
     }
 }
 

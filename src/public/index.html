@@ -337,6 +337,9 @@
                             <i class="bi bi-key"></i> Tokens de Acceso
                         </h5>
                         <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createTokenBtn">
+                                <i class="bi bi-plus-circle"></i> Crear Token
+                            </button>
                             <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTokens">
                                 <i class="bi bi-arrow-clockwise"></i> Actualizar
                             </button>
@@ -1608,6 +1611,139 @@
                     </button>
                     <button type="button" class="btn btn-warning" id="confirmChangeEvseStatusBtn">
                         <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear token -->
+    <div class="modal fade" id="createTokenModal" tabindex="-1" aria-labelledby="createTokenModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTokenModalLabel">
+                        <i class="bi bi-key"></i> Crear Nuevo Token
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTokenForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenUid" class="form-label">UID del Token *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="tokenUid" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateTokenUidBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">UID único autogenerado (UUID)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenType" class="form-label">Tipo de Token *</label>
+                                <select class="form-select" id="tokenType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="RFID">RFID</option>
+                                    <option value="APP_USER">APP_USER</option>
+                                    <option value="OTHER">OTHER</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenAuthMethod" class="form-label">Método de Autenticación *</label>
+                                <select class="form-select" id="tokenAuthMethod" required>
+                                    <option value="">Seleccionar método...</option>
+                                    <option value="AUTH_REQUEST">AUTH_REQUEST</option>
+                                    <option value="COMMAND">COMMAND</option>
+                                    <option value="WHITELIST">WHITELIST</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenIssuer" class="form-label">Emisor *</label>
+                                <input type="text" class="form-control" id="tokenIssuer" required placeholder="Nombre del emisor">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenContractId" class="form-label">ID de Contrato</label>
+                                <input type="text" class="form-control" id="tokenContractId" placeholder="ID del contrato">
+                            </div>
+                        </div>
+
+                        <!-- Estado y configuración -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenValid" class="form-label">Estado del Token *</label>
+                                <select class="form-select" id="tokenValid" required>
+                                    <option value="true">Válido</option>
+                                    <option value="false">Inválido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenWhitelist" class="form-label">Whitelist *</label>
+                                <select class="form-select" id="tokenWhitelist" required>
+                                    <option value="NEVER">NEVER</option>
+                                    <option value="ALWAYS">ALWAYS</option>
+                                    <option value="ALLOWED">ALLOWED</option>
+                                    <option value="ALLOWED_OFFLINE">ALLOWED_OFFLINE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenVisualNumber" class="form-label">Número Visual</label>
+                                <input type="text" class="form-control" id="tokenVisualNumber" placeholder="Número visible en el token">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenGroupId" class="form-label">ID de Grupo</label>
+                                <input type="text" class="form-control" id="tokenGroupId" placeholder="ID del grupo">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenLanguage" class="form-label">Idioma</label>
+                                <select class="form-select" id="tokenLanguage">
+                                    <option value="">Seleccionar idioma...</option>
+                                    <option value="es">Español</option>
+                                    <option value="en">English</option>
+                                    <option value="fr">Français</option>
+                                    <option value="de">Deutsch</option>
+                                    <option value="it">Italiano</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenDefaultProfileType" class="form-label">Tipo de Perfil por Defecto</label>
+                                <select class="form-select" id="tokenDefaultProfileType">
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="CHEAP">CHEAP</option>
+                                    <option value="FAST">FAST</option>
+                                    <option value="GREEN">GREEN</option>
+                                    <option value="REGULAR">REGULAR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Contrato de energía -->
+                        <div class="mb-3">
+                            <label for="tokenEnergyContract" class="form-label">Contrato de Energía</label>
+                            <textarea class="form-control" id="tokenEnergyContract" rows="3" placeholder="Información del contrato de energía"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="saveTokenBtn">
+                        <i class="bi bi-check-circle"></i> Crear Token
                     </button>
                 </div>
             </div>
