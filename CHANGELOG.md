@@ -8,6 +8,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [Unreleased]
 
 ### Added
+- Notificación DELETE de tarifas a EMSPs según especificación OCPI 2.2
+- Método `notifyTariffDeleted` en emspNotificationService
+- Orden correcto de notificaciones: DELETE de tarifa → PATCH de EVSEs
+
+### Changed
+- Flujo de eliminación de tarifas: primero notificar DELETE, luego desasociar EVSEs
+
+### Fixed
+- Orden de notificaciones al eliminar tarifas según especificación OCPI 2.2
+
+### Technical Details
+- Implementación de notificación DELETE para tarifas eliminadas
+- Manejo de errores en notificaciones de eliminación sin fallar el soft delete
+
+## [0.2.0] - 2025-09-03
+
+### Added
 - Tooltips informativos en pestaña Tariffs para mostrar información detallada de tarifas
 - Soporte para estructuras de elementos de tarifas (antigua y nueva OCPI 2.2)
 - Logging detallado para debugging de tooltips de tarifas
@@ -23,6 +40,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Botones de eliminación con confirmación
 - Sistema de notificaciones PATCH/PUT automáticas
 - Gestión completa de tarifas con asociación automática a EVSEs
+- Notificación DELETE de tarifas a EMSPs según especificación OCPI 2.2
 
 ### Changed
 - Estructura de payload de tarifas corregida según especificación OCPI 2.2
@@ -32,6 +50,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Tipos de datos en conectores: strings → números enteros
 - Filtrado de capabilities inválidas en notificaciones
 - Manejo de campos nulos en conectores
+- Flujo de eliminación de tarifas: primero notificar DELETE, luego desasociar EVSEs
 
 ### Fixed
 - Error de scope de variables en endpoints de tarifas
@@ -46,6 +65,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Tooltips de tarifas mostrándose automáticamente sin pasar cursor
 - Detalles de elementos de tarifas no mostrándose en tooltips
 - Compatibilidad con estructuras de elementos de tarifas antigua y nueva
+- Orden de notificaciones al eliminar tarifas según especificación OCPI 2.2
 
 ### Technical Details
 - Agregada columna `deleted_at` a tablas: `locations`, `evses`, `tariffs`
@@ -57,6 +77,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Tooltips dinámicos con inicialización programática de Bootstrap
 - Soporte para múltiples estructuras de datos de tarifas
 - Almacenamiento de datos de tarifas para uso en tooltips (`this.allTariffs`)
+- Implementación de notificación DELETE para tarifas eliminadas
+- Manejo de errores en notificaciones de eliminación sin fallar el soft delete
 
 ## [0.1.0] - 2025-09-02
 
@@ -81,18 +103,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.1.0 (Estado actual)
-- Lanzamiento inicial de la aplicación CPO OCPI 2.2
-- Funcionalidad básica de gestión de locations, EVSEs y tarifas
-- Sistema de autenticación y API REST completa
+### Versión 0.2.0 (Estado actual)
 - **Implementación completa de funcionalidad EMSP**
-- **Sistema de notificaciones automáticas**
+- **Sistema de notificaciones automáticas PUT/PATCH/DELETE**
 - **Soft delete y gestión avanzada de datos**
 - **Mejoras en UX/UI con tooltips y paginación**
 - **Correcciones de compatibilidad OCPI 2.2**
 - **Tooltips informativos completos en todas las pestañas**
 - **Soporte para estructuras de datos de tarifas antigua y nueva**
 - **Limpieza y documentación de scripts de base de datos**
+- **Notificaciones DELETE de tarifas según especificación OCPI 2.2**
+
+### Versión 0.1.0
+- Lanzamiento inicial de la aplicación CPO OCPI 2.2
+- Funcionalidad básica de gestión de locations, EVSEs y tarifas
+- Sistema de autenticación y API REST completa
 
 ### Versión 1.0.0 (Planeada)
 - Lanzamiento oficial con todas las funcionalidades completadas

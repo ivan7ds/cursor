@@ -345,7 +345,17 @@ router.delete('/:id', async (req, res) => {
       });
     }
     
-    // Soft delete la tarifa
+    // PRIMERO: Notificar a EMSPs sobre la eliminación de la tarifa
+    try {
+      const emspNotificationService = require('../services/emspNotificationService');
+      await emspNotificationService.notifyTariffDeleted(tariff);
+      logger.info(`📤 Notificación DELETE de tarifa ${tariff.id} enviada a EMSPs`);
+    } catch (notificationError) {
+      logger.error('❌ Error notificando eliminación de tarifa a EMSPs:', notificationError);
+      // No fallar la eliminación si falla la notificación
+    }
+    
+    // SEGUNDO: Soft delete la tarifa
     await Tariff.update(
       { 
         deleted_at: new Date(),

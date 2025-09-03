@@ -358,6 +358,33 @@ class EMSPNotificationService {
     }
 
     /**
+     * Notifica a todas las organizaciones EMSP configuradas sobre la eliminación de una tarifa
+     * @param {Object} tariffData - Datos de la tarifa eliminada
+     */
+    async notifyTariffDeleted(tariffData) {
+        try {
+            const organizations = await this.getConfiguredOrganizations();
+            
+            if (organizations.length === 0) {
+                logger.warn('⚠️ No hay organizaciones EMSP configuradas para notificar sobre la eliminación de la tarifa');
+                return;
+            }
+
+            logger.info(`📤 Notificando eliminación de tarifa ${tariffData.id} a ${organizations.length} organizaciones EMSP`);
+
+            const notificationPromises = organizations.map(organization => 
+                this.notifyOrganizationAboutTariff(organization, tariffData, 'DELETE')
+            );
+
+            await Promise.allSettled(notificationPromises);
+            logger.info(`✅ Notificaciones de eliminación de tarifa ${tariffData.id} enviadas a todas las organizaciones EMSP`);
+        } catch (error) {
+            logger.error('❌ Error notificando eliminación de tarifa a organizaciones EMSP:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Notificar a una organización específica sobre una tarifa
      * @param {Object} organization - Datos de la organización
      * @param {Object} tariffData - Datos de la tarifa
