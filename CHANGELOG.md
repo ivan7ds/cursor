@@ -8,6 +8,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [Unreleased]
 
 ### Added
+- Tooltips informativos en pestaña Tariffs para mostrar información detallada de tarifas
+- Soporte para estructuras de elementos de tarifas (antigua y nueva OCPI 2.2)
+- Logging detallado para debugging de tooltips de tarifas
 - Funcionalidad EMSP (Electric Mobility Service Provider) completa
 - Pestañas EMSP en el dashboard: Locations, EVSEs, Tariffs, Actions
 - Endpoints backend para servir datos de EMSP almacenados
@@ -40,6 +43,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Contador de EVSEs excluyendo soft-deleted
 - Duplicación de conectores en formularios
 - Loop de PATCH requests con datos soft-deleted
+- Tooltips de tarifas mostrándose automáticamente sin pasar cursor
+- Detalles de elementos de tarifas no mostrándose en tooltips
+- Compatibilidad con estructuras de elementos de tarifas antigua y nueva
 
 ### Technical Details
 - Agregada columna `deleted_at` a tablas: `locations`, `evses`, `tariffs`
@@ -48,6 +54,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Logging detallado para debugging y monitoreo
 - Validación de datos según especificación OCPI 2.2
 - Manejo de errores de conectividad en notificaciones
+- Tooltips dinámicos con inicialización programática de Bootstrap
+- Soporte para múltiples estructuras de datos de tarifas
+- Almacenamiento de datos de tarifas para uso en tooltips (`this.allTariffs`)
 
 ## [0.1.0] - 2025-09-02
 
@@ -81,6 +90,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Soft delete y gestión avanzada de datos**
 - **Mejoras en UX/UI con tooltips y paginación**
 - **Correcciones de compatibilidad OCPI 2.2**
+- **Tooltips informativos completos en todas las pestañas**
+- **Soporte para estructuras de datos de tarifas antigua y nueva**
+- **Limpieza y documentación de scripts de base de datos**
 
 ### Versión 1.0.0 (Planeada)
 - Lanzamiento oficial con todas las funcionalidades completadas

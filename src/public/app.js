@@ -1675,6 +1675,106 @@ if (refreshEmspTokens) {
         }
     }
 
+    // Construir contenido del tooltip para tarifas
+    buildTariffTooltip(tariff) {
+        try {
+            console.log('🔍 Construyendo tooltip para tarifa:', tariff);
+            const elements = tariff.elements || [];
+            console.log('📋 Elementos de la tarifa:', elements);
+            
+            const elementsInfo = elements.map((element, index) => {
+                console.log(`🔍 Elemento ${index + 1}:`, element);
+                
+                let componentsInfo = '';
+                
+                // Verificar si tiene la estructura nueva (price_components)
+                if (element.price_components && Array.isArray(element.price_components)) {
+                    console.log(`💰 Price components (nueva estructura):`, element.price_components);
+                    componentsInfo = element.price_components.map(comp => 
+                        `<strong>${comp.type}</strong>: ${comp.price} ${tariff.currency}${comp.vat ? ` (IVA: ${comp.vat}%)` : ''}${comp.step_size ? ` (Paso: ${comp.step_size})` : ''}`
+                    ).join('<br>');
+                }
+                // Verificar si tiene la estructura antigua (component_type, price, step)
+                else if (element.component_type && element.price !== undefined) {
+                    console.log(`💰 Componente (estructura antigua):`, element);
+                    componentsInfo = `<strong>${element.component_type}</strong>: ${element.price} ${tariff.currency}${element.vat ? ` (IVA: ${element.vat}%)` : ''}${element.step ? ` (Paso: ${element.step})` : ''}`;
+                }
+                // Si no tiene estructura válida
+                else {
+                    console.log(`⚠️ Elemento sin estructura válida:`, element);
+                    componentsInfo = 'Sin información de componentes';
+                }
+                
+                return `Elemento ${index + 1}:<br>${componentsInfo}`;
+            }).join('<br><br>');
+
+            return `
+                <div class="text-start">
+                    <strong>ID:</strong> ${tariff.id}<br>
+                    <strong>País:</strong> ${tariff.country_code}<br>
+                    <strong>Organización:</strong> ${tariff.party_id}<br>
+                    <strong>Tipo:</strong> ${tariff.type}<br>
+                    <strong>Moneda:</strong> ${tariff.currency}<br>
+                    <strong>Precio Mín:</strong> ${tariff.min_price ? `${tariff.min_price} ${tariff.currency}` : 'N/A'}<br>
+                    <strong>Precio Máx:</strong> ${tariff.max_price ? `${tariff.max_price} ${tariff.currency}` : 'N/A'}<br>
+                    <strong>Válido Desde:</strong> ${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleString() : 'N/A'}<br>
+                    <strong>Válido Hasta:</strong> ${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleString() : 'N/A'}<br>
+                    <strong>Elementos:</strong><br>${elementsInfo || 'N/A'}
+                </div>
+            `;
+        } catch (error) {
+            console.error('❌ Error construyendo tooltip de tarifa:', error);
+            return `<strong>Error:</strong> No se pudo cargar la información de la tarifa`;
+        }
+    }
+
+    // Inicializar tooltips de Bootstrap para tarifas
+    initializeTariffTooltips() {
+        try {
+            console.log('🔧 Inicializando tooltips de tarifas...');
+            
+            // Destruir tooltips existentes para evitar duplicados
+            const existingTooltips = document.querySelectorAll('.tariff-id-tooltip');
+            existingTooltips.forEach(element => {
+                const tooltip = bootstrap.Tooltip.getInstance(element);
+                if (tooltip) {
+                    tooltip.dispose();
+                }
+            });
+
+            // Configurar tooltips para IDs de tarifas
+            const tariffIdTooltips = document.querySelectorAll('.tariff-id-tooltip');
+            console.log(`🔍 Encontrados ${tariffIdTooltips.length} elementos para tooltip de tarifas`);
+
+            tariffIdTooltips.forEach(element => {
+                try {
+                    const tariffId = element.getAttribute('data-tariff-id');
+                    const tariff = this.allTariffs ? this.allTariffs.find(t => t.id === tariffId) : null;
+                    
+                    if (tariff) {
+                        const tooltipContent = this.buildTariffTooltip(tariff);
+                        console.log(`📝 Tooltip content para ${tariffId}:`, tooltipContent);
+                        
+                        new bootstrap.Tooltip(element, {
+                            placement: 'top',
+                            html: true,
+                            trigger: 'hover focus',
+                            title: tooltipContent
+                        });
+                    } else {
+                        console.warn(`⚠️ No se encontró tarifa con ID: ${tariffId}`);
+                    }
+                } catch (tooltipError) {
+                    console.warn('⚠️ Error creando tooltip individual:', tooltipError);
+                }
+            });
+            
+            console.log(`✅ ${tariffIdTooltips.length} tooltips de tarifas inicializados`);
+        } catch (error) {
+            console.error('❌ Error inicializando tooltips de tarifas:', error);
+        }
+    }
+
     // Renderizar página específica de EVSEs
     renderEvsesPage() {
         if (!this.allEvses || this.allEvses.length === 0) {
@@ -2180,8 +2280,11 @@ if (refreshEmspTokens) {
             const data = await response.json();
             console.log('📊 Tariffs data:', data);
             
-            this.renderTariffs(data.data || []);
-            this.updateCount('tariffsCount', data.data?.length || 0);
+            // Almacenar tarifas para uso en tooltips
+            this.allTariffs = data.data || [];
+            
+            this.renderTariffs(this.allTariffs);
+            this.updateCount('tariffsCount', this.allTariffs.length);
             
             console.log('✅ Tariffs del CPO cargados exitosamente');
             
@@ -2211,7 +2314,14 @@ if (refreshEmspTokens) {
 
         tbody.innerHTML = tariffs.map(tariff => `
             <tr class="fade-in">
-                <td><code>${tariff.id || 'N/A'}</code></td>
+                <td>
+                    <code class="tariff-id-tooltip" 
+                          data-bs-toggle="tooltip" 
+                          data-bs-placement="top" 
+                          data-bs-html="true"
+                          data-tariff-id="${tariff.id}"
+                          data-tooltip-type="tariff">${tariff.id || 'N/A'}</code>
+                </td>
                 <td><span class="badge bg-primary">${tariff.party_id || 'N/A'}</span></td>
                 <td><span class="badge bg-secondary">${tariff.type || 'N/A'}</span></td>
                 <td><span class="badge bg-info">${tariff.currency || 'N/A'}</span></td>
@@ -2230,6 +2340,9 @@ if (refreshEmspTokens) {
                 </td>
             </tr>
         `).join('');
+        
+        // Inicializar tooltips para las tarifas
+        this.initializeTariffTooltips();
         
         console.log(`✅ ${tariffs.length} tariffs renderizados`);
     }
