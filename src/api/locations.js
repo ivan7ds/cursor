@@ -154,9 +154,9 @@ router.get('/', async (req, res) => {
           // Debug EVSE data
           logger.info(`EVSE ${cleanEvse.uid}: evse_id=${cleanEvse.evse_id}, country_code=${cleanEvse.country_code}, party_id=${cleanEvse.party_id}`);
           
-          // Ensure evse_id follows the format: country_code*party_id*evse_uid
+          // Ensure evse_id follows the eMI3 format: country_code*party_id*E...
           // Always regenerate the evse_id to ensure correct format
-          const newEvseId = `ES*IPD*${cleanEvse.evse_id}`;
+          const newEvseId = `ES*IPD*E${cleanEvse.uid.substring(0, 8)}`;
           logger.info(`Generated new evse_id: ${newEvseId}`);
           cleanEvse.evse_id = newEvseId;
           

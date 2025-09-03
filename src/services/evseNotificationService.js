@@ -112,9 +112,9 @@ class EVSENotificationService {
   async getEVSEStatusChanges() {
     try {
       // Buscar EVSEs que han cambiado de estado recientemente
-      // Por ahora, simularemos algunos cambios para testing
+      // Enviar solo 1 EVSE por iteración para reducir el tráfico
       const evses = await EVSE.findAll({
-        limit: 5, // Limitar para testing
+        limit: 1, // Solo 1 EVSE por iteración
         order: [['last_updated', 'DESC']]
       });
 

@@ -7,20 +7,43 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-09-03
+
 ### Added
-- Notificación DELETE de tarifas a EMSPs según especificación OCPI 2.2
-- Método `notifyTariffDeleted` en emspNotificationService
-- Orden correcto de notificaciones: DELETE de tarifa → PATCH de EVSEs
+- Botón "Iniciar Recarga" en pestaña EMSP Actions con mensaje de log simulado
+- Nuevo menú "Sessions" al lado de "Tokens" para mostrar sesiones de carga de EMSPs
+- Filtro "Solo Activas" en menú Sessions para mostrar únicamente sesiones con estado ACTIVE
+- Método `loadSessions()` para cargar sesiones desde la API
+- Método `renderSessions()` para mostrar sesiones en tabla con tooltips
+- Método `filterSessions()` para filtrar sesiones por estado ACTIVE
+- Método `getSessionStatusBadgeClass()` para colorear badges de estado
+- Método `viewSessionDetails()` para mostrar detalles de sesión en modal
 
 ### Changed
-- Flujo de eliminación de tarifas: primero notificar DELETE, luego desasociar EVSEs
+- Variable de entorno `EVSE_NOTIFICATION_INTERVAL_MS` ahora se lee correctamente desde archivo `.env`
+- Límite de EVSEs en notificaciones PATCH reducido de 5 a 1 para reducir tráfico
+- Formato de `evse_id` migrado a especificación eMI3 de OCPI 2.2 (3 bloques: CC*PPP*E...)
+- Todos los 147 EVSEs existentes actualizados al formato `ES*IPD*EXXXXXXXX`
+- Validación de formato eMI3 en creación de EVSEs con regex `^[A-Z]{2}\*[A-Z0-9]{3}\*E[A-Z0-9]+$`
 
 ### Fixed
-- Orden de notificaciones al eliminar tarifas según especificación OCPI 2.2
+- Error de variable de entorno hardcodeada en `docker-compose.yml`
+- Intervalo de notificaciones EVSE no respetando valor del archivo `.env`
+- Formato incorrecto de `evse_id` que no cumplía especificación eMI3 de OCPI 2.2
+- Generación de `evse_id` en frontend usando formato de 4 bloques en lugar de 3
+- Generación de `evse_id` en scripts SQL usando formato incorrecto
+- Validación de `evse_id` en backend API para asegurar formato eMI3 correcto
 
 ### Technical Details
-- Implementación de notificación DELETE para tarifas eliminadas
-- Manejo de errores en notificaciones de eliminación sin fallar el soft delete
+- Migración completa de base de datos: 100 EVSEs formato EVSE-XXX → eMI3, 46 EVSEs formato eMI3 incorrecto → eMI3 correcto
+- Backup de base de datos creado: `backup_20250903_131821.sql`
+- Implementación de filtrado de sesiones por estado en frontend
+- Almacenamiento de todas las sesiones en `this.allSessions` para filtrado
+- Manejo de estados de sesión con badges coloreados (ACTIVE, COMPLETED, INVALID)
+- Integración completa entre frontend y backend para gestión de sesiones
+- Validación robusta de formato eMI3 en múltiples capas (frontend, backend, scripts)
+- Actualización automática de `last_updated` y `updated_at` en migración de EVSEs
+- Verificación de integridad: sin duplicados de `evse_id` después de migración
 
 ## [0.3.0] - 2025-09-03
 
@@ -135,7 +158,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.3.0 (Estado actual)
+### Versión 0.3.1 (Estado actual)
+- **Migración completa de evse_id a formato eMI3 de OCPI 2.2**
+- **Nuevo menú Sessions para gestión de sesiones de carga**
+- **Corrección de variables de entorno y intervalos de notificación**
+- **Validación robusta de formato eMI3 en múltiples capas**
+- **Backup de base de datos post-migración**
+- **Filtrado de sesiones por estado ACTIVE**
+- **Botón de inicio de recarga simulado en EMSP Actions**
+
+### Versión 0.3.0
 - **Funcionalidad completa de creación de tokens desde el frontend**
 - **Notificación automática de tokens a operadores conectados**
 - **Sistema de notificaciones automáticas POST/PUT/PATCH/DELETE**

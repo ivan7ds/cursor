@@ -7,6 +7,7 @@ class DashboardApp {
         this.currentTab = 'logs';
         this.logsStreaming = false;
         this.logsEventSource = null;
+        this.allSessions = []; // Almacenar todas las sesiones para filtrado
         
         console.log('✅ Constructor completado');
     }
@@ -288,6 +289,17 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento getCpoTokens no encontrado');
             }
 
+            const startCpoCharging = document.getElementById('startCpoCharging');
+            if (startCpoCharging) {
+                startCpoCharging.addEventListener('click', () => {
+                    console.log('⚡ Botón startCpoCharging clickeado');
+                    this.startCpoCharging();
+                });
+                console.log('✅ Event listener para startCpoCharging agregado');
+            } else {
+                console.warn('⚠️ Elemento startCpoCharging no encontrado');
+            }
+
             const clearCpoResponse = document.getElementById('clearCpoResponse');
             if (clearCpoResponse) {
                 clearCpoResponse.addEventListener('click', () => {
@@ -420,6 +432,28 @@ if (refreshEmspTokens) {
                 console.log('✅ Event listener para refreshTokens agregado');
             } else {
                 console.warn('⚠️ Elemento refreshTokens no encontrado');
+            }
+
+            const refreshSessions = document.getElementById('refreshSessions');
+            if (refreshSessions) {
+                refreshSessions.addEventListener('click', () => {
+                    console.log('⚡ Botón refreshSessions clickeado');
+                    this.loadSessions();
+                });
+                console.log('✅ Event listener para refreshSessions agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshSessions no encontrado');
+            }
+
+            const filterActiveSessions = document.getElementById('filterActiveSessions');
+            if (filterActiveSessions) {
+                filterActiveSessions.addEventListener('change', () => {
+                    console.log('🔍 Filtro de sesiones activas cambiado:', filterActiveSessions.checked);
+                    this.filterSessions();
+                });
+                console.log('✅ Event listener para filterActiveSessions agregado');
+            } else {
+                console.warn('⚠️ Elemento filterActiveSessions no encontrado');
             }
 
             // Botón para crear token
@@ -737,6 +771,9 @@ if (refreshEmspTokens) {
                     break;
                 case 'tokens':
                     this.loadTokens();
+                    break;
+                case 'sessions':
+                    this.loadSessions();
                     break;
                 case 'logs':
                     console.log('📝 Pestaña de logs - no requiere carga de datos');
@@ -1980,6 +2017,133 @@ if (refreshEmspTokens) {
     truncateToken(token, length = 20) {
         if (!token) return 'N/A';
         return token.length > length ? token.substring(0, length) + '...' : token;
+    }
+
+    async loadSessions() {
+        try {
+            console.log('🔄 Cargando sesiones de carga...');
+            
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/sessions`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 Sessions data:', data);
+            
+            // Almacenar todas las sesiones para filtrado
+            this.allSessions = data.data || [];
+            
+            // Aplicar filtro y renderizar
+            this.filterSessions();
+            
+            console.log('✅ Sesiones cargadas exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando sesiones:', error);
+            this.showTableError('sessionsTableBody', `Error al cargar sesiones: ${error.message}`);
+        }
+    }
+
+    renderSessions(sessions) {
+        const tbody = document.getElementById('sessionsTableBody');
+        if (!tbody) {
+            console.warn('⚠️ Elemento sessionsTableBody no encontrado');
+            return;
+        }
+        
+        if (sessions.length === 0) {
+            const filterActiveCheckbox = document.getElementById('filterActiveSessions');
+            const showOnlyActive = filterActiveCheckbox ? filterActiveCheckbox.checked : false;
+            const message = showOnlyActive ? 
+                'No hay sesiones activas disponibles' : 
+                'No hay sesiones de carga disponibles';
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="bi bi-lightning-charge fs-1 d-block mb-2"></i>
+                        ${message}
+                        ${showOnlyActive && this.allSessions.length > 0 ? 
+                            `<br><small class="text-muted">Total de sesiones: ${this.allSessions.length}</small>` : 
+                            ''
+                        }
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = sessions.map(session => `
+            <tr class="fade-in">
+                <td><code>${this.truncateToken(session.id)}</code></td>
+                <td><code>${this.truncateToken(session.auth_id)}</code></td>
+                <td><code>${this.truncateToken(session.location_id)}</code></td>
+                <td>
+                    <span class="badge ${this.getSessionStatusBadgeClass(session.status)}">
+                        ${session.status}
+                    </span>
+                </td>
+                <td>${session.start_date_time ? new Date(session.start_date_time).toLocaleString() : 'N/A'}</td>
+                <td>${session.end_date_time ? new Date(session.end_date_time).toLocaleString() : 'En curso'}</td>
+                <td>${session.kwh ? session.kwh.toFixed(2) : '0.00'}</td>
+                <td><code>${session.country_code}*${session.party_id}</code></td>
+                <td>
+                    <button class="btn btn-outline-info btn-sm" onclick="window.dashboardApp.viewSessionDetails('${session.id}')" title="Ver detalles">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        console.log(`✅ ${sessions.length} sesiones renderizadas`);
+    }
+
+    getSessionStatusBadgeClass(status) {
+        const statusClasses = {
+            'ACTIVE': 'bg-success',
+            'COMPLETED': 'bg-primary',
+            'INVALID': 'bg-danger',
+            'PENDING': 'bg-warning'
+        };
+        return statusClasses[status] || 'bg-secondary';
+    }
+
+    viewSessionDetails(sessionId) {
+        console.log('👁️ Ver detalles de sesión:', sessionId);
+        this.showNotification(`Ver detalles de sesión: ${sessionId}`, 'info');
+    }
+
+    filterSessions() {
+        try {
+            const filterActiveCheckbox = document.getElementById('filterActiveSessions');
+            const showOnlyActive = filterActiveCheckbox ? filterActiveCheckbox.checked : false;
+            
+            console.log('🔍 Aplicando filtro de sesiones:', showOnlyActive ? 'Solo activas' : 'Todas');
+            
+            let filteredSessions = this.allSessions;
+            
+            if (showOnlyActive) {
+                filteredSessions = this.allSessions.filter(session => 
+                    session.status === 'ACTIVE'
+                );
+                console.log(`📊 Filtradas ${filteredSessions.length} sesiones activas de ${this.allSessions.length} totales`);
+            } else {
+                console.log(`📊 Mostrando todas las ${filteredSessions.length} sesiones`);
+            }
+            
+            this.renderSessions(filteredSessions);
+            this.updateCount('sessionsCount', filteredSessions.length);
+            
+        } catch (error) {
+            console.error('❌ Error aplicando filtro de sesiones:', error);
+        }
     }
 
     escapeHtml(text) {
@@ -3398,7 +3562,7 @@ if (refreshEmspTokens) {
             
             const formData = {
                 uid: document.getElementById('evseUid').value,
-                evse_id: `ES*IPD*${locationName}*${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+                evse_id: `ES*IPD*E${document.getElementById('evseUid').value.substring(0, 8)}`,
                 country_code: 'ES',
                 party_id: 'IPD',
                 location_id: locationId,
@@ -5698,6 +5862,40 @@ if (refreshEmspTokens) {
             'UNKNOWN': 'bg-secondary'
         };
         return statusClasses[status] || 'bg-secondary';
+    }
+
+    // Iniciar recarga en EMSP conectado
+    async startCpoCharging() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('⚡ Iniciando proceso de recarga en EMSP conectado:', cpoUrl);
+            
+            // Por ahora solo mostrar mensaje en logs - no ejecutar peticiones reales
+            const logMessage = `🔋 [EMSP Actions] Iniciando recarga en CPO: ${cpoUrl}
+📋 Detalles de la conexión:
+   • URL: ${cpoUrl}
+   • Token: ${cpoToken.substring(0, 10)}...
+   • Versión OCPI: ${cpoVersion}
+   • Timestamp: ${new Date().toISOString()}
+
+⚠️ NOTA: Esta es una simulación. No se han enviado peticiones reales al CPO externo.
+🔄 En una implementación real, aquí se enviaría una petición POST/PUT para iniciar la sesión de recarga.`;
+
+            this.showCpoResponse(logMessage, 'info');
+            console.log('⚡ Proceso de iniciar recarga simulado exitosamente');
+
+        } catch (error) {
+            console.error('❌ Error en proceso de iniciar recarga:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
     }
 
     showNotification(message, type = 'info') {

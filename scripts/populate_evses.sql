@@ -29,11 +29,16 @@ BEGIN
     
     -- Generate EVSEs
     FOR i IN 1..evse_counter LOOP
-        -- Generate EVSE ID
-        evse_id := p_party_id || '-' || p_country_code || '-' || 
-                   split_part(p_location_id, '-', 2) || '-' || 
-                   split_part(p_location_id, '-', 3) || '-' || 
-                   CASE WHEN i < 10 THEN '00' || i::TEXT WHEN i < 100 THEN '0' || i::TEXT ELSE i::TEXT END;
+        -- Generate EVSE ID following eMI3 format: country_code*party_id*E...
+        evse_id := p_country_code || '*' || p_party_id || '*' || 'E' || 
+                   CASE WHEN i < 10 THEN '0000000' || i::TEXT 
+                        WHEN i < 100 THEN '000000' || i::TEXT 
+                        WHEN i < 1000 THEN '00000' || i::TEXT 
+                        WHEN i < 10000 THEN '0000' || i::TEXT 
+                        WHEN i < 100000 THEN '000' || i::TEXT 
+                        WHEN i < 1000000 THEN '00' || i::TEXT 
+                        WHEN i < 10000000 THEN '0' || i::TEXT 
+                        ELSE i::TEXT END;
         
         -- Random status
         evse_status := (ARRAY['AVAILABLE', 'AVAILABLE', 'AVAILABLE', 'CHARGING', 'MAINTENANCE'])[1 + floor(random() * 5)];

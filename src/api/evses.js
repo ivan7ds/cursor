@@ -143,6 +143,13 @@ router.post('/', async (req, res) => {
       last_updated: new Date()
     };
 
+    // Ensure evse_id follows the correct eMI3 format: country_code*party_id*E...
+    if (evseData.evse_id && !evseData.evse_id.match(/^[A-Z]{2}\*[A-Z0-9]{3}\*E[A-Z0-9]+$/)) {
+      logger.warn(`Invalid evse_id format: ${evseData.evse_id}. Regenerating with correct format.`);
+      evseData.evse_id = `${evseData.country_code}*${evseData.party_id}*E${evseData.id.substring(0, 8)}`;
+      logger.info(`Generated correct evse_id: ${evseData.evse_id}`);
+    }
+
     const evse = await EVSE.create(evseData);
 
     // Notificar a los EMSPs sobre el nuevo EVSE (en segundo plano)
