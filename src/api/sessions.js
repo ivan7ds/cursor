@@ -1,262 +1,271 @@
 const express = require('express');
 const router = express.Router();
-const { v4: uuidv4 } = require('uuid');
-const { Session, EVSE } = require('../models');
+const { Session, EVSE, Credentials } = require('../models');
 const logger = require('../utils/logger');
+const axios = require('axios');
 
 /**
- * @swagger
- * /ocpi/2.2/sessions:
- *   get:
- *     summary: Get OCPI sessions
- *     tags: [Sessions]
- *     parameters:
- *       - in: query
- *         name: country_code
- *         schema:
- *           type: string
- *       - in: query
- *         name: party_id
- *         schema:
- *           type: string
- *       - in: query
- *         name: evse_uid
- *         schema:
- *           type: string
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
+ * Obtener todas las sesiones
+ * GET /ocpi/cpo/2.2/sessions
  */
 router.get('/', async (req, res) => {
   try {
-    logger.ocpi('/sessions', 'GET', { query: req.query });
-    
-    const { country_code, party_id, evse_uid, status, offset = 0, limit = 100 } = req.query;
-    
-    const where = {};
-    if (country_code) where.country_code = country_code;
-    if (party_id) where.party_id = party_id;
-    if (evse_uid) where.evse_uid = evse_uid;
-    if (status) where.status = status;
-    
-    const sessions = await Session.findAndCountAll({
-      where,
-      include: [
-        {
-          model: EVSE,
-          as: 'evse',
-          attributes: ['id', 'evse_id', 'status', 'connectors']
-        }
-      ],
-      offset: parseInt(offset),
-      limit: Math.min(parseInt(limit), 1000),
+    logger.info('📋 Obteniendo lista de sesiones');
+
+    // Obtener todas las sesiones
+    const sessions = await Session.findAll({
       order: [['start_datetime', 'DESC']]
     });
 
+    // Transformar los datos para el frontend
+    const transformedSessions = sessions.map(session => ({
+      id: session.id,
+      auth_id: session.id_token, // Para mostrar en la tabla
+      location_id: session.evse_uid, // Para mostrar en la tabla
+      status: session.status,
+      start_date_time: session.start_datetime,
+      end_date_time: session.end_datetime,
+      kwh: session.kwh || 0,
+      country_code: session.country_code,
+      party_id: session.party_id
+    }));
+
+    logger.info(`✅ ${sessions.length} sesiones encontradas`);
+
     res.status(200).json({
       status_code: 1000,
-      data: sessions.rows,
-      timestamp: new Date().toISOString(),
-      pagination: {
-        total: sessions.count,
-        offset: parseInt(offset),
-        limit: Math.min(parseInt(limit), 1000)
+      status_message: 'Success',
+      data: transformedSessions,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.error('❌ Error obteniendo sesiones:', error);
+    res.status(500).json({
+      status_code: 2000,
+      status_message: 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * Finalizar una sesión activa
+ * POST /api/sessions/:id/end
+ */
+router.post('/:id/end', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    logger.info('🛑 Finalizando sesión', { session_id: id });
+
+    // Buscar la sesión
+    const session = await Session.findByPk(id);
+    
+    if (!session) {
+      return res.status(404).json({
+        status_code: 2004,
+        status_message: 'Session not found',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (session.status !== 'ACTIVE') {
+      return res.status(400).json({
+        status_code: 2000,
+        status_message: 'Session is not active',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Actualizar la sesión
+    await session.update({
+      status: 'COMPLETED',
+      end_datetime: new Date(),
+      last_updated: new Date()
+    });
+
+    // Cambiar el estado del EVSE a AVAILABLE
+    await EVSE.update(
+      { 
+        status: 'AVAILABLE',
+        last_updated: new Date()
+      },
+      { 
+        where: { id: session.evse_uid }
+      }
+    );
+
+    logger.info('✅ Sesión finalizada y EVSE actualizado', {
+      session_id: id,
+      evse_uid: session.evse_uid,
+      new_status: 'AVAILABLE'
+    });
+
+    // Enviar notificaciones al EMSP (asíncrono)
+    setImmediate(async () => {
+      await notifyEMSPAboutEVSEStatusChange(session.evse_uid, 'AVAILABLE');
+      await notifyEMSPAboutSessionEnd(session);
+    });
+
+    res.status(200).json({
+      status_code: 1000,
+      status_message: 'Session ended successfully',
+      data: {
+        session_id: id,
+        status: 'COMPLETED',
+        end_datetime: session.end_datetime,
+        evse_status: 'AVAILABLE'
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.error('❌ Error finalizando sesión:', error);
+    res.status(500).json({
+      status_code: 2000,
+      status_message: 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * Notifica al EMSP sobre el cambio de estado del EVSE
+ */
+async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
+  try {
+    // Obtener información del EVSE
+    const evse = await EVSE.findByPk(evseUid);
+
+    if (!evse) {
+      logger.error('❌ EVSE not found for status change notification', { evseUid });
+      return;
+    }
+
+    // Obtener credenciales del EMSP
+    const emspCredentials = await Credentials.findOne({
+      where: {
+        party_id: 'EPK' // EMSP conectado
       }
     });
-  } catch (error) {
-    logger.error('Error getting sessions:', error);
-    res.status(500).json({
-      status_code: 2000,
-      status_message: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
 
-/**
- * @swagger
- * /ocpi/2.2/sessions/{id}:
- *   get:
- *     summary: Get specific OCPI session
- *     tags: [Sessions]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- */
-router.get('/:id', async (req, res) => {
-  try {
-    logger.ocpi('/sessions', 'GET_BY_ID', { id: req.params.id });
-    
-    const { id } = req.params;
-    const session = await Session.findByPk(id, {
-      include: [
-        {
-          model: EVSE,
-          as: 'evse',
-          attributes: ['id', 'evse_id', 'status', 'connectors']
-        }
-      ]
-    });
-    
-    if (!session) {
-      return res.status(404).json({
-        status_code: 2004,
-        status_message: 'Session not found',
-        timestamp: new Date().toISOString()
-      });
+    if (!emspCredentials) {
+      logger.error('❌ EMSP credentials not found for EVSE status notification');
+      return;
     }
 
-    res.status(200).json({
-      status_code: 1000,
-      data: session,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    logger.error('Error getting session:', error);
-    res.status(500).json({
-      status_code: 2000,
-      status_message: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+    // Construir URL del endpoint del EMSP
+    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/ES/IPD/${evse.location_id}/${evseUid}`;
 
-/**
- * @swagger
- * /ocpi/2.2/sessions:
- *   post:
- *     summary: Create new OCPI session
- *     tags: [Sessions]
- */
-router.post('/', async (req, res) => {
-  try {
-    logger.ocpi('/sessions', 'POST', { body: req.body });
-    
-    const sessionData = {
-      id: uuidv4(),
-      ...req.body,
-      party_id: process.env.OCPI_PARTY_ID,
-      country_code: process.env.OCPI_COUNTRY_CODE,
-      start_datetime: req.body.start_datetime || new Date(),
-      last_updated: new Date()
+    // Preparar payload PATCH
+    const payload = {
+      status: newStatus,
+      last_updated: new Date().toISOString()
     };
 
-    const session = await Session.create(sessionData);
-
-    res.status(201).json({
-      status_code: 1000,
-      data: session,
-      timestamp: new Date().toISOString()
+    logger.info('📤 Sending PATCH to EMSP about EVSE status change (session end)', {
+      emsp_url: emspUrl,
+      evse_uid: evseUid,
+      new_status: newStatus,
+      payload
     });
+
+    // Enviar notificación PATCH
+    const response = await axios.patch(emspUrl, payload, {
+      headers: {
+        'Authorization': `Token ${emspCredentials.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'IPD-CPO-OCPI-2.2'
+      },
+      timeout: 10000
+    });
+
+    logger.info('✅ EVSE status change notification sent successfully (session end)', {
+      emsp_url: emspUrl,
+      evse_uid: evseUid,
+      new_status: newStatus,
+      status_code: response.status
+    });
+
   } catch (error) {
-    logger.error('Error creating session:', error);
-    res.status(500).json({
-      status_code: 2000,
-      status_message: 'Internal server error',
-      timestamp: new Date().toISOString()
+    logger.error('❌ Failed to notify EMSP about EVSE status change (session end)', {
+      evse_uid: evseUid,
+      new_status: newStatus,
+      error: error.message,
+      status_code: error.response?.status
     });
   }
-});
+}
 
 /**
- * @swagger
- * /ocpi/2.2/sessions/{id}:
- *   put:
- *     summary: Update OCPI session
- *     tags: [Sessions]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
+ * Notifica al EMSP sobre el final de la sesión
  */
-router.put('/:id', async (req, res) => {
+async function notifyEMSPAboutSessionEnd(session) {
   try {
-    logger.ocpi('/sessions', 'PUT', { id: req.params.id, body: req.body });
-    
-    const { id } = req.params;
-    const session = await Session.findByPk(id);
-    
-    if (!session) {
-      return res.status(404).json({
-        status_code: 2004,
-        status_message: 'Session not found',
-        timestamp: new Date().toISOString()
-      });
+    // Obtener credenciales del EMSP
+    const emspCredentials = await Credentials.findOne({
+      where: {
+        party_id: 'EPK' // EMSP conectado
+      }
+    });
+
+    if (!emspCredentials) {
+      logger.error('❌ EMSP credentials not found for session end notification');
+      return;
     }
 
-    await session.update({
-      ...req.body,
-      last_updated: new Date()
+    // Construir URL del endpoint del EMSP
+    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/ES/IPD/${session.id}`;
+
+    // Preparar payload PUT
+    const payload = {
+      country_code: session.country_code,
+      party_id: session.party_id,
+      id: session.id,
+      start_date_time: session.start_datetime.toISOString(),
+      end_date_time: session.end_datetime.toISOString(),
+      location_id: session.location_id,
+      evse_uid: session.evse_uid,
+      connector_id: session.connector_id,
+      kwh: session.kwh || 0,
+      last_updated: session.last_updated.toISOString()
+    };
+
+    logger.info('📤 Sending PUT to EMSP about session end', {
+      emsp_url: emspUrl,
+      session_id: session.id,
+      evse_uid: session.evse_uid,
+      payload
     });
 
-    res.status(200).json({
-      status_code: 1000,
-      data: session,
-      timestamp: new Date().toISOString()
+    // Enviar notificación PUT
+    const response = await axios.put(emspUrl, payload, {
+      headers: {
+        'Authorization': `Token ${emspCredentials.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'IPD-CPO-OCPI-2.2'
+      },
+      timeout: 10000
     });
+
+    logger.info('✅ Session end notification sent successfully', {
+      emsp_url: emspUrl,
+      session_id: session.id,
+      evse_uid: session.evse_uid,
+      status_code: response.status
+    });
+
   } catch (error) {
-    logger.error('Error updating session:', error);
-    res.status(500).json({
-      status_code: 2000,
-      status_message: 'Internal server error',
-      timestamp: new Date().toISOString()
+    logger.error('❌ Failed to notify EMSP about session end', {
+      session_id: session.id,
+      evse_uid: session.evse_uid,
+      error: error.message,
+      status_code: error.response?.status
     });
   }
-});
-
-/**
- * @swagger
- * /ocpi/2.2/sessions/{id}:
- *   delete:
- *     summary: Delete OCPI session
- *     tags: [Sessions]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- */
-router.delete('/:id', async (req, res) => {
-  try {
-    logger.ocpi('/sessions', 'DELETE', { id: req.params.id });
-    
-    const { id } = req.params;
-    const session = await Session.findByPk(id);
-    
-    if (!session) {
-      return res.status(404).json({
-        status_code: 2004,
-        status_message: 'Session not found',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    await session.destroy();
-
-    res.status(200).json({
-      status_code: 1000,
-      status_message: 'Session deleted successfully',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    logger.error('Error deleting session:', error);
-    res.status(500).json({
-      status_code: 2000,
-      status_message: 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+}
 
 module.exports = router;
-
-
-
-

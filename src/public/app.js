@@ -2095,9 +2095,16 @@ if (refreshEmspTokens) {
                 <td>${session.kwh ? session.kwh.toFixed(2) : '0.00'}</td>
                 <td><code>${session.country_code}*${session.party_id}</code></td>
                 <td>
-                    <button class="btn btn-outline-info btn-sm" onclick="window.dashboardApp.viewSessionDetails('${session.id}')" title="Ver detalles">
-                        <i class="bi bi-eye"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-info btn-sm" onclick="window.dashboardApp.viewSessionDetails('${session.id}')" title="Ver detalles">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        ${session.status === 'ACTIVE' ? `
+                            <button class="btn btn-outline-danger btn-sm" onclick="window.dashboardApp.endSession('${session.id}')" title="Finalizar sesión">
+                                <i class="bi bi-stop-circle"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -2118,6 +2125,46 @@ if (refreshEmspTokens) {
     viewSessionDetails(sessionId) {
         console.log('👁️ Ver detalles de sesión:', sessionId);
         this.showNotification(`Ver detalles de sesión: ${sessionId}`, 'info');
+    }
+
+    async endSession(sessionId) {
+        try {
+            console.log('🛑 Finalizando sesión:', sessionId);
+            
+            // Confirmar la acción
+            if (!confirm('¿Estás seguro de que quieres finalizar esta sesión?')) {
+                return;
+            }
+
+            // Mostrar indicador de carga
+            this.showNotification('Finalizando sesión...', 'info');
+
+            // Llamar al endpoint para finalizar la sesión
+            const response = await fetch(`${this.baseUrl}/api/sessions/${sessionId}/end`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Sesión finalizada exitosamente:', result);
+
+            this.showNotification('Sesión finalizada exitosamente', 'success');
+
+            // Recargar las sesiones para mostrar los cambios
+            await this.loadSessions();
+
+        } catch (error) {
+            console.error('❌ Error finalizando sesión:', error);
+            this.showNotification(`Error finalizando sesión: ${error.message}`, 'error');
+        }
     }
 
     filterSessions() {

@@ -1,0 +1,572 @@
+const express = require('express');
+const router = express.Router();
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+const { EVSE, Location, Token, Credentials, Session } = require('../models');
+const logger = require('../utils/logger');
+
+/**
+ * Envía notificación al response_url con el resultado del comando
+ * @param {string} responseUrl - URL donde notificar el resultado
+ * @param {string} result - Resultado del comando (ACCEPTED, REJECTED, etc.)
+ * @param {string} message - Mensaje descriptivo del resultado
+ * @param {string} tokenUid - UID del token utilizado
+ */
+async function notifyCommandResult(responseUrl, result, message, tokenUid) {
+  try {
+    // Buscar las credenciales del EMSP basándose en la URL de respuesta
+    const emspCredentials = await Credentials.findOne({
+      where: {
+        url: {
+          [require('sequelize').Op.like]: '%' + new URL(responseUrl).hostname + '%'
+        }
+      }
+    });
+
+    if (!emspCredentials) {
+      logger.error('❌ EMSP credentials not found for response URL', {
+        response_url: responseUrl,
+        hostname: new URL(responseUrl).hostname
+      });
+      return { 
+        success: false, 
+        error: 'EMSP credentials not found',
+        status: null 
+      };
+    }
+
+    const payload = {
+      result: result
+    };
+
+    logger.info('📤 Sending command result notification', {
+      response_url: responseUrl,
+      result: result,
+      token_uid: tokenUid,
+      emsp_party_id: emspCredentials.party_id,
+      emsp_country_code: emspCredentials.country_code,
+      payload: payload
+    });
+
+    const response = await axios.post(responseUrl, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'CPO-OCPI-2.2/1.0.0',
+        'Authorization': `Token ${emspCredentials.token}`
+      },
+      timeout: 10000 // 10 segundos timeout
+    });
+
+    logger.info('✅ Command result notification sent successfully', {
+      response_url: responseUrl,
+      result: result,
+      status_code: response.status,
+      emsp_party_id: emspCredentials.party_id,
+      response_time: response.headers['x-response-time'] || 'N/A'
+    });
+
+    return { success: true, status: response.status };
+
+  } catch (error) {
+    logger.error('❌ Failed to send command result notification', {
+      response_url: responseUrl,
+      result: result,
+      error: error.message,
+      status_code: error.response?.status,
+      response_data: error.response?.data
+    });
+
+    return { 
+      success: false, 
+      error: error.message,
+      status: error.response?.status 
+    };
+  }
+}
+
+/**
+ * @swagger
+ * /ocpi/cpo/2.2/commands/START_SESSION:
+ *   post:
+ *     summary: Iniciar sesión de carga
+ *     description: Endpoint para que EMSPs inicien sesiones de carga en EVSEs
+ *     tags: [Commands]
+ *     security:
+ *       - OCPI: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - response_url
+ *               - token
+ *               - location_id
+ *               - evse_uid
+ *             properties:
+ *               response_url:
+ *                 type: string
+ *                 description: URL para notificar el resultado del comando
+ *               token:
+ *                 type: object
+ *                 description: Token de autorización
+ *               location_id:
+ *                 type: string
+ *                 description: ID de la ubicación
+ *               evse_uid:
+ *                 type: string
+ *                 description: UID del EVSE
+ *     responses:
+ *       200:
+ *         description: Comando procesado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status_code:
+ *                   type: integer
+ *                 status_message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     result:
+ *                       type: string
+ *                       enum: [ACCEPTED, REJECTED]
+ *                     timeout:
+ *                       type: integer
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Error en la petición
+ *       404:
+ *         description: EVSE no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/START_SESSION', async (req, res) => {
+  try {
+    const { response_url, token, location_id, evse_uid } = req.body;
+    
+    logger.info('🚀 START_SESSION Command Received', {
+      response_url,
+      token: token?.uid,
+      location_id,
+      evse_uid,
+      timestamp: new Date().toISOString()
+    });
+
+    // Validar campos requeridos
+    if (!response_url || !token || !location_id || !evse_uid) {
+      logger.error('❌ START_SESSION: Missing required fields', {
+        response_url: !!response_url,
+        token: !!token,
+        location_id: !!location_id,
+        evse_uid: !!evse_uid
+      });
+      
+      return res.status(400).json({
+        status_code: 2000,
+        status_message: "Missing required fields",
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Buscar el EVSE
+    const evse = await EVSE.findOne({
+      where: {
+        id: evse_uid,
+        location_id: location_id,
+        deleted_at: null
+      }
+    });
+
+    if (!evse) {
+      logger.error('❌ START_SESSION: EVSE not found', {
+        evse_uid,
+        location_id
+      });
+      
+      // Primero responder al EMSP
+      const response = {
+        status_code: 2000,
+        status_message: "EVSE not found",
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      res.status(404).json(response);
+      
+      // Después enviar notificación al response_url (asíncrono)
+      setImmediate(async () => {
+        await notifyCommandResult(
+          response_url,
+          'REJECTED',
+          'Remote start rejected: EVSE not found',
+          token.uid
+        );
+      });
+      
+      return;
+    }
+
+    // Verificar si el token es válido
+    const validToken = await Token.findOne({
+      where: {
+        uid: token.uid,
+        country_code: token.country_code,
+        party_id: token.party_id,
+        valid: true
+      }
+    });
+
+    if (!validToken) {
+      logger.error('❌ START_SESSION: Invalid token', {
+        token_uid: token.uid,
+        token_country_code: token.country_code,
+        token_party_id: token.party_id
+      });
+      
+      // Primero responder al EMSP
+      const response = {
+        status_code: 1000,
+        status_message: "Start rejected: token not valid",
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      res.status(200).json(response);
+      
+      // Después enviar notificación al response_url (asíncrono)
+      setImmediate(async () => {
+        await notifyCommandResult(
+          response_url,
+          'REJECTED',
+          'Remote start rejected: token not authorized',
+          token.uid
+        );
+      });
+      
+      return;
+    }
+
+    // Verificar si el EVSE está disponible
+    if (evse.status !== 'AVAILABLE') {
+      logger.error('❌ START_SESSION: EVSE not available', {
+        evse_uid,
+        evse_status: evse.status
+      });
+      
+      // Primero responder al EMSP
+      const response = {
+        status_code: 1000,
+        status_message: `Start rejected: EVSE not available (status: ${evse.status})`,
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      res.status(200).json(response);
+      
+      // Después enviar notificación al response_url (asíncrono)
+      setImmediate(async () => {
+        await notifyCommandResult(
+          response_url,
+          'REJECTED',
+          `Remote start rejected: EVSE not available (status: ${evse.status})`,
+          token.uid
+        );
+      });
+      
+      return;
+    }
+
+    // TODO: Aquí se implementaría la lógica real de inicio de sesión
+    // Por ahora, solo aceptamos la petición si el EVSE está disponible
+    
+    logger.info('✅ START_SESSION: Command accepted', {
+      evse_uid,
+      evse_status: evse.status,
+      token_uid: token.uid,
+      response_url
+    });
+
+    // Crear sesión en la base de datos
+    const sessionId = uuidv4();
+    const session = await Session.create({
+      id: sessionId,
+      country_code: 'ES',
+      party_id: 'IPD',
+      evse_uid: evse_uid,
+      connector_id: evse.connectors && evse.connectors[0] ? evse.connectors[0].id : null,
+      id_token: token.uid,
+      start_datetime: new Date(),
+      status: 'ACTIVE',
+      last_updated: new Date()
+    });
+
+    // Cambiar estado del EVSE a CHARGING
+    await EVSE.update(
+      { 
+        status: 'CHARGING',
+        last_updated: new Date()
+      },
+      { 
+        where: { id: evse_uid }
+      }
+    );
+
+    logger.info('✅ START_SESSION: Session created and EVSE status updated', {
+      session_id: sessionId,
+      evse_uid,
+      new_status: 'CHARGING'
+    });
+
+    // Primero responder al EMSP
+    const response = {
+      status_code: 1000,
+      status_message: "Start accepted",
+      data: {
+        result: "ACCEPTED",
+        timeout: 300
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    res.status(200).json(response);
+
+    // Después enviar notificaciones al EMSP (asíncrono)
+    setImmediate(async () => {
+      // 1. Enviar notificación al response_url
+      const notificationResult = await notifyCommandResult(
+        response_url,
+        'ACCEPTED',
+        'Remote start executed',
+        token.uid
+      );
+
+      if (notificationResult.success) {
+        logger.info('✅ START_SESSION: Notification sent successfully', {
+          response_url,
+          result: response.data.result,
+          notification_status: notificationResult.status
+        });
+      } else {
+        logger.warn('⚠️ START_SESSION: Notification failed but command accepted', {
+          response_url,
+          result: response.data.result,
+          notification_error: notificationResult.error
+        });
+      }
+
+      // 2. Enviar PATCH al EMSP con el cambio de estado del EVSE
+      await notifyEMSPAboutEVSEStatusChange(evse_uid, 'CHARGING');
+
+      // 3. Enviar PUT al EMSP con la información de la sesión
+      await notifyEMSPAboutSession(sessionId, evse_uid, token.uid, location_id);
+    });
+
+  } catch (error) {
+    logger.error('❌ START_SESSION: Internal server error', {
+      error: error.message,
+      stack: error.stack
+    });
+
+    // Intentar enviar notificación de error si tenemos response_url
+    if (req.body?.response_url && req.body?.token?.uid) {
+      try {
+        await notifyCommandResult(
+          req.body.response_url,
+          'REJECTED',
+          'Remote start rejected: internal server error',
+          req.body.token.uid
+        );
+      } catch (notificationError) {
+        logger.error('❌ Failed to send error notification', {
+          error: notificationError.message
+        });
+      }
+    }
+
+    res.status(500).json({
+      status_code: 2000,
+      status_message: "Internal server error",
+      data: {
+        result: "REJECTED",
+        timeout: 0
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * Notifica al EMSP sobre el cambio de estado del EVSE
+ */
+async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
+  try {
+    // Obtener información del EVSE
+    const evse = await EVSE.findByPk(evseUid, {
+      include: [{
+        model: Location,
+        as: 'location',
+        required: true
+      }]
+    });
+
+    if (!evse) {
+      logger.error('❌ EVSE not found for status change notification', { evseUid });
+      return;
+    }
+
+    // Obtener credenciales del EMSP
+    const emspCredentials = await Credentials.findOne({
+      where: {
+        party_id: 'EPK' // EMSP conectado
+      }
+    });
+
+    if (!emspCredentials) {
+      logger.error('❌ EMSP credentials not found for EVSE status notification');
+      return;
+    }
+
+    // Construir URL del endpoint del EMSP
+    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/ES/IPD/${evse.location_id}/${evseUid}`;
+
+    // Preparar payload PATCH
+    const payload = {
+      status: newStatus,
+      last_updated: new Date().toISOString()
+    };
+
+    logger.info('📤 Sending PATCH to EMSP about EVSE status change', {
+      emsp_url: emspUrl,
+      evse_uid: evseUid,
+      new_status: newStatus,
+      payload
+    });
+
+    // Enviar notificación PATCH
+    const response = await axios.patch(emspUrl, payload, {
+      headers: {
+        'Authorization': `Token ${emspCredentials.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'IPD-CPO-OCPI-2.2'
+      },
+      timeout: 10000
+    });
+
+    logger.info('✅ EVSE status change notification sent successfully', {
+      emsp_url: emspUrl,
+      evse_uid: evseUid,
+      new_status: newStatus,
+      status_code: response.status
+    });
+
+  } catch (error) {
+    logger.error('❌ Failed to notify EMSP about EVSE status change', {
+      evse_uid: evseUid,
+      new_status: newStatus,
+      error: error.message,
+      status_code: error.response?.status
+    });
+  }
+}
+
+/**
+ * Notifica al EMSP sobre la nueva sesión creada
+ */
+async function notifyEMSPAboutSession(sessionId, evseUid, tokenUid, locationId) {
+  try {
+    // Obtener información de la sesión
+    const session = await Session.findByPk(sessionId);
+    const evse = await EVSE.findByPk(evseUid);
+
+    if (!session || !evse) {
+      logger.error('❌ Session or EVSE not found for session notification', { 
+        sessionId, evseUid 
+      });
+      return;
+    }
+
+    // Obtener credenciales del EMSP
+    const emspCredentials = await Credentials.findOne({
+      where: {
+        party_id: 'EPK' // EMSP conectado
+      }
+    });
+
+    if (!emspCredentials) {
+      logger.error('❌ EMSP credentials not found for session notification');
+      return;
+    }
+
+    // Construir URL del endpoint del EMSP
+    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/ES/IPD/${sessionId}`;
+
+    // Preparar payload PUT
+    const payload = {
+      country_code: session.country_code,
+      party_id: session.party_id,
+      id: sessionId,
+      start_date_time: session.start_datetime.toISOString(),
+      location_id: locationId,
+      evse_uid: evseUid,
+      connector_id: session.connector_id,
+      kwh: 0.0,
+      last_updated: session.last_updated.toISOString()
+    };
+
+    logger.info('📤 Sending PUT to EMSP about new session', {
+      emsp_url: emspUrl,
+      session_id: sessionId,
+      evse_uid: evseUid,
+      payload
+    });
+
+    // Enviar notificación PUT
+    const response = await axios.put(emspUrl, payload, {
+      headers: {
+        'Authorization': `Token ${emspCredentials.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'IPD-CPO-OCPI-2.2'
+      },
+      timeout: 10000
+    });
+
+    logger.info('✅ Session notification sent successfully', {
+      emsp_url: emspUrl,
+      session_id: sessionId,
+      evse_uid: evseUid,
+      status_code: response.status
+    });
+
+  } catch (error) {
+    logger.error('❌ Failed to notify EMSP about new session', {
+      session_id: sessionId,
+      evse_uid: evseUid,
+      error: error.message,
+      status_code: error.response?.status
+    });
+  }
+}
+
+module.exports = router;

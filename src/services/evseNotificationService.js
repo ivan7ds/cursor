@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { Credentials, EVSE } = require('../models');
+const { Credentials, EVSE, Session } = require('../models');
 const logger = require('../utils/logger');
 
 class EVSENotificationService {
@@ -112,10 +112,16 @@ class EVSENotificationService {
   async getEVSEStatusChanges() {
     try {
       // Buscar EVSEs que han cambiado de estado recientemente
-      // Enviar solo 1 EVSE por iteración para reducir el tráfico
+      // Excluir EVSEs con sesiones activas para evitar conflictos
       const evses = await EVSE.findAll({
         limit: 1, // Solo 1 EVSE por iteración
-        order: [['last_updated', 'DESC']]
+        order: [['last_updated', 'DESC']],
+        where: {
+          // Excluir EVSEs que tienen sesiones activas
+          id: {
+            [require('sequelize').Op.notIn]: await this.getEVSEsWithActiveSessions()
+          }
+        }
       });
 
       return evses.map(evse => ({
@@ -127,6 +133,25 @@ class EVSENotificationService {
       }));
     } catch (error) {
       logger.error('Error getting EVSE status changes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene los IDs de EVSEs que tienen sesiones activas
+   */
+  async getEVSEsWithActiveSessions() {
+    try {
+      const activeSessions = await Session.findAll({
+        where: {
+          status: 'ACTIVE'
+        },
+        attributes: ['evse_uid']
+      });
+
+      return activeSessions.map(session => session.evse_uid);
+    } catch (error) {
+      logger.error('Error getting EVSEs with active sessions:', error);
       return [];
     }
   }

@@ -26,6 +26,7 @@ const sessionsRoutes = require('./api/sessions');
 const cdrsRoutes = require('./api/cdrs');
 const tariffsRoutes = require('./api/tariffs');
 const tokensRoutes = require('./api/tokens');
+const commandsRoutes = require('./api/commands');
 const versionsRoutes = require('./api/versions');
 const detailsRoutes = require('./api/details');
 const notificationsRoutes = require('./api/notifications');
@@ -133,7 +134,11 @@ app.use('/ocpi/cpo/2.2/sessions', authMiddleware, sessionsRoutes);
 app.use('/ocpi/cpo/2.2/cdrs', authMiddleware, cdrsRoutes);
 app.use('/ocpi/cpo/2.2/tariffs', authMiddleware, tariffsRoutes);
 app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
+app.use('/ocpi/cpo/2.2/commands', authMiddleware, commandsRoutes);
 app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
+
+// API Routes
+app.use('/api/sessions', authMiddleware, sessionsRoutes);
 
 // ===== RUTAS EMSP =====
   // Estas rutas permiten consultar información de eMSPs cuando actuamos como CPO

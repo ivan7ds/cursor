@@ -21,27 +21,28 @@ const Session = sequelize.define('Session', {
   evse_uid: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    comment: 'Reference to the EVSE where this session took place'
+    comment: 'Reference to the EVSE where the session is taking place'
   },
   connector_id: {
     type: DataTypes.STRING(36),
     allowNull: true,
-    comment: 'Reference to the connector used for this session'
+    comment: 'Reference to the connector used for the session'
   },
   id_token: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    comment: 'Token used to authorize this charging session'
+    comment: 'Reference to the token used for the session'
   },
   start_datetime: {
     type: DataTypes.DATE,
     allowNull: false,
-    comment: 'Start timestamp of the session'
+    defaultValue: DataTypes.NOW,
+    comment: 'When the session started'
   },
   end_datetime: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'End timestamp of the session'
+    comment: 'When the session ended'
   },
   total_cost: {
     type: DataTypes.DECIMAL(10, 2),
@@ -49,42 +50,34 @@ const Session = sequelize.define('Session', {
     comment: 'Total cost of the session'
   },
   status: {
-    type: DataTypes.ENUM('ACTIVE', 'COMPLETED', 'INVALID', 'PENDING', 'RESERVATION'),
+    type: DataTypes.ENUM('ACTIVE', 'COMPLETED', 'INVALID', 'PENDING'),
     allowNull: false,
-    comment: 'Status of the session'
+    defaultValue: 'ACTIVE',
+    comment: 'Current status of the session'
   },
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false,
-    comment: 'Timestamp when this session was last updated'
+    defaultValue: DataTypes.NOW,
+    comment: 'Last time this session was updated'
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+    comment: 'When this session was created'
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+    comment: 'When this session was last updated'
   }
 }, {
   tableName: 'sessions',
   timestamps: true,
-  indexes: [
-    {
-      fields: ['country_code', 'party_id']
-    },
-    {
-      fields: ['evse_uid']
-    },
-    {
-      fields: ['start_datetime']
-    },
-    {
-      fields: ['last_updated']
-    }
-  ]
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
-// Define associations
-Session.associate = (models) => {
-  Session.belongsTo(models.EVSE, {
-    foreignKey: 'evse_uid',
-    as: 'evse'
-  });
-};
-
 module.exports = Session;
-
-
