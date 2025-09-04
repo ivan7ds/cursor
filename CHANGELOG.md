@@ -7,6 +7,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.4.1] - 2025-09-04
+
+### Fixed
+- **Manejo de total_cost en notificaciones PATCH de sesiones**
+  - Corregido endpoint PATCH `/ocpi/emsp/2.2/sessions/{country_code}/{party_id}/{session_id}` para actualizar correctamente el campo `total_cost`
+  - Agregado manejo de `charging_periods` en actualizaciones PATCH de sesiones
+  - Mejorado manejo de `total_cost` tanto como objeto (con `excl_vat`) como número directo
+  - Corregida consulta SQL en endpoint de locations para usar tabla `emsp_evses` en lugar de `locations`
+
+### Changed
+- **Optimización de consultas de validación**
+  - Endpoint PUT/PATCH de locations ahora valida EVSEs en tabla `emsp_evses` en lugar de `locations`
+  - Uso de `location_id` obtenido de `emsp_evses` para mayor precisión en actualizaciones
+
 ## [0.4.0] - 2025-09-04
 
 ### Added

@@ -116,6 +116,16 @@ router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
         if (updateData.kwh !== undefined) {
             updateFields.push(`kwh = ${updateData.kwh}`);
         }
+        if (updateData.total_cost !== undefined) {
+            // Manejar total_cost como objeto o número
+            const totalCostValue = typeof updateData.total_cost === 'object' 
+                ? (updateData.total_cost.excl_vat || 0) 
+                : updateData.total_cost;
+            updateFields.push(`total_cost = ${totalCostValue}`);
+        }
+        if (updateData.charging_periods !== undefined) {
+            updateFields.push(`charging_periods = '${JSON.stringify(updateData.charging_periods).replace(/'/g, "''")}'::jsonb`);
+        }
         if (updateData.status !== undefined) {
             updateFields.push(`status = '${updateData.status}'`);
         }
