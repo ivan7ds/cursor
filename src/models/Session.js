@@ -49,6 +49,12 @@ const Session = sequelize.define('Session', {
     allowNull: true,
     comment: 'Total cost of the session'
   },
+  kwh: {
+    type: DataTypes.DECIMAL(10, 3),
+    allowNull: true,
+    defaultValue: 0.0,
+    comment: 'Energy consumed in kWh'
+  },
   status: {
     type: DataTypes.ENUM('ACTIVE', 'COMPLETED', 'INVALID', 'PENDING'),
     allowNull: false,

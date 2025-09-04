@@ -7,6 +7,88 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-09-04
+
+### Added
+- **Sistema de Sesiones de Carga Completo**
+  - Endpoint `POST /ocpi/cpo/2.2/commands/START_SESSION` para aceptar comandos de inicio de recarga desde EMSPs
+  - Endpoint `POST /ocpi/cpo/2.2/commands/STOP_SESSION` para aceptar comandos de parada de recarga desde EMSPs
+  - Endpoint `GET /ocpi/cpo/2.2/sessions` para listar todas las sesiones de carga
+  - Endpoint `POST /api/sessions/:id/end` para finalizar sesiones desde el frontend
+  - Tabla `sessions` en base de datos con campos: id, country_code, party_id, evse_uid, connector_id, id_token, start_datetime, end_datetime, total_cost, kwh, status, last_updated
+  - Tabla `cdrs` (Charge Detail Records) para almacenar información de tokens y detalles de recarga
+  - Modelo Sequelize `Session.js` con validaciones y asociaciones
+  - Modelo Sequelize `CDR.js` para registros de detalle de carga
+
+- **Gestión de Tokens y Autenticación**
+  - Almacenamiento de datos de token entrantes en CDRs al aceptar START_SESSION
+  - Inclusión de información de token en notificaciones PUT de sesiones
+  - Validación de tokens y credenciales para comandos OCPI
+
+- **Notificaciones OCPI Avanzadas**
+  - Notificaciones PUT para creación y finalización de sesiones a EMSPs
+  - Notificaciones PATCH para actualizaciones de estado de EVSEs
+  - Notificaciones POST a `response_url` con resultados de comandos
+  - Autenticación automática usando credenciales almacenadas en tabla `credentials`
+
+- **Servicio de Notificaciones de Recarga**
+  - `ChargingNotificationService` que ejecuta cada 20 segundos
+  - Simulación de consumo de energía basado en tiempo transcurrido
+  - Cálculo de costos basado en tarifas del EVSE
+  - Actualización automática del campo `kwh` en sesiones activas
+  - Notificaciones PATCH periódicas a EMSPs con progreso de recarga
+
+- **Prevención de Conflictos de Estado**
+  - Exclusión de EVSEs con sesiones activas del job automático de cambio de estados
+  - Método `getEVSEsWithActiveSessions()` para identificar EVSEs en uso
+  - Liberación automática de EVSEs al finalizar sesiones
+
+- **Interfaz de Usuario Mejorada**
+  - Botón "Finalizar Sesión" para sesiones activas en menú Sessions
+  - Visualización de energía consumida (kWh) con formato decimal correcto
+  - Tooltips informativos para detalles de sesiones
+  - Filtro funcional para mostrar solo sesiones activas
+  - Contador dinámico de sesiones totales y filtradas
+
+### Changed
+- **Formato eMI3 para EVSE IDs**
+  - Migración completa de `evse_id` al formato eMI3: `CC*PPP*E...` (ej: `ES*IPD*E00000001`)
+  - Actualización de scripts SQL para generar IDs compatibles con OCPI 2.2
+  - Corrección en frontend, backend y base de datos para mantener consistencia
+
+- **Gestión de Datos de Sesiones**
+  - Campo `kwh` agregado a tabla `sessions` con tipo `DECIMAL(10,3)`
+  - Conversión correcta de string a número para visualización de energía
+  - Actualización automática de valores de energía en sesiones activas
+
+- **Servicios de Notificación**
+  - Integración de `ChargingNotificationService` en servidor principal
+  - Mejora en logging de actualizaciones de sesiones
+  - Optimización de consultas de base de datos para sesiones activas
+
+### Fixed
+- **Errores de Visualización**
+  - Corrección de `TypeError: session.kwh.toFixed is not a function` usando `parseFloat()`
+  - Visualización correcta de valores de energía en pestaña Sessions
+  - Manejo seguro de valores nulos/undefined en campos de sesión
+
+- **Problemas de Estado de EVSEs**
+  - Prevención de cambios automáticos de estado en EVSEs con sesiones activas
+  - Liberación correcta de EVSEs al finalizar sesiones
+  - Sincronización entre estado de sesión y estado de EVSE
+
+- **Validaciones OCPI**
+  - Validación correcta de parámetros en comandos START_SESSION y STOP_SESSION
+  - Manejo apropiado de respuestas de error y éxito
+  - Estructura correcta de payloads para notificaciones OCPI
+
+### Technical Details
+- **Base de Datos**: Agregadas columnas `kwh` a tabla `sessions`
+- **API**: Nuevos endpoints para comandos OCPI y gestión de sesiones
+- **Frontend**: Mejoras en renderizado y manejo de datos de sesiones
+- **Servicios**: Nuevo servicio de notificaciones de recarga con intervalos configurables
+- **OCPI 2.2**: Implementación completa de comandos START_SESSION y STOP_SESSION
+
 ## [0.3.1] - 2025-09-03
 
 ### Added

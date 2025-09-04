@@ -300,6 +300,17 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento startCpoCharging no encontrado');
             }
 
+            const getCpoCdrs = document.getElementById('getCpoCdrs');
+            if (getCpoCdrs) {
+                getCpoCdrs.addEventListener('click', () => {
+                    console.log('🧾 Botón getCpoCdrs clickeado');
+                    this.getCpoCdrs();
+                });
+                console.log('✅ Event listener para getCpoCdrs agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoCdrs no encontrado');
+            }
+
             const clearCpoResponse = document.getElementById('clearCpoResponse');
             if (clearCpoResponse) {
                 clearCpoResponse.addEventListener('click', () => {
@@ -2022,6 +2033,7 @@ if (refreshEmspTokens) {
     async loadSessions() {
         try {
             console.log('🔄 Cargando sesiones de carga...');
+            console.log('🔗 URL:', `${this.baseUrl}/ocpi/cpo/2.2/sessions`);
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/sessions`, {
                 headers: { 
@@ -2029,16 +2041,22 @@ if (refreshEmspTokens) {
                 }
             });
             
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response ok:', response.ok);
+            
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('❌ Response error:', errorText);
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
             
             const data = await response.json();
             console.log('📊 Sessions data:', data);
+            console.log('📊 Sessions count:', data.data ? data.data.length : 0);
             
             // Almacenar todas las sesiones para filtrado
             this.allSessions = data.data || [];
+            console.log('💾 Stored sessions:', this.allSessions.length);
             
             // Aplicar filtro y renderizar
             this.filterSessions();
@@ -2052,13 +2070,19 @@ if (refreshEmspTokens) {
     }
 
     renderSessions(sessions) {
+        console.log('🎨 Renderizando sesiones:', sessions.length);
+        console.log('🎨 Sessions data:', sessions);
+        
         const tbody = document.getElementById('sessionsTableBody');
         if (!tbody) {
             console.warn('⚠️ Elemento sessionsTableBody no encontrado');
             return;
         }
         
+        console.log('✅ Elemento sessionsTableBody encontrado');
+        
         if (sessions.length === 0) {
+            console.log('📭 No hay sesiones para mostrar');
             const filterActiveCheckbox = document.getElementById('filterActiveSessions');
             const showOnlyActive = filterActiveCheckbox ? filterActiveCheckbox.checked : false;
             const message = showOnlyActive ? 
@@ -2092,7 +2116,7 @@ if (refreshEmspTokens) {
                 </td>
                 <td>${session.start_date_time ? new Date(session.start_date_time).toLocaleString() : 'N/A'}</td>
                 <td>${session.end_date_time ? new Date(session.end_date_time).toLocaleString() : 'En curso'}</td>
-                <td>${session.kwh ? session.kwh.toFixed(2) : '0.00'}</td>
+                <td>${session.kwh ? parseFloat(session.kwh).toFixed(2) : '0.00'}</td>
                 <td><code>${session.country_code}*${session.party_id}</code></td>
                 <td>
                     <div class="btn-group" role="group">
@@ -2110,6 +2134,7 @@ if (refreshEmspTokens) {
         `).join('');
         
         console.log(`✅ ${sessions.length} sesiones renderizadas`);
+        console.log('🎨 HTML generado:', tbody.innerHTML.substring(0, 200) + '...');
     }
 
     getSessionStatusBadgeClass(status) {
@@ -2169,12 +2194,18 @@ if (refreshEmspTokens) {
 
     filterSessions() {
         try {
+            console.log('🔍 Iniciando filtro de sesiones');
+            console.log('🔍 allSessions:', this.allSessions);
+            console.log('🔍 allSessions length:', this.allSessions ? this.allSessions.length : 'undefined');
+            
             const filterActiveCheckbox = document.getElementById('filterActiveSessions');
             const showOnlyActive = filterActiveCheckbox ? filterActiveCheckbox.checked : false;
             
             console.log('🔍 Aplicando filtro de sesiones:', showOnlyActive ? 'Solo activas' : 'Todas');
+            console.log('🔍 Filter checkbox found:', !!filterActiveCheckbox);
+            console.log('🔍 Filter checkbox checked:', showOnlyActive);
             
-            let filteredSessions = this.allSessions;
+            let filteredSessions = this.allSessions || [];
             
             if (showOnlyActive) {
                 filteredSessions = this.allSessions.filter(session => 
@@ -2184,6 +2215,8 @@ if (refreshEmspTokens) {
             } else {
                 console.log(`📊 Mostrando todas las ${filteredSessions.length} sesiones`);
             }
+            
+            console.log('🔍 Filtered sessions:', filteredSessions);
             
             this.renderSessions(filteredSessions);
             this.updateCount('sessionsCount', filteredSessions.length);
@@ -5942,6 +5975,61 @@ if (refreshEmspTokens) {
         } catch (error) {
             console.error('❌ Error en proceso de iniciar recarga:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener CDRs del CPO
+    async getCpoCdrs() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🧾 Obteniendo CDRs del CPO:', cpoUrl);
+            
+            // Construir URL para obtener CDRs
+            const cdrsUrl = `${cpoUrl}/ocpi/cpo/${cpoVersion}/cdrs`;
+            
+            console.log('📡 Enviando petición GET a:', cdrsUrl);
+            
+            const response = await fetch(cdrsUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'IPD-EMSP-OCPI-2.2'
+                }
+            });
+
+            console.log('📊 Respuesta recibida:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log('✅ CDRs obtenidos exitosamente:', data);
+
+            // Formatear la respuesta para mostrar
+            const formattedResponse = `🧾 CDRs obtenidos del CPO:
+📋 URL: ${cdrsUrl}
+📊 Total de CDRs: ${data.data ? data.data.length : 0}
+📅 Timestamp: ${data.timestamp || new Date().toISOString()}
+
+📄 Datos recibidos:
+${JSON.stringify(data, null, 2)}`;
+
+            this.showCpoResponse(formattedResponse, 'success');
+
+        } catch (error) {
+            console.error('❌ Error obteniendo CDRs del CPO:', error);
+            this.showCpoResponse(`❌ Error obteniendo CDRs: ${error.message}`, 'error');
         }
     }
 

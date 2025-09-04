@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Session, EVSE, Credentials } = require('../models');
+const { Session, EVSE, Credentials, CDR } = require('../models');
 const logger = require('../utils/logger');
 const axios = require('axios');
 
@@ -79,11 +79,34 @@ router.post('/:id/end', async (req, res) => {
     }
 
     // Actualizar la sesión
+    const endTime = new Date();
     await session.update({
       status: 'COMPLETED',
-      end_datetime: new Date(),
-      last_updated: new Date()
+      end_datetime: endTime,
+      last_updated: endTime
     });
+
+    // Actualizar el CDR asociado
+    const cdr = await CDR.findOne({
+      where: { session_id: id }
+    });
+
+    if (cdr) {
+      const startTime = new Date(session.start_datetime);
+      const totalTimeSeconds = Math.floor((endTime - startTime) / 1000);
+      
+      await cdr.update({
+        end_datetime: endTime,
+        total_time: totalTimeSeconds,
+        last_updated: endTime
+      });
+
+      logger.info('✅ CDR actualizado al finalizar sesión', {
+        cdr_id: cdr.id,
+        session_id: id,
+        total_time_seconds: totalTimeSeconds
+      });
+    }
 
     // Cambiar el estado del EVSE a AVAILABLE
     await EVSE.update(
@@ -220,6 +243,11 @@ async function notifyEMSPAboutSessionEnd(session) {
     const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
     const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/ES/IPD/${session.id}`;
 
+    // Obtener información del token desde el CDR asociado
+    const cdr = await CDR.findOne({
+      where: { session_id: session.id }
+    });
+
     // Preparar payload PUT
     const payload = {
       country_code: session.country_code,
@@ -230,6 +258,16 @@ async function notifyEMSPAboutSessionEnd(session) {
       location_id: session.location_id,
       evse_uid: session.evse_uid,
       connector_id: session.connector_id,
+      cdr_token: cdr ? {
+        country_code: cdr.country_code,
+        party_id: cdr.party_id,
+        uid: cdr.id_token,
+        type: "OTHER", // Valor por defecto - se podría almacenar en CDR si se agrega el campo
+        contract_id: "ES-EFI-CE2A21CBB-4" // Valor por defecto - se podría almacenar en CDR si se agrega el campo
+      } : null,
+      auth_method: "WHITELIST",
+      currency: "EUR",
+      status: session.status,
       kwh: session.kwh || 0,
       last_updated: session.last_updated.toISOString()
     };

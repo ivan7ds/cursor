@@ -17,6 +17,7 @@ const logger = require('./utils/logger');
 
 // Import EVSE Notification Service
 const evseNotificationService = require('./services/evseNotificationService');
+const chargingNotificationService = require('./services/chargingNotificationService');
 
 // Import OCPI routes
 const credentialsRoutes = require('./api/credentials');
@@ -190,6 +191,10 @@ async function startServer() {
     // Start EVSE Notification Service
     evseNotificationService.start();
     logger.info('EVSE Notification Service started');
+    
+    // Start Charging Notification Service
+    chargingNotificationService.start();
+    logger.info('Charging Notification Service started');
     
   } catch (error) {
     logger.error('Failed to start server:', error.message || error);

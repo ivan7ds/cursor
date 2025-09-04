@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const { EVSE, Location, Token, Credentials, Session } = require('../models');
+const { EVSE, Location, Token, Credentials, Session, CDR } = require('../models');
 const logger = require('../utils/logger');
 
 /**
@@ -320,6 +320,30 @@ router.post('/START_SESSION', async (req, res) => {
       last_updated: new Date()
     });
 
+    // Crear CDR con los datos del token entrante
+    const cdrId = uuidv4();
+    const cdr = await CDR.create({
+      id: cdrId,
+      country_code: token.country_code,
+      party_id: token.party_id,
+      session_id: sessionId,
+      evse_uid: evse_uid,
+      connector_id: evse.connectors && evse.connectors[0] ? evse.connectors[0].id : null,
+      id_token: token.uid,
+      start_datetime: new Date(),
+      end_datetime: new Date(), // Se actualizará cuando termine la sesión
+      total_energy: 0.0,
+      total_cost: 0.0,
+      currency: 'EUR',
+      total_parking_time: 0,
+      total_time: 0, // Se calculará cuando termine la sesión
+      last_updated: new Date()
+    });
+
+    // Almacenar datos adicionales del token en el CDR (usando campos personalizados si existen)
+    // Nota: Si la tabla CDR no tiene campos para type y contract_id, 
+    // estos se usarán como valores por defecto en las notificaciones
+
     // Cambiar estado del EVSE a CHARGING
     await EVSE.update(
       { 
@@ -331,10 +355,14 @@ router.post('/START_SESSION', async (req, res) => {
       }
     );
 
-    logger.info('✅ START_SESSION: Session created and EVSE status updated', {
+    logger.info('✅ START_SESSION: Session and CDR created, EVSE status updated', {
       session_id: sessionId,
+      cdr_id: cdrId,
       evse_uid,
-      new_status: 'CHARGING'
+      new_status: 'CHARGING',
+      token_country_code: token.country_code,
+      token_party_id: token.party_id,
+      token_uid: token.uid
     });
 
     // Primero responder al EMSP
@@ -378,7 +406,7 @@ router.post('/START_SESSION', async (req, res) => {
       await notifyEMSPAboutEVSEStatusChange(evse_uid, 'CHARGING');
 
       // 3. Enviar PUT al EMSP con la información de la sesión
-      await notifyEMSPAboutSession(sessionId, evse_uid, token.uid, location_id);
+      await notifyEMSPAboutSession(sessionId, evse_uid, token, location_id);
     });
 
   } catch (error) {
@@ -493,7 +521,7 @@ async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
 /**
  * Notifica al EMSP sobre la nueva sesión creada
  */
-async function notifyEMSPAboutSession(sessionId, evseUid, tokenUid, locationId) {
+async function notifyEMSPAboutSession(sessionId, evseUid, token, locationId) {
   try {
     // Obtener información de la sesión
     const session = await Session.findByPk(sessionId);
@@ -531,6 +559,16 @@ async function notifyEMSPAboutSession(sessionId, evseUid, tokenUid, locationId) 
       location_id: locationId,
       evse_uid: evseUid,
       connector_id: session.connector_id,
+      cdr_token: {
+        country_code: token.country_code,
+        party_id: token.party_id,
+        uid: token.uid,
+        type: token.type,
+        contract_id: token.contract_id
+      },
+      auth_method: "WHITELIST",
+      currency: "EUR",
+      status: session.status,
       kwh: 0.0,
       last_updated: session.last_updated.toISOString()
     };
@@ -563,6 +601,280 @@ async function notifyEMSPAboutSession(sessionId, evseUid, tokenUid, locationId) 
     logger.error('❌ Failed to notify EMSP about new session', {
       session_id: sessionId,
       evse_uid: evseUid,
+      error: error.message,
+      status_code: error.response?.status
+    });
+  }
+}
+
+/**
+ * Endpoint para recibir comando STOP_SESSION del EMSP
+ */
+router.post('/STOP_SESSION', async (req, res) => {
+  try {
+    const { response_url, session_id } = req.body;
+
+    logger.info('🛑 STOP_SESSION Command Received', {
+      response_url,
+      session_id,
+      timestamp: new Date().toISOString()
+    });
+
+    // Validar parámetros requeridos
+    if (!response_url || !session_id) {
+      logger.error('❌ STOP_SESSION: Missing required parameters', {
+        response_url: !!response_url,
+        session_id: !!session_id
+      });
+
+      const response = {
+        status_code: 2000,
+        status_message: "Missing required parameters",
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      return res.status(400).json(response);
+    }
+
+    // Buscar la sesión en la base de datos
+    const session = await Session.findByPk(session_id);
+    if (!session) {
+      logger.error('❌ STOP_SESSION: Session not found', { session_id });
+
+      const response = {
+        status_code: 2000,
+        status_message: "Session not found",
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      return res.status(404).json(response);
+    }
+
+    // Verificar que la sesión esté activa
+    if (session.status !== 'ACTIVE') {
+      logger.warn('⚠️ STOP_SESSION: Session is not active', { 
+        session_id, 
+        current_status: session.status 
+      });
+
+      const response = {
+        status_code: 2000,
+        status_message: `Session is not active (status: ${session.status})`,
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      return res.status(400).json(response);
+    }
+
+    // Obtener el EVSE asociado
+    const evse = await EVSE.findByPk(session.evse_uid);
+    if (!evse) {
+      logger.error('❌ STOP_SESSION: EVSE not found', { evse_uid: session.evse_uid });
+
+      const response = {
+        status_code: 2000,
+        status_message: "EVSE not found",
+        data: {
+          result: "REJECTED",
+          timeout: 0
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      return res.status(404).json(response);
+    }
+
+    logger.info('✅ STOP_SESSION: Command accepted', {
+      session_id,
+      evse_uid: session.evse_uid,
+      response_url
+    });
+
+    // Finalizar la sesión
+    const endTime = new Date();
+    await session.update({
+      status: 'COMPLETED',
+      end_datetime: endTime,
+      last_updated: endTime
+    });
+
+    // Actualizar el CDR asociado
+    const cdr = await CDR.findOne({
+      where: { session_id: session_id }
+    });
+
+    if (cdr) {
+      const startTime = new Date(session.start_datetime);
+      const totalTimeSeconds = Math.floor((endTime - startTime) / 1000);
+      
+      await cdr.update({
+        end_datetime: endTime,
+        total_time: totalTimeSeconds,
+        last_updated: endTime
+      });
+
+      logger.info('✅ CDR actualizado al finalizar sesión', {
+        cdr_id: cdr.id,
+        session_id: session_id,
+        total_time_seconds: totalTimeSeconds
+      });
+    }
+
+    // Cambiar estado del EVSE a AVAILABLE
+    await EVSE.update(
+      { 
+        status: 'AVAILABLE',
+        last_updated: endTime
+      },
+      { 
+        where: { id: session.evse_uid }
+      }
+    );
+
+    logger.info('✅ STOP_SESSION: Session completed and EVSE status updated', {
+      session_id,
+      evse_uid: session.evse_uid,
+      new_status: 'AVAILABLE'
+    });
+
+    // Primero responder al EMSP
+    const response = {
+      status_code: 1000,
+      status_message: "Stop accepted",
+      data: {
+        result: "ACCEPTED",
+        timeout: 0
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    res.status(200).json(response);
+
+    // Notificar al EMSP de forma asíncrona
+    setImmediate(async () => {
+      try {
+        // 1. Enviar PATCH al EMSP con el cambio de estado del EVSE
+        await notifyEMSPAboutEVSEStatusChange(session.evse_uid, 'AVAILABLE');
+
+        // 2. Enviar PUT al EMSP con la sesión finalizada
+        await notifyEMSPAboutSessionStop(session, evse);
+      } catch (error) {
+        logger.error('❌ STOP_SESSION: Notification failed but command accepted', {
+          response_url,
+          result: "ACCEPTED",
+          notification_error: error.message
+        });
+      }
+    });
+
+  } catch (error) {
+    logger.error('❌ STOP_SESSION: Internal server error', {
+      error: error.message,
+      stack: error.stack
+    });
+
+    const response = {
+      status_code: 2000,
+      status_message: "Internal server error",
+      data: {
+        result: "REJECTED",
+        timeout: 0
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    res.status(500).json(response);
+  }
+});
+
+/**
+ * Notifica al EMSP sobre la sesión finalizada
+ */
+async function notifyEMSPAboutSessionStop(session, evse) {
+  try {
+    // Obtener credenciales del EMSP
+    const emspCredentials = await Credentials.findOne({
+      where: { party_id: 'EPK' }
+    });
+
+    if (!emspCredentials) {
+      logger.error('❌ EMSP credentials not found for session stop notification');
+      return;
+    }
+
+    // Construir URL del endpoint del EMSP
+    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/ES/IPD/${session.id}`;
+
+    // Obtener información del token desde el CDR asociado
+    const cdr = await CDR.findOne({
+      where: { session_id: session.id }
+    });
+
+    // Preparar payload PUT
+    const payload = {
+      country_code: session.country_code,
+      party_id: session.party_id,
+      id: session.id,
+      start_date_time: session.start_datetime.toISOString(),
+      end_date_time: session.end_datetime.toISOString(),
+      location_id: evse.location_id,
+      evse_uid: session.evse_uid,
+      connector_id: session.connector_id,
+      cdr_token: cdr ? {
+        country_code: cdr.country_code,
+        party_id: cdr.party_id,
+        uid: cdr.id_token,
+        type: "OTHER",
+        contract_id: "ES-EFI-CE2A21CBB-4"
+      } : null,
+      auth_method: "WHITELIST",
+      currency: "EUR",
+      status: session.status,
+      kwh: session.kwh || 0,
+      last_updated: session.last_updated.toISOString()
+    };
+
+    logger.info('📤 Sending PUT to EMSP about session stop', {
+      emsp_url: emspUrl,
+      session_id: session.id,
+      evse_uid: session.evse_uid,
+      payload
+    });
+
+    // Enviar notificación PUT
+    const response = await axios.put(emspUrl, payload, {
+      headers: {
+        'Authorization': `Token ${emspCredentials.token}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'IPD-CPO-OCPI-2.2'
+      },
+      timeout: 10000
+    });
+
+    logger.info('✅ Session stop notification sent successfully', {
+      emsp_url: emspUrl,
+      session_id: session.id,
+      evse_uid: session.evse_uid,
+      status_code: response.status
+    });
+
+  } catch (error) {
+    logger.error('❌ Failed to notify EMSP about session stop', {
+      session_id: session.id,
+      evse_uid: session.evse_uid,
       error: error.message,
       status_code: error.response?.status
     });
