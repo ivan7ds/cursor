@@ -6,6 +6,13 @@ El **IPD CPO Dashboard** es una interfaz web moderna y responsive que proporcion
 
 ## ✨ **Características Principales**
 
+### ⚙️ **Configuración Dinámica**
+- **Variables de entorno**: Configuración automática de party_id, country_code y versión OCPI
+- **Carga automática**: El frontend carga la configuración al inicializar
+- **Adaptabilidad**: Fácil cambio de país/operador sin modificar código
+- **URLs dinámicas**: Todas las notificaciones OCPI usan configuración dinámica
+- **Headers dinámicos**: User-Agent y otros headers basados en configuración
+
 ### 🔍 **Logs en Tiempo Real**
 - **Streaming en vivo**: Visualización de logs en tiempo real usando Server-Sent Events
 - **Filtros avanzados**: Por nivel (ERROR, WARN, INFO, DEBUG), tipo y búsqueda de texto

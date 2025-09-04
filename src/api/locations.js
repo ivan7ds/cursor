@@ -156,7 +156,9 @@ router.get('/', async (req, res) => {
           
           // Ensure evse_id follows the eMI3 format: country_code*party_id*E...
           // Always regenerate the evse_id to ensure correct format
-          const newEvseId = `ES*IPD*E${cleanEvse.uid.substring(0, 8)}`;
+          const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+          const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+          const newEvseId = `${countryCode}*${partyId}*E${cleanEvse.uid.substring(0, 8)}`;
           logger.info(`Generated new evse_id: ${newEvseId}`);
           cleanEvse.evse_id = newEvseId;
           

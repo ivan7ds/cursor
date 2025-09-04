@@ -180,7 +180,9 @@ async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
 
     // Construir URL del endpoint del EMSP
     const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
-    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/ES/IPD/${evse.location_id}/${evseUid}`;
+    const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+    const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evse.location_id}/${evseUid}`;
 
     // Preparar payload PATCH
     const payload = {
@@ -200,7 +202,7 @@ async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
       headers: {
         'Authorization': `Token ${emspCredentials.token}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'IPD-CPO-OCPI-2.2'
+        'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
       },
       timeout: 10000
     });
@@ -241,7 +243,9 @@ async function notifyEMSPAboutSessionEnd(session) {
 
     // Construir URL del endpoint del EMSP
     const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
-    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/ES/IPD/${session.id}`;
+    const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+    const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/${countryCode}/${partyId}/${session.id}`;
 
     // Obtener información del token desde el CDR asociado
     const cdr = await CDR.findOne({
@@ -284,7 +288,7 @@ async function notifyEMSPAboutSessionEnd(session) {
       headers: {
         'Authorization': `Token ${emspCredentials.token}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'IPD-CPO-OCPI-2.2'
+        'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
       },
       timeout: 10000
     });

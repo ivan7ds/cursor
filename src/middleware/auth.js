@@ -59,8 +59,8 @@ const authMiddleware = async (req, res, next) => {
 
     // Token válido, agregar información del token a la request
     req.ocpiToken = tokenInfo || { 
-      party_id: 'IPD', 
-      country_code: 'ES',
+      party_id: process.env.OCPI_PARTY_ID || 'IPD', 
+      country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
       type: 'default' 
     };
     

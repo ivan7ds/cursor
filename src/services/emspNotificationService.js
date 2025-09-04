@@ -167,9 +167,11 @@ class EMSPNotificationService {
      */
     async notifyOrganizationAboutLocation(organization, locationData, method = 'PUT') {
         try {
-            // Construir la URL correcta usando nuestro party_id (IPD) y country_code (ES)
+            // Construir la URL correcta usando nuestro party_id y country_code
             // Usamos /ocpi/emsp/ para consistencia con los PATCH requests
-            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/ES/IPD/${locationData.id}`;
+            const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+            const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${locationData.id}`;
             
             logger.info(`📤 Notificando location ${locationData.id} a organización ${organization.party_id} en ${endpoint}`);
             
@@ -207,7 +209,9 @@ class EMSPNotificationService {
     async notifyOrganizationAboutEVSE(organization, evseData, method = 'PUT') {
         try {
             // Construir la URL correcta según OCPI 2.2: /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
-            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/ES/IPD/${evseData.location_id}/${evseData.id}`;
+            const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+            const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evseData.location_id}/${evseData.id}`;
             
             logger.info(`📤 Notificando EVSE ${evseData.id} a organización ${organization.party_id} en ${endpoint}`);
             

@@ -7,7 +7,51 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-09-04
+
+### Added
+- **Configuración dinámica de OCPI**
+  - Variables de entorno `OCPI_PARTY_ID`, `OCPI_COUNTRY_CODE`, `OCPI_VERSION`
+  - Endpoint `/api/config/ocpi-settings` para exponer configuración al frontend
+  - Carga automática de configuración OCPI en el frontend al inicializar
+  - Análisis completo de variables de entorno utilizadas vs no utilizadas
+
+### Changed
+- **Reemplazo de valores hardcodeados por variables de entorno**
+  - Todas las URLs de notificaciones OCPI ahora usan variables de entorno
+  - Headers User-Agent dinámicos basados en configuración
+  - Generación de evse_id dinámica con party_id y country_code configurables
+  - Filtros de base de datos dinámicos para party_id
+  - Creación de objetos de sesión/token con configuración dinámica
+  - Documentación actualizada con nuevas funcionalidades de configuración
+
+### Fixed
+- **Manejo de total_cost en notificaciones PATCH de sesiones**
+  - Corregido endpoint PATCH `/ocpi/emsp/2.2/sessions/{country_code}/{party_id}/{session_id}` para actualizar correctamente el campo `total_cost`
+  - Agregado manejo de `charging_periods` en actualizaciones PATCH de sesiones
+  - Mejorado manejo de `total_cost` tanto como objeto (con `excl_vat`) como número directo
+  - Corregida consulta SQL en endpoint de locations para usar tabla `emsp_evses` en lugar de `locations`
+
+### Changed
+- **Optimización de consultas de validación**
+  - Endpoint PUT/PATCH de locations ahora valida EVSEs en tabla `emsp_evses` en lugar de `locations`
+  - Uso de `location_id` obtenido de `emsp_evses` para mayor precisión en actualizaciones
+
 ## [0.4.1] - 2025-09-04
+
+### Added
+- **Configuración dinámica de OCPI**
+  - Variables de entorno `OCPI_PARTY_ID`, `OCPI_COUNTRY_CODE`, `OCPI_VERSION`
+  - Endpoint `/api/config/ocpi-settings` para exponer configuración al frontend
+  - Carga automática de configuración OCPI en el frontend al inicializar
+
+### Changed
+- **Reemplazo de valores hardcodeados por variables de entorno**
+  - Todas las URLs de notificaciones OCPI ahora usan variables de entorno
+  - Headers User-Agent dinámicos basados en configuración
+  - Generación de evse_id dinámica con party_id y country_code configurables
+  - Filtros de base de datos dinámicos para party_id
+  - Creación de objetos de sesión/token con configuración dinámica
 
 ### Fixed
 - **Manejo de total_cost en notificaciones PATCH de sesiones**

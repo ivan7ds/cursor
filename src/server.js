@@ -114,7 +114,7 @@ app.get('/test-emsp-locations', (req, res) => {
         id: 'test-001',
         name: 'Test Location',
         emsp_party_id: 'TEST',
-        country: 'ES',
+        country: process.env.OCPI_COUNTRY_CODE || 'ES',
         city: 'Test City',
         address: 'Test Address',
         evse_list: '[]',

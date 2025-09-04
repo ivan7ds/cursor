@@ -192,7 +192,9 @@ class ChargingNotificationService {
 
       // Construir URL del endpoint del EMSP
       const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
-      const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/ES/IPD/${session.id}`;
+      const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+      const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+      const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/${countryCode}/${partyId}/${session.id}`;
 
       // Preparar payload PATCH
       const now = new Date().toISOString();
@@ -222,7 +224,7 @@ class ChargingNotificationService {
         headers: {
           'Authorization': `Token ${emspCredentials.token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'IPD-CPO-OCPI-2.2'
+          'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
         },
         timeout: 10000
       });

@@ -5,6 +5,7 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 ## 🚀 Características
 
 - **Protocolo OCPI 2.2**: Implementación completa del estándar
+- **Configuración Dinámica**: Variables de entorno para party_id, country_code y versión OCPI
 - **Distribución Geográfica**: 75 ubicaciones distribuidas por España y Portugal
 - **Infraestructura de Carga**: Máximo 50 EVSEs por ubicación
 - **Paginación OCPI 2.2**: Endpoints con paginación estándar
@@ -16,6 +17,7 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Funcionalidad eMSP**: Capacidad para actuar como eMSP y conectar con CPOs externos
 - **Gestión de Conectores**: Información detallada de conectores por EVSE
 - **Notificaciones Automáticas**: Sistema de notificaciones para cambios de estado de EVSEs
+- **Configuración Flexible**: Adaptable a diferentes países y operadores mediante variables de entorno
 
 ## 🏗️ Arquitectura
 
@@ -41,6 +43,32 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Porto**: 10 ubicaciones
 
 **Total**: 75 ubicaciones con infraestructura de carga distribuida
+
+## ⚙️ Configuración
+
+### Variables de Entorno OCPI
+
+La aplicación utiliza variables de entorno para configurar dinámicamente el comportamiento OCPI:
+
+```bash
+# Configuración OCPI
+OCPI_PARTY_ID=IPD                    # Identificador del operador (ej: IPD, EDF, etc.)
+OCPI_COUNTRY_CODE=ES                 # Código de país ISO (ej: ES, FR, DE, etc.)
+OCPI_VERSION=2.2                     # Versión del protocolo OCPI
+OCPI_BASE_URL=https://api.cpo.com    # URL base del CPO
+```
+
+### Configuración Dinámica
+
+- **URLs de Notificaciones**: Se generan automáticamente usando las variables de entorno
+- **Headers User-Agent**: Dinámicos basados en party_id y versión
+- **Generación de evse_id**: Formato `{COUNTRY_CODE}*{PARTY_ID}*E{UID}`
+- **Filtros de Base de Datos**: Dinámicos según party_id configurado
+- **Frontend**: Carga automática de configuración al inicializar
+
+### Adaptabilidad
+
+La aplicación puede adaptarse a diferentes países y operadores simplemente cambiando las variables de entorno, sin necesidad de modificar el código.
 
 ## 🛠️ Instalación
 

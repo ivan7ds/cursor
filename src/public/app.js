@@ -14,10 +14,13 @@ class DashboardApp {
         console.log('✅ Constructor completado');
     }
 
-    init() {
+    async init() {
         console.log('🚀 Inicializando Dashboard...');
         
         try {
+            // Cargar configuraciones OCPI
+            await this.loadOCPISettings();
+            
             // Verificar que el DOM esté listo
             if (document.readyState === 'loading') {
                 console.log('⏳ DOM aún cargando, esperando...');
@@ -28,6 +31,24 @@ class DashboardApp {
             }
         } catch (error) {
             console.error('❌ Error en init:', error);
+        }
+    }
+
+    async loadOCPISettings() {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/config/ocpi-settings`);
+            if (response.ok) {
+                const settings = await response.json();
+                window.OCPI_PARTY_ID = settings.partyId;
+                window.OCPI_COUNTRY_CODE = settings.countryCode;
+                window.OCPI_VERSION = settings.version;
+                console.log('🌐 OCPI Settings loaded:', settings);
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not load OCPI settings, using defaults:', error);
+            window.OCPI_PARTY_ID = 'IPD';
+            window.OCPI_COUNTRY_CODE = 'ES';
+            window.OCPI_VERSION = '2.2';
         }
     }
 
@@ -3034,8 +3055,8 @@ if (refreshEmspTokens) {
                 operator: document.getElementById('locationOperator').value || null,
                 open_24h: document.getElementById('locationOpen24h').checked,
                 access_public: document.getElementById('locationAccessPublic').checked,
-                country_code: 'ES', // Por defecto España
-                party_id: 'IPD', // Por defecto IPD
+                country_code: window.OCPI_COUNTRY_CODE || 'ES', // Por defecto España
+                party_id: window.OCPI_PARTY_ID || 'IPD', // Por defecto IPD
                 last_updated: new Date().toISOString()
             };
             
@@ -3678,9 +3699,9 @@ if (refreshEmspTokens) {
             
             const formData = {
                 uid: document.getElementById('evseUid').value,
-                evse_id: `ES*IPD*E${document.getElementById('evseUid').value.substring(0, 8)}`,
-                country_code: 'ES',
-                party_id: 'IPD',
+                evse_id: `${window.OCPI_COUNTRY_CODE || 'ES'}*${window.OCPI_PARTY_ID || 'IPD'}*E${document.getElementById('evseUid').value.substring(0, 8)}`,
+                country_code: window.OCPI_COUNTRY_CODE || 'ES',
+                party_id: window.OCPI_PARTY_ID || 'IPD',
                 location_id: locationId,
                 status: document.getElementById('evseStatus').value,
                 capabilities: capabilities,
@@ -6331,8 +6352,9 @@ if (refreshEmspTokens) {
             if (response.ok) {
                 const data = await response.json();
                 if (data.data && data.data.length > 0) {
-                    // Filtrar tokens con party_id "IPD" (nuestro CPO local)
-                    const ipdTokens = data.data.filter(token => token.party_id === 'IPD');
+                    // Filtrar tokens con party_id de nuestro CPO local
+                    const localPartyId = window.OCPI_PARTY_ID || 'IPD';
+                    const ipdTokens = data.data.filter(token => token.party_id === localPartyId);
                     if (ipdTokens.length > 0) {
                         const token = ipdTokens[0];
                         this.logToChargingConsole(`🎫 Token obtenido: ${token.uid} (${token.type}) - Party: ${token.party_id}`, 'info');
@@ -6352,7 +6374,7 @@ if (refreshEmspTokens) {
                         
                         return cleanToken;
                     } else {
-                        this.logToChargingConsole('⚠️ No se encontraron tokens con party_id IPD', 'warning');
+                        this.logToChargingConsole(`⚠️ No se encontraron tokens con party_id ${localPartyId}`, 'warning');
                         return null;
                     }
                 }
@@ -6432,7 +6454,7 @@ if (refreshEmspTokens) {
                 headers: {
                     'Authorization': `Token ${cpoToken}`,
                     'Content-Type': 'application/json',
-                    'User-Agent': 'IPD-EMSP-OCPI-2.2'
+                    'User-Agent': `${window.OCPI_PARTY_ID || 'IPD'}-EMSP-OCPI-${window.OCPI_VERSION || '2.2'}`
                 }
             });
 

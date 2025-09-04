@@ -1,26 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const logger = require('../utils/logger');
 
-// Endpoint para obtener la configuración OCPI
+// GET /api/config/ocpi-base-url
 router.get('/ocpi-base-url', (req, res) => {
     try {
-        const ocpiBaseUrl = process.env.OCPI_BASE_URL || process.env.BASE_URL || 'http://localhost:3000';
-        
-        res.json({
-            status_code: 1000,
-            status_message: 'Success',
-            data: {
-                ocpiBaseUrl: ocpiBaseUrl
-            },
-            timestamp: new Date().toISOString()
-        });
+        const ocpiBaseUrl = process.env.OCPI_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+        logger.info(`🌐 Serving OCPI_BASE_URL: ${ocpiBaseUrl}`);
+        res.status(200).json({ ocpiBaseUrl });
     } catch (error) {
-        console.error('❌ Error obteniendo configuración OCPI:', error);
-        res.status(500).json({
-            status_code: 2000,
-            status_message: 'Internal server error',
-            timestamp: new Date().toISOString()
-        });
+        logger.error(`❌ Error getting OCPI_BASE_URL: ${error.message}`);
+        res.status(500).json({ status_code: 2000, status_message: error.message });
+    }
+});
+
+// GET /api/config/ocpi-settings
+router.get('/ocpi-settings', (req, res) => {
+    try {
+        const settings = {
+            partyId: process.env.OCPI_PARTY_ID || 'IPD',
+            countryCode: process.env.OCPI_COUNTRY_CODE || 'ES',
+            version: process.env.OCPI_VERSION || '2.2'
+        };
+        logger.info(`🌐 Serving OCPI settings:`, settings);
+        res.status(200).json(settings);
+    } catch (error) {
+        logger.error(`❌ Error getting OCPI settings: ${error.message}`);
+        res.status(500).json({ status_code: 2000, status_message: error.message });
     }
 });
 

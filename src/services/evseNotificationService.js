@@ -193,7 +193,7 @@ class EVSENotificationService {
         headers: {
           'Authorization': `Token ${emsp.token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'IPD-CPO-OCPI-2.2'
+          'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
         },
         timeout: 10000 // 10 segundos timeout
       });
@@ -220,8 +220,10 @@ class EVSENotificationService {
     
     // Construir la URL del endpoint de locations según OCPI 2.2
     // Formato: {base_url}/ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
-    // Usamos nuestro party_id (IPD) y country_code (ES) para identificar nuestro CPO
-    return `${baseUrl}/ocpi/emsp/2.2/locations/ES/IPD/${evseChange.location_id}/${evseChange.evse_uid}`;
+    // Usamos nuestro party_id y country_code para identificar nuestro CPO
+    const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+    const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+    return `${baseUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evseChange.location_id}/${evseChange.evse_uid}`;
   }
 
   /**
