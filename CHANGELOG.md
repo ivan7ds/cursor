@@ -27,6 +27,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 - **Notificaciones OCPI Avanzadas**
   - Notificaciones PUT para creación y finalización de sesiones a EMSPs
+  - Endpoints PUT y PATCH para `/ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}` para notificaciones de EVSEs de CPOs externos
   - Notificaciones PATCH para actualizaciones de estado de EVSEs
   - Notificaciones POST a `response_url` con resultados de comandos
   - Autenticación automática usando credenciales almacenadas en tabla `credentials`
@@ -197,6 +198,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Error de sintaxis en template literals
 - Tooltips mostrando etiquetas HTML literalmente
 - Contador de EVSEs excluyendo soft-deleted
+- Variable `testToken` no definida en flujo de recarga corregida a `realToken`
+- Error `UNKNOWN_SESSION` al finalizar recarga: ahora usa session_id real del CPO
+
+### Changed
+- Flujo de recarga modificado: modal no se cierra al iniciar recarga
+- Botón "Iniciar Recarga" ya no cambia a "Finalizar Recarga"
+- Botón "Finalizar Recarga" agregado dentro del modal de selección de EVSE
+- Botón "Iniciar Recarga" se deshabilita durante sesión activa
 - Duplicación de conectores en formularios
 - Loop de PATCH requests con datos soft-deleted
 - Tooltips de tarifas mostrándose automáticamente sin pasar cursor

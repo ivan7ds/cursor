@@ -8,6 +8,8 @@ class DashboardApp {
         this.logsStreaming = false;
         this.logsEventSource = null;
         this.allSessions = []; // Almacenar todas las sesiones para filtrado
+        this.currentChargingSession = null; // Sesión de recarga activa
+        this.cpoEvses = []; // EVSEs del CPO externo
         
         console.log('✅ Constructor completado');
     }
@@ -293,11 +295,22 @@ if (refreshEmspTokens) {
             if (startCpoCharging) {
                 startCpoCharging.addEventListener('click', () => {
                     console.log('⚡ Botón startCpoCharging clickeado');
-                    this.startCpoCharging();
+                    this.handleChargingAction();
                 });
                 console.log('✅ Event listener para startCpoCharging agregado');
             } else {
                 console.warn('⚠️ Elemento startCpoCharging no encontrado');
+            }
+
+            const stopCpoCharging = document.getElementById('stopCpoCharging');
+            if (stopCpoCharging) {
+                stopCpoCharging.addEventListener('click', () => {
+                    console.log('🛑 Botón stopCpoCharging clickeado');
+                    this.stopChargingSession();
+                });
+                console.log('✅ Event listener para stopCpoCharging agregado');
+            } else {
+                console.warn('⚠️ Elemento stopCpoCharging no encontrado');
             }
 
             const getCpoCdrs = document.getElementById('getCpoCdrs');
@@ -309,6 +322,29 @@ if (refreshEmspTokens) {
                 console.log('✅ Event listener para getCpoCdrs agregado');
             } else {
                 console.warn('⚠️ Elemento getCpoCdrs no encontrado');
+            }
+
+            // Event listeners para modal de recarga
+            const clearChargingConsole = document.getElementById('clearChargingConsole');
+            if (clearChargingConsole) {
+                clearChargingConsole.addEventListener('click', () => {
+                    console.log('🗑️ Botón clearChargingConsole clickeado');
+                    this.clearChargingConsole();
+                });
+                console.log('✅ Event listener para clearChargingConsole agregado');
+            } else {
+                console.warn('⚠️ Elemento clearChargingConsole no encontrado');
+            }
+
+            const refreshCpoEvses = document.getElementById('refreshCpoEvses');
+            if (refreshCpoEvses) {
+                refreshCpoEvses.addEventListener('click', () => {
+                    console.log('🔄 Botón refreshCpoEvses clickeado');
+                    this.loadCpoEvsesForCharging();
+                });
+                console.log('✅ Event listener para refreshCpoEvses agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshCpoEvses no encontrado');
             }
 
             const clearCpoResponse = document.getElementById('clearCpoResponse');
@@ -5944,37 +5980,431 @@ if (refreshEmspTokens) {
         return statusClasses[status] || 'bg-secondary';
     }
 
-    // Iniciar recarga en EMSP conectado
-    async startCpoCharging() {
+    // Manejar acción de recarga (iniciar o finalizar)
+    handleChargingAction() {
+        if (this.currentChargingSession) {
+            this.stopChargingSession();
+        } else {
+            this.showSelectCpoEvseModal();
+        }
+    }
+
+    // Mostrar modal para seleccionar EVSE de CPO
+    showSelectCpoEvseModal() {
+        const modal = new bootstrap.Modal(document.getElementById('selectCpoEvseModal'));
+        this.hideStopChargingButton(); // Ocultar botón de finalizar al abrir el modal
+        this.loadCpoEvsesForCharging();
+        modal.show();
+    }
+
+    // Cargar EVSEs del CPO para recarga (desde base de datos local)
+    async loadCpoEvsesForCharging() {
         try {
+            this.logToChargingConsole('🔄 Cargando EVSEs del CPO desde base de datos local...', 'info');
+            
+            // Obtener EVSEs del CPO desde nuestra base de datos
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+
+            const data = await response.json();
+            this.cpoEvses = data.data || [];
+            
+            this.logToChargingConsole(`✅ Cargados ${this.cpoEvses.length} EVSEs del CPO desde base de datos local`, 'success');
+            this.renderCpoEvsesForCharging();
+
+        } catch (error) {
+            console.error('❌ Error cargando EVSEs del CPO:', error);
+            this.logToChargingConsole(`❌ Error: ${error.message}`, 'error');
+            this.renderCpoEvsesError();
+        }
+    }
+
+    // Renderizar EVSEs del CPO para selección
+    renderCpoEvsesForCharging() {
+        const tbody = document.getElementById('cpoEvsesTableBody');
+        if (!tbody) return;
+
+        if (this.cpoEvses.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-3">
+                        <i class="bi bi-exclamation-circle"></i> No hay EVSEs disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = this.cpoEvses.map(evse => `
+            <tr>
+                <td><code>${evse.evse_id || evse.id}</code></td>
+                <td>
+                    <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
+                        ${evse.status}
+                    </span>
+                </td>
+                <td>${evse.location_id ? this.truncateToken(evse.location_id) : 'N/A'}</td>
+                <td>
+                    <button class="btn btn-sm ${evse.status === 'AVAILABLE' ? 'btn-success' : 'btn-secondary'}" 
+                            onclick="window.dashboardApp.startChargingWithEvse('${evse.id}', '${evse.location_id}')"
+                            ${evse.status !== 'AVAILABLE' ? 'disabled' : ''}>
+                        <i class="bi bi-lightning-charge"></i> ${evse.status === 'AVAILABLE' ? 'Iniciar' : 'No disponible'}
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Renderizar error al cargar EVSEs
+    renderCpoEvsesError() {
+        const tbody = document.getElementById('cpoEvsesTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center text-danger py-3">
+                    <i class="bi bi-exclamation-triangle"></i> Error cargando EVSEs
+                </td>
+            </tr>
+        `;
+    }
+
+    // Obtener clase CSS para badge de estado de EVSE
+    getEvseStatusBadgeClass(status) {
+        const statusClasses = {
+            'AVAILABLE': 'bg-success',
+            'OCCUPIED': 'bg-warning',
+            'RESERVED': 'bg-info',
+            'UNAVAILABLE': 'bg-danger',
+            'FAULTED': 'bg-danger'
+        };
+        return statusClasses[status] || 'bg-secondary';
+    }
+
+    // Iniciar recarga con EVSE seleccionado
+    async startChargingWithEvse(evseUid, locationId) {
+        try {
+            this.logToChargingConsole(`🚀 Iniciando recarga con EVSE: ${evseUid}`, 'info');
+            
             const cpoUrl = document.getElementById('cpoUrl').value;
             const cpoToken = document.getElementById('cpoToken').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
+            this.logToChargingConsole(`🔗 URL del CPO: ${cpoUrl}`, 'info');
+            this.logToChargingConsole(`🔑 Token del CPO: ${cpoToken ? cpoToken.substring(0, 10) + '...' : 'No definido'}`, 'info');
+
             if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                this.logToChargingConsole('❌ Error: URL y Token del CPO son obligatorios', 'error');
                 return;
             }
 
-            console.log('⚡ Iniciando proceso de recarga en EMSP conectado:', cpoUrl);
+            // Obtener la URL base del servidor
+            const baseUrl = await this.getServerBaseUrl();
+
+            // Obtener un token real de la base de datos
+            const realToken = await this.getRealToken();
+            if (!realToken) {
+                this.logToChargingConsole('❌ Error: No se pudo obtener un token válido de la base de datos', 'error');
+                return;
+            }
+
+            // Generar UUID para el response_url
+            const responseUid = crypto.randomUUID();
+            this.logToChargingConsole(`🆔 UUID del response: ${responseUid}`, 'info');
             
-            // Por ahora solo mostrar mensaje en logs - no ejecutar peticiones reales
-            const logMessage = `🔋 [EMSP Actions] Iniciando recarga en CPO: ${cpoUrl}
-📋 Detalles de la conexión:
-   • URL: ${cpoUrl}
-   • Token: ${cpoToken.substring(0, 10)}...
-   • Versión OCPI: ${cpoVersion}
-   • Timestamp: ${new Date().toISOString()}
+            // Enviar comando START_SESSION al CPO externo
+            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/START_SESSION`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    response_url: `${baseUrl}/ocpi/cpo/2.2/commands/START_SESSION/${responseUid}`,
+                    token: realToken,
+                    location_id: locationId,
+                    evse_uid: evseUid
+                })
+            });
 
-⚠️ NOTA: Esta es una simulación. No se han enviado peticiones reales al CPO externo.
-🔄 En una implementación real, aquí se enviaría una petición POST/PUT para iniciar la sesión de recarga.`;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
 
-            this.showCpoResponse(logMessage, 'info');
-            console.log('⚡ Proceso de iniciar recarga simulado exitosamente');
+            const result = await response.json();
+            
+            if (result.data && result.data.result === 'ACCEPTED') {
+                this.currentChargingSession = {
+                    evseUid: evseUid,
+                    locationId: locationId,
+                    token: realToken,
+                    startTime: new Date(),
+                    sessionId: `session_${Date.now()}`
+                };
+
+                this.logToChargingConsole(`✅ Recarga iniciada exitosamente`, 'success');
+                this.logToChargingConsole(`📋 Detalles de la sesión:`, 'info');
+                this.logToChargingConsole(`   • EVSE: ${evseUid}`, 'info');
+                this.logToChargingConsole(`   • Token: ${realToken.uid}`, 'info');
+                this.logToChargingConsole(`   • Sesión: ${this.currentChargingSession.sessionId}`, 'info');
+
+                this.updateChargingButton();
+                this.showStopChargingButton();
+            } else {
+                this.logToChargingConsole(`❌ Recarga rechazada: ${result.data?.result || 'Unknown error'}`, 'error');
+            }
 
         } catch (error) {
-            console.error('❌ Error en proceso de iniciar recarga:', error);
-            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+            console.error('❌ Error iniciando recarga:', error);
+            this.logToChargingConsole(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Finalizar sesión de recarga
+    async stopChargingSession() {
+        try {
+            if (!this.currentChargingSession) {
+                this.logToChargingConsole('❌ No hay sesión de recarga activa', 'error');
+                return;
+            }
+
+            this.logToChargingConsole(`🛑 Finalizando recarga...`, 'info');
+            
+            const cpoUrl = document.getElementById('cpoUrl').value;
+            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+
+            // Obtener la URL base del servidor
+            const baseUrl = await this.getServerBaseUrl();
+
+            // Obtener el session_id real del CPO desde la base de datos
+            const realSessionId = await this.getRealSessionId();
+            if (!realSessionId) {
+                this.logToChargingConsole('❌ No se pudo obtener el session_id real del CPO', 'error');
+                return;
+            }
+
+            this.logToChargingConsole(`🆔 Session ID real del CPO: ${realSessionId}`, 'info');
+
+            // Generar UUID para el response_url
+            const responseUid = crypto.randomUUID();
+            this.logToChargingConsole(`🆔 UUID del response: ${responseUid}`, 'info');
+            
+            // Enviar comando STOP_SESSION al CPO externo
+            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/STOP_SESSION`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Token ${cpoToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    response_url: `${baseUrl}/ocpi/cpo/2.2/commands/STOP_SESSION/${responseUid}`,
+                    session_id: realSessionId
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.data && result.data.result === 'ACCEPTED') {
+                this.logToChargingConsole(`✅ Recarga finalizada exitosamente`, 'success');
+                this.logToChargingConsole(`📋 Sesión finalizada: ${this.currentChargingSession.sessionId}`, 'info');
+                
+                this.currentChargingSession = null;
+                this.updateChargingButton();
+                this.hideStopChargingButton();
+            } else {
+                this.logToChargingConsole(`❌ Error finalizando recarga: ${result.data?.result || 'Unknown error'}`, 'error');
+            }
+
+        } catch (error) {
+            console.error('❌ Error finalizando recarga:', error);
+            this.logToChargingConsole(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Actualizar botón de recarga
+    updateChargingButton() {
+        const button = document.getElementById('startCpoCharging');
+        const buttonText = document.getElementById('chargingButtonText');
+        
+        // El botón principal siempre mantiene "Iniciar Recarga"
+        button.className = 'btn btn-danger';
+        buttonText.textContent = 'Iniciar Recarga';
+        
+        // Si hay una sesión activa, deshabilitar el botón principal
+        if (this.currentChargingSession) {
+            button.disabled = true;
+        } else {
+            button.disabled = false;
+        }
+    }
+
+    // Mostrar botón de finalizar recarga en el modal
+    showStopChargingButton() {
+        const stopButton = document.getElementById('stopCpoCharging');
+        if (stopButton) {
+            stopButton.style.display = 'inline-block';
+            stopButton.disabled = false;
+        }
+    }
+
+    // Ocultar botón de finalizar recarga en el modal
+    hideStopChargingButton() {
+        const stopButton = document.getElementById('stopCpoCharging');
+        if (stopButton) {
+            stopButton.style.display = 'none';
+            stopButton.disabled = true;
+        }
+    }
+
+    // Cerrar modal de selección de EVSE
+    closeSelectCpoEvseModal() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('selectCpoEvseModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+
+    // Log a la consola de recarga
+    logToChargingConsole(message, type = 'info') {
+        const console = document.getElementById('chargingConsole');
+        if (!console) return;
+
+        const timestamp = new Date().toLocaleTimeString();
+        const typeClass = {
+            'info': 'text-info',
+            'success': 'text-success',
+            'error': 'text-danger',
+            'warning': 'text-warning'
+        }[type] || 'text-light';
+
+        const logEntry = document.createElement('div');
+        logEntry.className = typeClass;
+        logEntry.innerHTML = `[${timestamp}] ${message}`;
+        
+        console.appendChild(logEntry);
+        console.scrollTop = console.scrollHeight;
+    }
+
+    // Limpiar consola de recarga
+    clearChargingConsole() {
+        const console = document.getElementById('chargingConsole');
+        if (!console) return;
+
+        console.innerHTML = `
+            <div class="text-success">[Sistema] Consola de recarga iniciada</div>
+            <div class="text-muted">[Info] Selecciona un EVSE para comenzar la recarga</div>
+        `;
+    }
+
+    // Obtener la URL base del servidor desde la configuración
+    async getServerBaseUrl() {
+        // Por ahora usamos la URL de ngrok que está en el docker-compose
+        const ocpiBaseUrl = 'https://f106470a83a3.ngrok-free.app';
+        this.logToChargingConsole(`🌐 URL base configurada: ${ocpiBaseUrl}`, 'info');
+        return ocpiBaseUrl;
+    }
+
+    // Obtener un token real de la base de datos
+    async getRealToken() {
+        try {
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.data && data.data.length > 0) {
+                    // Filtrar tokens con party_id "IPD" (nuestro CPO local)
+                    const ipdTokens = data.data.filter(token => token.party_id === 'IPD');
+                    if (ipdTokens.length > 0) {
+                        const token = ipdTokens[0];
+                        this.logToChargingConsole(`🎫 Token obtenido: ${token.uid} (${token.type}) - Party: ${token.party_id}`, 'info');
+                        
+                        // Filtrar solo los campos requeridos por OCPI 2.2 para START_SESSION
+                        const cleanToken = {
+                            country_code: token.country_code,
+                            party_id: token.party_id,
+                            uid: token.uid,
+                            type: token.type,
+                            contract_id: token.contract_id,
+                            issuer: token.issuer,
+                            valid: token.valid,
+                            whitelist: token.whitelist,
+                            last_updated: token.last_updated
+                        };
+                        
+                        return cleanToken;
+                    } else {
+                        this.logToChargingConsole('⚠️ No se encontraron tokens con party_id IPD', 'warning');
+                        return null;
+                    }
+                }
+            }
+            
+            this.logToChargingConsole('⚠️ No se encontraron tokens en la base de datos', 'warning');
+            return null;
+        } catch (error) {
+            console.error('❌ Error obteniendo token:', error);
+            this.logToChargingConsole(`❌ Error obteniendo token: ${error.message}`, 'error');
+            return null;
+        }
+    }
+
+    // Obtener session_id real del CPO desde la base de datos
+    async getRealSessionId() {
+        try {
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/sessions`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.data && data.data.length > 0) {
+                    // Buscar la sesión más reciente con status ACTIVE del CPO EFI
+                    const activeSessions = data.data.filter(session => 
+                        session.party_id === 'EFI' && 
+                        session.status === 'ACTIVE'
+                    );
+                    
+                    if (activeSessions.length > 0) {
+                        // Ordenar por last_updated descendente y tomar la más reciente
+                        activeSessions.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
+                        const latestSession = activeSessions[0];
+                        
+                        this.logToChargingConsole(`🔍 Session ID encontrado: ${latestSession.session_id}`, 'info');
+                        return latestSession.session_id;
+                    } else {
+                        this.logToChargingConsole('⚠️ No se encontraron sesiones activas del CPO EFI', 'warning');
+                        return null;
+                    }
+                }
+            }
+
+            this.logToChargingConsole('⚠️ No se encontraron sesiones en la base de datos', 'warning');
+            return null;
+        } catch (error) {
+            console.error('❌ Error obteniendo session_id:', error);
+            this.logToChargingConsole(`❌ Error obteniendo session_id: ${error.message}`, 'error');
+            return null;
         }
     }
 

@@ -28,11 +28,14 @@ const cdrsRoutes = require('./api/cdrs');
 const tariffsRoutes = require('./api/tariffs');
 const tokensRoutes = require('./api/tokens');
 const commandsRoutes = require('./api/commands');
+const configRoutes = require('./api/config');
 const versionsRoutes = require('./api/versions');
 const detailsRoutes = require('./api/details');
 const notificationsRoutes = require('./api/notifications');
 const { router: logsRoutes } = require('./api/logs');
 const emspRoutes = require('./api/emsp');
+const emspSessionsRoutes = require('./api/emspSessions');
+const emspLocationsRoutes = require('./api/emspLocations');
 const { router: emspActionsRoutes } = require('./api/emspActions');
 
 const app = express();
@@ -140,10 +143,13 @@ app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
 
 // API Routes
 app.use('/api/sessions', authMiddleware, sessionsRoutes);
+app.use('/api/config', authMiddleware, configRoutes);
 
-// ===== RUTAS EMSP =====
+  // ===== RUTAS EMSP =====
   // Estas rutas permiten consultar información de eMSPs cuando actuamos como CPO
   app.use('/ocpi/emsp/2.2', emspRoutes);
+  app.use('/ocpi/emsp/2.2/sessions', emspSessionsRoutes);
+  app.use('/ocpi/emsp/2.2/locations', emspLocationsRoutes);
   
   // ===== RUTAS DE ACCIONES EMSP =====
   // Estas rutas permiten actuar como eMSP y guardar datos de CPOs externos

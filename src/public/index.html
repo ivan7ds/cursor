@@ -729,7 +729,7 @@
                                         <i class="bi bi-key"></i> Obtener Tokens
                                     </button>
                                     <button type="button" class="btn btn-danger" id="startCpoCharging">
-                                        <i class="bi bi-lightning-charge"></i> Iniciar Recarga
+                                        <i class="bi bi-lightning-charge"></i> <span id="chargingButtonText">Iniciar Recarga</span>
                                     </button>
                                     <button type="button" class="btn btn-dark" id="getCpoCdrs">
                                         <i class="bi bi-receipt"></i> Obtener CDRs
@@ -1805,6 +1805,69 @@
                     </button>
                     <button type="button" class="btn btn-success" id="saveTokenBtn">
                         <i class="bi bi-check-circle"></i> Crear Token
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para seleccionar EVSE de CPO -->
+    <div class="modal fade" id="selectCpoEvseModal" tabindex="-1" aria-labelledby="selectCpoEvseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selectCpoEvseModalLabel">
+                        <i class="bi bi-lightning-charge"></i> Seleccionar EVSE para Recarga
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>EVSEs Disponibles del CPO</h6>
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-dark sticky-top">
+                                        <tr>
+                                            <th>EVSE ID</th>
+                                            <th>Estado</th>
+                                            <th>Ubicación</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cpoEvsesTableBody">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">
+                                                <i class="bi bi-arrow-clockwise"></i> Cargando EVSEs...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Consola de Recarga</h6>
+                            <div class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px;" id="chargingConsole">
+                                <div class="text-success">[Sistema] Consola de recarga iniciada</div>
+                                <div class="text-muted">[Info] Selecciona un EVSE para comenzar la recarga</div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearChargingConsole">
+                                    <i class="bi bi-trash"></i> Limpiar Consola
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="refreshCpoEvses">
+                                    <i class="bi bi-arrow-clockwise"></i> Actualizar EVSEs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="stopCpoCharging" style="display: none;" disabled>
+                        <i class="bi bi-stop-circle"></i> Finalizar Recarga
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
                     </button>
                 </div>
             </div>
