@@ -478,4 +478,111 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
     }
 });
 
+// GET /emsp/actions/get-external-sessions - Obtener sesiones de organizaciones externas conectadas
+router.get('/get-external-sessions', authMiddleware, async (req, res) => {
+    try {
+        console.log('🌐 Obteniendo sesiones de organizaciones externas conectadas...');
+        
+        // Obtener todas las organizaciones configuradas (excluyendo nuestro CPO)
+        const organizations = await sequelize.query(`
+            SELECT id, token, url, party_id, country_code, business_details
+            FROM credentials 
+            WHERE url IS NOT NULL 
+            AND token IS NOT NULL
+            AND url != ''
+            AND token != ''
+            AND party_id != 'IPD'
+        `, {
+            type: sequelize.QueryTypes.SELECT
+        });
+        
+        if (organizations.length === 0) {
+            return res.status(200).json({
+                status_code: 1000,
+                data: [],
+                message: 'No hay organizaciones externas conectadas',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        console.log(`📤 Consultando sesiones a ${organizations.length} organización(es) externa(s)`);
+        
+        const allSessions = [];
+        const errors = [];
+        
+        // Consultar sesiones de cada organización
+        for (const org of organizations) {
+            try {
+                console.log(`🔍 Consultando sesiones de ${org.party_id} (${org.url})`);
+                
+                // Construir URL para obtener sesiones del CPO externo
+                const sessionsUrl = `${org.url}/ocpi/cpo/2.2/sessions`;
+                
+                const response = await fetch(sessionsUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${org.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data && Array.isArray(data.data)) {
+                        // Agregar información de la organización a cada sesión
+                        const sessionsWithOrg = data.data.map(session => ({
+                            ...session,
+                            source_organization: {
+                                party_id: org.party_id,
+                                country_code: org.country_code,
+                                url: org.url,
+                                business_details: org.business_details
+                            }
+                        }));
+                        allSessions.push(...sessionsWithOrg);
+                        console.log(`✅ ${sessionsWithOrg.length} sesiones obtenidas de ${org.party_id}`);
+                    } else {
+                        console.log(`⚠️ No se encontraron sesiones en ${org.party_id}`);
+                    }
+                } else {
+                    const errorText = await response.text();
+                    const error = `Error consultando ${org.party_id}: HTTP ${response.status} - ${errorText}`;
+                    errors.push(error);
+                    console.warn(`⚠️ ${error}`);
+                }
+                
+            } catch (orgError) {
+                const error = `Error consultando ${org.party_id}: ${orgError.message}`;
+                errors.push(error);
+                console.error(`❌ ${error}`);
+            }
+        }
+        
+        console.log(`✅ Total de sesiones obtenidas: ${allSessions.length}`);
+        if (errors.length > 0) {
+            console.log(`⚠️ Errores encontrados: ${errors.length}`);
+        }
+        
+        res.status(200).json({
+            status_code: 1000,
+            data: allSessions,
+            metadata: {
+                total_sessions: allSessions.length,
+                organizations_consulted: organizations.length,
+                errors: errors,
+                timestamp: new Date().toISOString()
+            },
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error obteniendo sesiones de organizaciones externas:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error getting external sessions',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = { router };

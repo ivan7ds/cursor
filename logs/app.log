@@ -4,3 +4,7 @@
 [2025-08-29T07:17:20.032Z] [INFO] Test log desde terminal - vie 29 ago 2025 09:17:20 CEST
 [2025-08-29T07:17:23.537Z] [WARN] Test warning desde terminal
 [2025-08-29T07:17:26.318Z] [ERROR] Test error desde terminal
+[2025-09-05T09:51:21.801Z] [ERROR] Error validating OCPI token: | {"name":"SequelizeConnectionError","parent":{"length":104,"name":"error","severity":"FATAL","code":"28P01","file":"auth.c","line":"334","routine":"auth_failed"},"original":{"length":104,"name":"error","severity":"FATAL","code":"28P01","file":"auth.c","line":"334","routine":"auth_failed"}}
+[2025-09-05T09:51:21.805Z] [WARN] Authentication failed: Invalid token | {"ip":"::ffff:127.0.0.1","path":"/get-external-sessions","providedToken":"OCPI_Ni4T4..."}
+[2025-09-05T10:02:33.118Z] [INFO] 📋 Preparando payload PATCH para EVSE fc090a11-ec76-4bcd-8699-0f4a1bb92b7b: | {"last_updated":"2025-09-05T10:02:33.116Z","tariff_ids":["nueva-tarifa-id-1","nueva-tarifa-id-2"],"status":"AVAILABLE"}
+[2025-09-05T10:02:45.981Z] [INFO] 📋 Preparando payload PATCH para EVSE fc090a11-ec76-4bcd-8699-0f4a1bb92b7b: | {"last_updated":"2025-09-05T10:02:45.979Z","tariff_ids":["nueva-tarifa-id-1","nueva-tarifa-id-2"],"status":"AVAILABLE"}

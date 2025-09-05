@@ -116,9 +116,9 @@ class EMSPNotificationService {
             
             logger.info(`📤 Notificando a ${organizations.length} organización(es) sobre EVSE actualizado ${evseData.id}`);
             
-            // Notificar a cada organización
+            // Notificar a cada organización con PATCH para actualizaciones de tarifa
             const notificationPromises = organizations.map(org => 
-                this.notifyOrganizationAboutEVSE(org, evseData, 'PUT')
+                this.notifyOrganizationAboutEVSE(org, evseData, 'PATCH')
             );
             
             await Promise.allSettled(notificationPromises);
@@ -204,7 +204,7 @@ class EMSPNotificationService {
      * Notificar a una organización específica sobre un EVSE
      * @param {Object} organization - Datos de la organización
      * @param {Object} evseData - Datos del EVSE
-     * @param {string} method - Método HTTP (POST para crear, PUT para actualizar)
+     * @param {string} method - Método HTTP (POST para crear, PUT para actualizar, PATCH para actualización parcial)
      */
     async notifyOrganizationAboutEVSE(organization, evseData, method = 'PUT') {
         try {
@@ -213,10 +213,17 @@ class EMSPNotificationService {
             const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
             const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evseData.location_id}/${evseData.id}`;
             
-            logger.info(`📤 Notificando EVSE ${evseData.id} a organización ${organization.party_id} en ${endpoint}`);
+            logger.info(`📤 Notificando EVSE ${evseData.id} a organización ${organization.party_id} en ${endpoint} con método ${method}`);
             
-            // Preparar datos del EVSE para la organización
-            const evsePayload = this.prepareEVSEPayload(evseData);
+            let payload;
+            
+            if (method === 'PATCH') {
+                // Para PATCH, enviar solo los campos actualizados según OCPI 2.2
+                payload = this.prepareEVSEPatchPayload(evseData);
+            } else {
+                // Para PUT/POST, enviar el payload completo
+                payload = this.prepareEVSEPayload(evseData);
+            }
             
             const response = await fetch(endpoint, {
                 method: method,
@@ -225,11 +232,11 @@ class EMSPNotificationService {
                     'Authorization': `Token ${organization.token}`,
                     'X-Request-ID': `notify-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                 },
-                body: JSON.stringify(evsePayload)
+                body: JSON.stringify(payload)
             });
             
             if (response.ok) {
-                logger.info(`✅ EVSE ${evseData.id} notificado exitosamente a organización ${organization.party_id}`);
+                logger.info(`✅ EVSE ${evseData.id} notificado exitosamente a organización ${organization.party_id} con método ${method}`);
             } else {
                 const errorText = await response.text();
                 logger.warn(`⚠️ Error notificando EVSE a organización ${organization.party_id}: HTTP ${response.status} - ${errorText}`);
@@ -259,6 +266,41 @@ class EMSPNotificationService {
             publish: locationData.publish || true, // Asegurar que publish sea un booleano
             last_updated: new Date().toISOString()
         };
+    }
+
+    /**
+     * Preparar payload de PATCH para EVSE según OCPI 2.2
+     * @param {Object} evseData - Datos del EVSE
+     * @returns {Object} Payload de PATCH con solo campos actualizados
+     */
+    prepareEVSEPatchPayload(evseData) {
+        const payload = {
+            last_updated: new Date().toISOString()
+        };
+
+        // Extraer tariff_ids de los conectores del EVSE
+        if (evseData.connectors && Array.isArray(evseData.connectors)) {
+            // Obtener todos los tariff_ids únicos de todos los conectores
+            const allTariffIds = new Set();
+            
+            evseData.connectors.forEach(connector => {
+                if (connector.tariff_ids && Array.isArray(connector.tariff_ids)) {
+                    connector.tariff_ids.forEach(tariffId => allTariffIds.add(tariffId));
+                }
+            });
+            
+            // Si hay tariff_ids, incluirlos en el payload
+            if (allTariffIds.size > 0) {
+                payload.tariff_ids = Array.from(allTariffIds);
+            }
+        }
+
+        // NOTA: Solo incluir campos que realmente cambiaron
+        // Para actualizaciones de tarifas, solo enviamos tariff_ids y last_updated
+        // No incluimos status u otros campos que no han cambiado
+
+        logger.info(`📋 Preparando payload PATCH para EVSE ${evseData.id}:`, payload);
+        return payload;
     }
 
     /**
@@ -464,6 +506,8 @@ class EMSPNotificationService {
             logger.info(`📤 Enviando ${method} de tarifa a ${organization.party_id} (${organization.url})`);
             
             const payload = this.buildTariffPayload(tariffData);
+            
+            logger.info(`📋 Preparando payload ${method} para tarifa ${tariffData.id}:`, payload);
             
             const response = await fetch(url, {
                 method: method,

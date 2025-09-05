@@ -279,15 +279,15 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento getCpoLocations no encontrado');
             }
 
-            const getCpoEvses = document.getElementById('getCpoEvses');
-            if (getCpoEvses) {
-                getCpoEvses.addEventListener('click', () => {
-                    console.log('🌐 Botón getCpoEvses clickeado');
-                    this.getCpoEvses();
+            const getCpoSessions = document.getElementById('getCpoSessions');
+            if (getCpoSessions) {
+                getCpoSessions.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoSessions clickeado');
+                    this.getCpoSessions();
                 });
-                console.log('✅ Event listener para getCpoEvses agregado');
+                console.log('✅ Event listener para getCpoSessions agregado');
             } else {
-                console.warn('⚠️ Elemento getCpoEvses no encontrado');
+                console.warn('⚠️ Elemento getCpoSessions no encontrado');
             }
 
             const getCpoTariffs = document.getElementById('getCpoTariffs');
@@ -5734,23 +5734,14 @@ if (refreshEmspTokens) {
         }
     }
 
-    // Obtener EVSEs del CPO
-    async getCpoEvses() {
+    // Obtener Sessions de organizaciones externas conectadas
+    async getCpoSessions() {
         try {
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
-            const cpoVersion = document.getElementById('cpoVersion').value;
-
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🌐 Consultando EVSEs del CPO:', cpoUrl);
+            console.log('🌐 Consultando Sessions de organizaciones externas conectadas...');
             
-            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/evses`, {
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-sessions`, {
                 headers: { 
-                    'Authorization': `Token ${cpoToken}`,
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -5761,12 +5752,54 @@ if (refreshEmspTokens) {
             }
             
             const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
             
-            console.log('✅ EVSEs del CPO obtenidos exitosamente');
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA DE SESSIONS\n`;
+            responseText += `=====================================\n\n`;
+            responseText += `📈 Total de sesiones encontradas: ${data.metadata?.total_sessions || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
+            
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
+            }
+            
+            if (data.data && data.data.length > 0) {
+                responseText += `📋 DETALLES DE SESSIONS:\n`;
+                responseText += `========================\n\n`;
+                
+                data.data.forEach((session, index) => {
+                    responseText += `Sesión ${index + 1}:\n`;
+                    responseText += `  ID: ${session.id || 'N/A'}\n`;
+                    responseText += `  Estado: ${session.status || 'N/A'}\n`;
+                    responseText += `  Inicio: ${session.start_date_time || 'N/A'}\n`;
+                    responseText += `  Fin: ${session.end_date_time || 'N/A'}\n`;
+                    responseText += `  kWh: ${session.kwh || 0}\n`;
+                    responseText += `  Ubicación: ${session.location_id || 'N/A'}\n`;
+                    responseText += `  EVSE: ${session.evse_uid || 'N/A'}\n`;
+                    responseText += `  Organización: ${session.source_organization?.party_id || 'N/A'} (${session.source_organization?.country_code || 'N/A'})\n`;
+                    responseText += `  URL: ${session.source_organization?.url || 'N/A'}\n`;
+                    responseText += `  ---\n\n`;
+                });
+            } else {
+                responseText += `ℹ️ No se encontraron sesiones en las organizaciones externas conectadas.\n`;
+            }
+            
+            // Mostrar también el JSON completo para referencia técnica
+            responseText += `\n📄 RESPUESTA JSON COMPLETA:\n`;
+            responseText += `==========================\n`;
+            responseText += JSON.stringify(data, null, 2);
+            
+            this.showCpoResponse(responseText, 'success');
+            
+            console.log('✅ Sessions de organizaciones externas obtenidas exitosamente');
             
         } catch (error) {
-            console.error('❌ Error consultando CPO:', error);
+            console.error('❌ Error consultando organizaciones externas:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
@@ -6023,7 +6056,7 @@ if (refreshEmspTokens) {
         try {
             this.logToChargingConsole('🔄 Cargando EVSEs del CPO desde base de datos local...', 'info');
             
-            // Obtener EVSEs del CPO desde nuestra base de datos
+            // Obtener Sessions del CPO desde nuestra base de datos
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                 headers: {
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`,

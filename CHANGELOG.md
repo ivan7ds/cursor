@@ -7,6 +7,51 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-09-05
+
+### Added
+- **Funcionalidad de consulta de sesiones externas**
+  - Botón "Obtener Sessions" en menú EMSP Actions para consultar sesiones de organizaciones externas conectadas
+  - Endpoint `GET /emsp/actions/get-external-sessions` para agregar sesiones de múltiples CPOs externos
+  - Visualización detallada de sesiones externas con información de organización origen
+  - Metadata de consulta incluyendo total de sesiones, organizaciones consultadas y errores
+  - Enriquecimiento de sesiones con información de `source_organization` (party_id, country_code, URL, business_details)
+
+- **Logging mejorado para debugging**
+  - Logs detallados de payloads PUT y PATCH en notificaciones OCPI
+  - Visualización completa de payloads de tarifas y EVSEs en logs
+  - Mejor trazabilidad de notificaciones a organizaciones externas
+
+### Fixed
+- **Corrección de payload PATCH de EVSEs**
+  - Eliminado campo `status` innecesario del payload PATCH de EVSEs
+  - Payload PATCH ahora incluye solo `tariff_ids` y `last_updated` según especificación OCPI 2.2
+  - Corregido método `prepareEVSEPatchPayload` para enviar payloads mínimos y correctos
+  - Mejorada extracción de `tariff_ids` únicos de conectores de EVSEs
+
+- **Manejo de datos de conectores**
+  - Corregido parsing de `connectors` de string a JSON antes de procesar notificaciones
+  - Asegurada consistencia de datos entre base de datos y notificaciones OCPI
+  - Mejorado manejo de arrays de `tariff_ids` en conectores
+
+### Changed
+- **Interfaz de usuario actualizada**
+  - Renombrado botón "Obtener EVSEs" a "Obtener Sessions" en menú EMSP Actions
+  - Cambio de icono de EVSEs a sesiones (lightning-charge)
+  - Actualización de comentarios y referencias en código frontend
+
+- **Optimización de notificaciones**
+  - Payloads PATCH más eficientes con solo campos necesarios
+  - Mejor rendimiento en notificaciones a organizaciones externas
+  - Logging estructurado para mejor debugging
+
+### Technical Details
+- **Frontend**: Actualizado `app.js` con método `getCpoSessions()` para consultar sesiones externas
+- **Backend**: Nuevo endpoint en `emspActions.js` para agregar sesiones de múltiples CPOs
+- **Servicios**: Corregido `emspNotificationService.js` para payloads PATCH correctos
+- **Base de datos**: Mejorado parsing de datos JSON en consultas de EVSEs
+- **OCPI 2.2**: Cumplimiento estricto de especificación para notificaciones PATCH
+
 ## [0.5.0] - 2025-09-04
 
 ### Added
@@ -307,7 +352,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.3.1 (Estado actual)
+### Versión 0.5.1 (Estado actual)
+- **Funcionalidad de consulta de sesiones externas desde EMSP Actions**
+- **Corrección de payloads PATCH de EVSEs según especificación OCPI 2.2**
+- **Logging mejorado para debugging de notificaciones OCPI**
+- **Manejo corregido de datos de conectores en notificaciones**
+- **Interfaz actualizada con botón "Obtener Sessions"**
+
+### Versión 0.3.1
 - **Migración completa de evse_id a formato eMI3 de OCPI 2.2**
 - **Nuevo menú Sessions para gestión de sesiones de carga**
 - **Corrección de variables de entorno y intervalos de notificación**

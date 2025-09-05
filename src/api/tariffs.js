@@ -5,6 +5,48 @@ const { Tariff } = require('../models');
 const logger = require('../utils/logger');
 
 /**
+ * Transformar elements de tariff al formato OCPI 2.2
+ * @param {Object} tariffData - Datos de la tarifa
+ * @returns {Object} Tarifa con elements transformados
+ */
+function transformTariffElements(tariffData) {
+  if (!tariffData.elements) {
+    return tariffData;
+  }
+
+  const transformedElements = tariffData.elements.map(element => {
+    // Si ya tiene price_components, usarlo directamente
+    if (element.price_components) {
+      return {
+        price_components: element.price_components
+      };
+    }
+    
+    // Si tiene la estructura antigua, transformarla
+    if (element.component_type && element.price !== undefined) {
+      return {
+        price_components: [{
+          type: element.component_type,
+          price: element.price,
+          vat: element.vat || 0,
+          step_size: element.step || 1
+        }]
+      };
+    }
+    
+    // Si no tiene estructura válida, devolver vacío
+    return {
+      price_components: []
+    };
+  });
+
+  return {
+    ...tariffData,
+    elements: transformedElements
+  };
+}
+
+/**
  * @swagger
  * /ocpi/2.2/tariffs:
  *   get:
@@ -44,9 +86,14 @@ router.get('/', async (req, res) => {
       order: [['last_updated', 'DESC']]
     });
 
+    // Transformar elements de cada tariff al formato OCPI 2.2
+    const transformedTariffs = tariffs.rows.map(tariff => 
+      transformTariffElements(tariff.toJSON())
+    );
+
     res.status(200).json({
       status_code: 1000,
-      data: tariffs.rows,
+      data: transformedTariffs,
       timestamp: new Date().toISOString(),
       pagination: {
         total: tariffs.count,
@@ -92,9 +139,12 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Transformar elements de la tariff al formato OCPI 2.2
+    const transformedTariff = transformTariffElements(tariff.toJSON());
+
     res.status(200).json({
       status_code: 1000,
-      data: tariff,
+      data: transformedTariff,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -214,6 +264,19 @@ router.post('/', async (req, res) => {
               `, {
                 replacements: { evseId }
               });
+              
+              // Asegurar que los conectores estén parseados correctamente
+              if (evseData && evseData.length > 0) {
+                const evse = evseData[0];
+                if (evse.connectors && typeof evse.connectors === 'string') {
+                  try {
+                    evse.connectors = JSON.parse(evse.connectors);
+                  } catch (parseError) {
+                    logger.warn(`⚠️ Error parseando conectores del EVSE ${evseId}:`, parseError);
+                    evse.connectors = [];
+                  }
+                }
+              }
               
               if (evseData && evseData.length > 0) {
                 await emspNotificationService.notifyEVSEUpdated(evseData[0]);
@@ -440,6 +503,19 @@ router.delete('/:id', async (req, res) => {
             `, {
               replacements: { evseId }
             });
+            
+            // Asegurar que los conectores estén parseados correctamente
+            if (evseData && evseData.length > 0) {
+              const evse = evseData[0];
+              if (evse.connectors && typeof evse.connectors === 'string') {
+                try {
+                  evse.connectors = JSON.parse(evse.connectors);
+                } catch (parseError) {
+                  logger.warn(`⚠️ Error parseando conectores del EVSE ${evseId}:`, parseError);
+                  evse.connectors = [];
+                }
+              }
+            }
             
             if (evseData && evseData.length > 0) {
               await emspNotificationService.notifyEVSEUpdated(evseData[0]);
