@@ -7,6 +7,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.2] - 2025-09-08
+
+### Fixed
+- **Corrección de rutas en script de configuración de base de datos**
+  - Implementada detección automática del directorio del script
+  - Rutas absolutas para archivos SQL independientes del directorio de ejecución
+  - Resuelto error "No such file or directory" al ejecutar desde directorio `scripts/`
+  - Script ahora funciona correctamente desde cualquier ubicación
+
+- **Unificación de contraseñas de base de datos**
+  - Corregida inconsistencia entre Docker Compose (`cpo_password`) y script de setup
+  - Actualizado `env.example` para usar contraseña correcta
+  - Eliminado error de autenticación para usuarios nuevos
+  - Configuración unificada: `cpo_password` en todos los archivos
+
+### Improved
+- **Robustez del proceso de configuración**
+  - Script funciona independientemente del directorio de ejecución
+  - Mejor experiencia de usuario con configuración consistente
+  - Eliminación de errores comunes de setup para nuevos usuarios
+
 ## [0.9.1] - 2025-09-08
 
 ### Fixed
@@ -662,7 +683,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.9.1 (Estado actual)
+### Versión 0.9.2 (Estado actual)
+- **Corrección de rutas en script de configuración**
+- **Unificación de contraseñas de base de datos**
+- **Script funciona desde cualquier directorio**
+- **Eliminación de errores de autenticación**
+- **Configuración consistente entre Docker y setup local**
+- **Mejor experiencia para usuarios nuevos**
+
+### Versión 0.9.1
 - **Corrección de script de configuración de base de datos**
 - **Mejoras en robustez del proceso de setup**
 - **Soporte para variables de entorno**
