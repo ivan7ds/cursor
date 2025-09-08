@@ -42,13 +42,47 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
         }
 
         // Usar el location_id obtenido de emsp_evses
-        const actualLocationId = evseResult.location_id;
+        let actualLocationId = evseResult.location_id;
 
-        // Verificar si el EVSE ya existe en la tabla evses
-        const existingEvse = await EVSE.findByPk(evse_uid);
+        // Verificar si la ubicación existe, si no, crear una por defecto
+        const Location = require('../models/Location');
+        let location = await Location.findByPk(actualLocationId);
+        
+        if (!location) {
+            logger.warn(`⚠️ Location not found: ${actualLocationId}, creating default location`, {
+                country_code,
+                party_id,
+                location_id: actualLocationId
+            });
+            
+            // Crear ubicación por defecto
+            location = await Location.create({
+                id: actualLocationId,
+                country_code: country_code,
+                party_id: party_id,
+                name: `Auto-created location for ${evse_uid}`,
+                address: 'Auto-created address',
+                city: 'Unknown',
+                postal_code: '00000',
+                country: country_code,
+                time_zone: 'Europe/Madrid', // Campo requerido
+                coordinates: {
+                    latitude: '0.0',
+                    longitude: '0.0'
+                },
+                last_updated: new Date().toISOString()
+            });
+            
+            logger.info(`✅ Created default location: ${actualLocationId}`);
+        }
+
+        // Verificar si el EVSE ya existe en la tabla emsp_evses (EVSEs de organizaciones externas)
+        const existingEvse = await EmspEVSE.findOne({
+            where: { id: evse_uid }
+        });
 
         if (existingEvse) {
-            // Actualizar EVSE existente
+            // Actualizar EVSE existente en emsp_evses
             await existingEvse.update({
                 status: evseData.status,
                 capabilities: evseData.capabilities || [],
@@ -57,18 +91,20 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
                 last_updated: evseData.last_updated || new Date().toISOString()
             });
 
-            logger.info(`✅ EVSE updated in location`, {
+            logger.info(`✅ EVSE externo actualizado en emsp_evses`, {
                 evse_uid,
                 location_id: actualLocationId,
-                status: evseData.status
+                status: evseData.status,
+                party_id,
+                country_code
             });
         } else {
-            // Crear nuevo EVSE
-            await EVSE.create({
+            // Crear nuevo EVSE en emsp_evses (solo para organizaciones externas)
+            await EmspEVSE.create({
                 id: evse_uid,
+                emsp_party_id: party_id,
+                emsp_country_code: country_code,
                 location_id: actualLocationId,
-                country_code: country_code,
-                party_id: party_id,
                 evse_id: evseData.evse_id || '',
                 status: evseData.status,
                 capabilities: evseData.capabilities || [],
@@ -77,10 +113,12 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
                 last_updated: evseData.last_updated || new Date().toISOString()
             });
 
-            logger.info(`✅ EVSE created in location`, {
+            logger.info(`✅ EVSE externo creado en emsp_evses`, {
                 evse_uid,
                 location_id: actualLocationId,
-                status: evseData.status
+                status: evseData.status,
+                party_id,
+                country_code
             });
         }
 

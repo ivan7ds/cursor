@@ -109,6 +109,18 @@ class DashboardApp {
             } else {
                 console.warn('⚠️ Elemento clearLogs no encontrado');
             }
+
+            const removeDuplicates = document.getElementById('removeDuplicates');
+            if (removeDuplicates) {
+                removeDuplicates.addEventListener('click', () => {
+                    console.log('🧹 Botón removeDuplicates clickeado');
+                    this.removeDuplicateLogs();
+                    this.showNotification('Duplicados eliminados', 'success');
+                });
+                console.log('✅ Event listener para removeDuplicates agregado');
+            } else {
+                console.warn('⚠️ Elemento removeDuplicates no encontrado');
+            }
             
             // Event listeners para filtros de logs
             const logLevelFilter = document.getElementById('logLevelFilter');
@@ -154,6 +166,18 @@ class DashboardApp {
                 console.log('✅ Event listener para autoScroll agregado');
             } else {
                 console.warn('⚠️ Elemento autoScroll no encontrado');
+            }
+
+            const filterBrowserLogs = document.getElementById('filterBrowserLogs');
+            if (filterBrowserLogs) {
+                filterBrowserLogs.addEventListener('change', () => {
+                    console.log('🔍 Filtro de logs del navegador cambiado:', filterBrowserLogs.checked);
+                    // Aplicar filtros a los logs existentes
+                    this.applyLogFilters();
+                });
+                console.log('✅ Event listener para filterBrowserLogs agregado');
+            } else {
+                console.warn('⚠️ Elemento filterBrowserLogs no encontrado');
             }
 
             // Botones de refresh
@@ -688,6 +712,18 @@ if (filterActiveExtSessions) {
                 console.log('✅ Event listener para generateCredentialsForm agregado');
             } else {
                 console.warn('⚠️ Elemento generateCredentialsForm no encontrado');
+            }
+
+            // Botón para eliminar conexiones seleccionadas
+            const deleteConnectionBtn = document.getElementById('deleteConnectionBtn');
+            if (deleteConnectionBtn) {
+                deleteConnectionBtn.addEventListener('click', () => {
+                    console.log('🗑️ Botón deleteConnectionBtn clickeado');
+                    this.deleteSelectedConnections();
+                });
+                console.log('✅ Event listener para deleteConnectionBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento deleteConnectionBtn no encontrado');
             }
         } catch (error) {
             console.error('❌ Error configurando event listeners simples:', error);
@@ -1282,22 +1318,165 @@ if (filterActiveExtSessions) {
         }
     }
 
+    shouldFilterLog(logData) {
+        // Verificar si el filtro de logs del navegador está activo
+        const filterBrowserLogs = document.getElementById('filterBrowserLogs');
+        if (!filterBrowserLogs || !filterBrowserLogs.checked) {
+            return false; // No filtrar si el checkbox está desmarcado
+        }
+        
+        // Filtrar logs de peticiones HTTP del navegador
+        const message = logData.message || '';
+        
+        // Patrones a filtrar
+        const filterPatterns = [
+            /API Request Incoming/,
+            /API Response Outgoing/,
+            /API Request Summary/,
+            /Mozilla\/5\.0/,
+            /Chrome\/\d+/,
+            /Safari\/\d+/,
+            /AppleWebKit/,
+            /DELETE \/api\/delete-connection/,
+            /GET \/api\//,
+            /POST \/api\//,
+            /PUT \/api\//,
+            /PATCH \/api\//,
+            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*200/,
+            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*404/,
+            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*500/
+        ];
+        
+        // Verificar si el mensaje coincide con algún patrón de filtro
+        return filterPatterns.some(pattern => pattern.test(message));
+    }
+
+    sortLogsByTimestamp() {
+        const container = document.getElementById('logsContainer');
+        if (!container) return;
+        
+        const entries = Array.from(container.querySelectorAll('.log-entry'));
+        
+        // Ordenar por timestamp (más reciente primero)
+        entries.sort((a, b) => {
+            const timestampA = a.querySelector('.log-timestamp')?.textContent || '';
+            const timestampB = b.querySelector('.log-timestamp')?.textContent || '';
+            
+            // Si los timestamps son iguales, mantener el orden original
+            if (timestampA === timestampB) {
+                return 0;
+            }
+            
+            // Convertir timestamps a Date para comparar
+            const dateA = new Date(timestampA);
+            const dateB = new Date(timestampB);
+            
+            // Si alguno de los timestamps es inválido, mantener el orden original
+            if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+                return 0;
+            }
+            
+            return dateB - dateA; // Orden descendente (más reciente primero)
+        });
+        
+        // Reordenar en el DOM
+        entries.forEach(entry => {
+            container.appendChild(entry);
+        });
+    }
+
+    isDuplicateLog(logData) {
+        const container = document.getElementById('logsContainer');
+        if (!container) return false;
+        
+        const message = logData.message || JSON.stringify(logData);
+        const timestamp = logData.timestamp || new Date().toISOString();
+        
+        // Buscar logs existentes con el mismo mensaje
+        const existingEntries = container.querySelectorAll('.log-entry');
+        for (let entry of existingEntries) {
+            const existingMessage = entry.querySelector('.log-message')?.textContent || '';
+            
+            // Comparar mensajes más estrictamente
+            if (this.areMessagesSimilar(message, existingMessage)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    areMessagesSimilar(msg1, msg2) {
+        // Normalizar mensajes para comparación
+        const normalize = (msg) => msg.toLowerCase().replace(/\s+/g, ' ').trim();
+        const norm1 = normalize(msg1);
+        const norm2 = normalize(msg2);
+        
+        // Si son exactamente iguales
+        if (norm1 === norm2) return true;
+        
+        // Si uno contiene al otro (para mensajes truncados)
+        if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
+        
+        // Si comparten más del 80% de caracteres
+        const longer = norm1.length > norm2.length ? norm1 : norm2;
+        const shorter = norm1.length > norm2.length ? norm2 : norm1;
+        
+        if (shorter.length === 0) return false;
+        
+        let matches = 0;
+        for (let i = 0; i < shorter.length; i++) {
+            if (longer.includes(shorter[i])) matches++;
+        }
+        
+        return (matches / shorter.length) > 0.8;
+    }
+
     addLogEntry(logData) {
         console.log('📝 Nuevo log recibido:', logData);
+        
+        // Filtrar logs de peticiones HTTP del navegador
+        if (this.shouldFilterLog(logData)) {
+            console.log('🚫 Log filtrado (petición del navegador)');
+            return;
+        }
         
         const container = document.getElementById('logsContainer');
         if (!container) return;
 
+        // Verificar si ya existe un log similar para evitar duplicados
+        if (this.isDuplicateLog(logData)) {
+            console.log('🚫 Log duplicado, omitiendo');
+            return;
+        }
+
         const logEntry = document.createElement('div');
         logEntry.className = 'log-entry fade-in';
         
-        const timestamp = new Date(logData.timestamp || Date.now()).toLocaleTimeString();
-        const level = logData.level || 'INFO';
-        const message = logData.message || JSON.stringify(logData);
+        // Manejar diferentes tipos de logs
+        let timestamp, level, message, source;
+        
+        if (logData.type === 'charging_log') {
+            // Log de recarga - usar timestamp del log
+            timestamp = logData.timestamp || new Date().toLocaleTimeString();
+            level = logData.level || 'INFO';
+            message = logData.message || JSON.stringify(logData);
+            source = 'charging';
+        } else {
+            // Log normal del sistema
+            timestamp = new Date(logData.timestamp || Date.now()).toLocaleTimeString();
+            level = logData.level || 'INFO';
+            message = logData.message || JSON.stringify(logData);
+            source = logData.source || 'system';
+        }
+        
+        // Aplicar clase CSS según el tipo de log
+        const logClass = source === 'charging' ? 'charging-log' : 'system-log';
         
         logEntry.innerHTML = `
             <span class="log-timestamp">${timestamp}</span>
             <span class="log-level ${level.toLowerCase()}">${level}</span>
+            <span class="log-source ${logClass}">[${source.toUpperCase()}]</span>
             <span class="log-message">${this.escapeHtml(message)}</span>
         `;
         
@@ -1307,6 +1486,11 @@ if (filterActiveExtSessions) {
         const entries = container.querySelectorAll('.log-entry');
         if (entries.length > 100) {
             entries[entries.length - 1].remove();
+        }
+        
+        // Solo ordenar ocasionalmente para mantener el orden
+        if (entries.length % 10 === 0) {
+            this.sortLogsByTimestamp();
         }
         
         // Auto-scroll si está habilitado
@@ -1323,6 +1507,31 @@ if (filterActiveExtSessions) {
         if (levelFilter || typeFilter || searchFilter) {
             // Aplicar filtros solo al nuevo log
             setTimeout(() => this.applyLogFilters(), 100);
+        }
+    }
+
+    removeDuplicateLogs() {
+        const container = document.getElementById('logsContainer');
+        if (!container) return;
+        
+        const entries = Array.from(container.querySelectorAll('.log-entry'));
+        const seenMessages = new Set();
+        let removedCount = 0;
+        
+        entries.forEach(entry => {
+            const message = entry.querySelector('.log-message')?.textContent || '';
+            const normalizedMessage = message.toLowerCase().replace(/\s+/g, ' ').trim();
+            
+            if (seenMessages.has(normalizedMessage)) {
+                entry.remove();
+                removedCount++;
+            } else {
+                seenMessages.add(normalizedMessage);
+            }
+        });
+        
+        if (removedCount > 0) {
+            console.log(`🧹 Eliminados ${removedCount} logs duplicados`);
         }
     }
 
@@ -1347,8 +1556,9 @@ if (filterActiveExtSessions) {
         const levelFilter = document.getElementById('logLevelFilter')?.value || '';
         const typeFilter = document.getElementById('logTypeFilter')?.value || '';
         const searchFilter = document.getElementById('logSearchFilter')?.value || '';
+        const filterBrowserLogs = document.getElementById('filterBrowserLogs')?.checked || false;
         
-        console.log('📊 Filtros activos:', { levelFilter, typeFilter, searchFilter });
+        console.log('📊 Filtros activos:', { levelFilter, typeFilter, searchFilter, filterBrowserLogs });
         
         const logEntries = document.querySelectorAll('#logsContainer .log-entry');
         let visibleCount = 0;
@@ -1356,6 +1566,16 @@ if (filterActiveExtSessions) {
         logEntries.forEach(entry => {
             const level = entry.querySelector('.log-level')?.textContent || '';
             const message = entry.querySelector('.log-message')?.textContent || '';
+            const source = entry.querySelector('.log-source')?.textContent || '';
+            
+            // Aplicar filtro de logs del navegador
+            let browserMatch = true;
+            if (filterBrowserLogs) {
+                const logData = { message: message };
+                if (this.shouldFilterLog(logData)) {
+                    browserMatch = false;
+                }
+            }
             
             // Aplicar filtro de nivel
             let levelMatch = true;
@@ -1363,11 +1583,15 @@ if (filterActiveExtSessions) {
                 levelMatch = false;
             }
             
-            // Aplicar filtro de tipo (basado en el mensaje)
+            // Aplicar filtro de tipo (basado en el mensaje y fuente)
             let typeMatch = true;
             if (typeFilter) {
                 const messageUpper = message.toUpperCase();
-                if (typeFilter === 'API' && !messageUpper.includes('API')) typeMatch = false;
+                const sourceUpper = source.toUpperCase();
+                
+                if (typeFilter === 'Charging' && !sourceUpper.includes('CHARGING')) typeMatch = false;
+                else if (typeFilter === 'System' && !sourceUpper.includes('SYSTEM')) typeMatch = false;
+                else if (typeFilter === 'API' && !messageUpper.includes('API')) typeMatch = false;
                 else if (typeFilter === 'OCPI' && !messageUpper.includes('OCPI')) typeMatch = false;
                 else if (typeFilter === 'Database' && !messageUpper.includes('DATABASE') && !messageUpper.includes('DB')) typeMatch = false;
                 else if (typeFilter === 'Notification' && !messageUpper.includes('NOTIFICATION') && !messageUpper.includes('NOTIFY')) typeMatch = false;
@@ -1385,7 +1609,7 @@ if (filterActiveExtSessions) {
             }
             
             // Mostrar/ocultar entrada según filtros
-            if (levelMatch && typeMatch && searchMatch) {
+            if (browserMatch && levelMatch && typeMatch && searchMatch) {
                 entry.style.display = 'block';
                 visibleCount++;
             } else {
@@ -2257,7 +2481,7 @@ if (filterActiveExtSessions) {
         if (connections.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
+                    <td colspan="7" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay conexiones disponibles
                     </td>
                 </tr>
@@ -2267,6 +2491,11 @@ if (filterActiveExtSessions) {
 
         tbody.innerHTML = connections.map(conn => `
             <tr class="fade-in">
+                <td>
+                    <input type="checkbox" class="form-check-input connection-checkbox" 
+                           data-party-id="${conn.party_id}" 
+                           data-country-code="${conn.country_code}">
+                </td>
                 <td><code>${conn.party_id}</code></td>
                 <td>${conn.country_code}</td>
                 <td><a href="${conn.url}" target="_blank" class="text-decoration-none">${conn.url}</a></td>
@@ -2276,7 +2505,106 @@ if (filterActiveExtSessions) {
             </tr>
         `).join('');
         
+        // Agregar event listeners para los checkboxes
+        this.setupConnectionCheckboxes();
+        
         console.log(`✅ ${connections.length} conexiones renderizadas`);
+    }
+
+    setupConnectionCheckboxes() {
+        // Event listener para "Seleccionar todo"
+        const selectAllCheckbox = document.getElementById('selectAllConnections');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.connection-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+                this.updateDeleteButton();
+            });
+        }
+
+        // Event listeners para checkboxes individuales
+        const checkboxes = document.querySelectorAll('.connection-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                this.updateDeleteButton();
+                this.updateSelectAllCheckbox();
+            });
+        });
+    }
+
+    updateSelectAllCheckbox() {
+        const selectAllCheckbox = document.getElementById('selectAllConnections');
+        const checkboxes = document.querySelectorAll('.connection-checkbox');
+        
+        if (selectAllCheckbox && checkboxes.length > 0) {
+            const checkedCount = document.querySelectorAll('.connection-checkbox:checked').length;
+            selectAllCheckbox.checked = checkedCount === checkboxes.length;
+            selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+        }
+    }
+
+    updateDeleteButton() {
+        const deleteBtn = document.getElementById('deleteConnectionBtn');
+        const checkedCount = document.querySelectorAll('.connection-checkbox:checked').length;
+        
+        if (deleteBtn) {
+            deleteBtn.disabled = checkedCount === 0;
+            // El botón mantiene solo el icono, el tooltip se actualiza
+            deleteBtn.title = checkedCount > 0 ? 
+                `Eliminar ${checkedCount} conexión(es) seleccionada(s)` : 
+                'Eliminar conexiones seleccionadas';
+        }
+    }
+
+    async deleteSelectedConnections() {
+        const checkedBoxes = document.querySelectorAll('.connection-checkbox:checked');
+        
+        if (checkedBoxes.length === 0) {
+            this.showNotification('No hay conexiones seleccionadas', 'warning');
+            return;
+        }
+
+        const confirmMessage = `¿Estás seguro de que quieres eliminar ${checkedBoxes.length} conexión(es)?`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            console.log(`🗑️ Eliminando ${checkedBoxes.length} conexiones...`);
+            
+            const deletePromises = Array.from(checkedBoxes).map(async (checkbox) => {
+                const partyId = checkbox.dataset.partyId;
+                const countryCode = checkbox.dataset.countryCode;
+                
+                const response = await fetch(`${this.baseUrl}/api/delete-connection/${partyId}/${countryCode}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.status_message || 'Error eliminando conexión');
+                }
+                
+                return { partyId, countryCode };
+            });
+
+            const results = await Promise.all(deletePromises);
+            
+            console.log(`✅ ${results.length} conexiones eliminadas exitosamente`);
+            this.showNotification(`${results.length} conexión(es) eliminada(s) exitosamente`, 'success');
+            
+            // Recargar la lista de conexiones
+            this.loadConnections();
+            
+        } catch (error) {
+            console.error('❌ Error eliminando conexiones:', error);
+            this.showNotification(`Error eliminando conexiones: ${error.message}`, 'error');
+        }
     }
 
     async loadTokens() {
@@ -6302,8 +6630,10 @@ if (filterActiveExtSessions) {
     // Manejar acción de recarga (iniciar o finalizar)
     handleChargingAction() {
         if (this.currentChargingSession) {
-            this.stopChargingSession();
+            // Si hay una sesión activa, abrir el modal para mostrar información y permitir finalizar
+            this.showSelectCpoEvseModal();
         } else {
+            // Si no hay sesión activa, abrir el modal para seleccionar EVSE
             this.showSelectCpoEvseModal();
         }
     }
@@ -6311,10 +6641,140 @@ if (filterActiveExtSessions) {
     // Mostrar modal para seleccionar EVSE de CPO
     showSelectCpoEvseModal() {
         const modal = new bootstrap.Modal(document.getElementById('selectCpoEvseModal'));
-        this.hideStopChargingButton(); // Ocultar botón de finalizar al abrir el modal
-        this.loadCpoEvsesForCharging();
+        
+        if (this.currentChargingSession) {
+            // Si hay una sesión activa, mostrar información de la sesión y botón de finalizar
+            this.showActiveSessionInfo();
+            this.showStopChargingButton();
+        } else {
+            // Si no hay sesión activa, restaurar contenido original y cargar EVSEs
+            this.restoreOriginalModalContent();
+            this.hideStopChargingButton();
+            this.loadCpoEvsesForCharging();
+        }
+        
         this.startLogPolling(); // Iniciar polling de logs
         modal.show();
+    }
+
+    // Restaurar contenido original del modal
+    restoreOriginalModalContent() {
+        const modalBody = document.querySelector('#selectCpoEvseModal .modal-body');
+        if (!modalBody) return;
+
+        // Restaurar el contenido original del modal
+        modalBody.innerHTML = `
+            <!-- Sección de Token Personalizado -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-key"></i> Token para Recarga
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label for="customTokenInput" class="form-label">Token Personalizado (Opcional)</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="customTokenInput" 
+                                               placeholder="Introduce un token personalizado para pruebas (ej: TEST123456789)">
+                                        <button type="button" class="btn btn-outline-secondary" id="clearCustomTokenBtn">
+                                            <i class="bi bi-x-circle"></i> Limpiar
+                                        </button>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Si no introduces un token, se usará uno de la base de datos
+                                    </small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="customTokenType" class="form-label">Tipo de Token</label>
+                                    <select class="form-select" id="customTokenType">
+                                        <option value="RFID">RFID</option>
+                                        <option value="APP_USER">APP_USER</option>
+                                        <option value="OTHER">OTHER</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>EVSEs Disponibles del CPO</h6>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th>EVSE ID</th>
+                                    <th>Estado</th>
+                                    <th>Ubicación</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cpoEvsesTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        <i class="bi bi-arrow-clockwise"></i> Cargando EVSEs...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Consola de Recarga</h6>
+                    <div class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;" id="chargingConsole">
+                        <div class="text-success">[Sistema] Consola de recarga iniciada</div>
+                        <div class="text-muted">[Info] Selecciona un EVSE para comenzar la recarga</div>
+                    </div>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearChargingConsole">
+                            <i class="bi bi-trash"></i> Limpiar Consola
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="refreshCpoEvses">
+                            <i class="bi bi-arrow-clockwise"></i> Actualizar EVSEs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Reconfigurar event listeners
+        this.setupChargingModalEventListeners();
+    }
+
+    // Configurar event listeners del modal de recarga
+    setupChargingModalEventListeners() {
+        // Event listener para limpiar token personalizado
+        const clearCustomTokenBtn = document.getElementById('clearCustomTokenBtn');
+        if (clearCustomTokenBtn) {
+            clearCustomTokenBtn.addEventListener('click', () => {
+                document.getElementById('customTokenInput').value = '';
+            });
+        }
+
+        // Event listener para limpiar consola
+        const clearChargingConsole = document.getElementById('clearChargingConsole');
+        if (clearChargingConsole) {
+            clearChargingConsole.addEventListener('click', () => {
+                const console = document.getElementById('chargingConsole');
+                if (console) {
+                    console.innerHTML = '<div class="text-success">[Sistema] Consola de recarga iniciada</div><div class="text-muted">[Info] Selecciona un EVSE para comenzar la recarga</div>';
+                }
+            });
+        }
+
+        // Event listener para actualizar EVSEs
+        const refreshCpoEvses = document.getElementById('refreshCpoEvses');
+        if (refreshCpoEvses) {
+            refreshCpoEvses.addEventListener('click', () => {
+                this.loadCpoEvsesForCharging();
+            });
+        }
     }
 
     // Cargar EVSEs del CPO para recarga (desde base de datos local)
@@ -6602,14 +7062,15 @@ if (filterActiveExtSessions) {
         const button = document.getElementById('startCpoCharging');
         const buttonText = document.getElementById('chargingButtonText');
         
-        // El botón principal siempre mantiene "Iniciar Recarga"
-        button.className = 'btn btn-danger';
-        buttonText.textContent = 'Iniciar Recarga';
-        
-        // Si hay una sesión activa, deshabilitar el botón principal
         if (this.currentChargingSession) {
-            button.disabled = true;
+            // Si hay una sesión activa, mostrar "Finalizar Recarga"
+            button.className = 'btn btn-warning';
+            buttonText.textContent = 'Finalizar Recarga';
+            button.disabled = false; // Permitir hacer clic para finalizar
         } else {
+            // Si no hay sesión activa, mostrar "Iniciar Recarga"
+            button.className = 'btn btn-danger';
+            buttonText.textContent = 'Iniciar Recarga';
             button.disabled = false;
         }
     }
@@ -6629,6 +7090,66 @@ if (filterActiveExtSessions) {
         if (stopButton) {
             stopButton.style.display = 'none';
             stopButton.disabled = true;
+        }
+    }
+
+    // Mostrar información de la sesión activa en el modal
+    showActiveSessionInfo() {
+        const modalBody = document.querySelector('#selectCpoEvseModal .modal-body');
+        if (!modalBody || !this.currentChargingSession) return;
+
+        // Crear contenido para sesión activa
+        const activeSessionHTML = `
+            <div class="alert alert-info">
+                <h6><i class="bi bi-lightning-charge-fill"></i> Sesión de Recarga Activa</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>ID de Sesión:</strong><br>
+                        <code>${this.currentChargingSession.sessionId}</code>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>EVSE UID:</strong><br>
+                        <code>${this.currentChargingSession.evseUid}</code>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>EVSE ID:</strong><br>
+                        <code>${this.currentChargingSession.evseId}</code>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Token:</strong><br>
+                        <code>${this.currentChargingSession.token.uid}</code>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Iniciada:</strong><br>
+                        <small>${new Date(this.currentChargingSession.startTime).toLocaleString()}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Estado:</strong><br>
+                        <span class="badge bg-success">ACTIVA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <button type="button" class="btn btn-warning btn-lg" id="stopCpoCharging">
+                    <i class="bi bi-stop-circle"></i> Finalizar Recarga
+                </button>
+            </div>
+        `;
+
+        // Reemplazar el contenido del modal
+        modalBody.innerHTML = activeSessionHTML;
+
+        // Agregar event listener al botón de finalizar
+        const stopButton = document.getElementById('stopCpoCharging');
+        if (stopButton) {
+            stopButton.addEventListener('click', () => {
+                this.stopChargingSession();
+                this.closeSelectCpoEvseModal();
+            });
         }
     }
 

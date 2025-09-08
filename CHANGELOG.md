@@ -7,6 +7,47 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.8.1] - 2025-09-08
+
+### Added
+- **Mejora de UX en modal de recarga**
+  - Modal siempre accesible independientemente del estado de la sesión
+  - Botón principal adaptativo: "Iniciar Recarga" (sin sesión) / "Finalizar Recarga" (con sesión)
+  - Información detallada de sesión activa en el modal
+  - Restauración automática del contenido original del modal
+
+### Fixed
+- **Corrección de duplicación de EVSEs entre tablas**
+  - Eliminada lógica incorrecta que creaba EVSEs de organizaciones externas en tabla `evses`
+  - EVSEs externos ahora solo se almacenan en `emsp_evses` (correcto)
+  - EVSEs propios solo en tabla `evses` (correcto)
+  - Limpieza de datos duplicados existentes
+  - Separación clara entre datos internos y externos
+
+### Changed
+- **Lógica de modal de recarga mejorada**
+  - `handleChargingAction()`: Siempre abre modal (iniciar o finalizar)
+  - `showSelectCpoEvseModal()`: Contenido adaptativo según estado de sesión
+  - `updateChargingButton()`: Botón inteligente con colores y texto apropiados
+  - `showActiveSessionInfo()`: Nueva función para mostrar información de sesión activa
+  - `restoreOriginalModalContent()`: Nueva función para restaurar contenido original
+
+### Technical
+- **Corrección en `src/api/emspLocations.js`**
+  - Reemplazada lógica de creación/actualización en tabla `evses` por `emsp_evses`
+  - Uso correcto del modelo `EmspEVSE` para organizaciones externas
+  - Logging mejorado para distinguir entre EVSEs internos y externos
+
+- **Mejoras en frontend (`src/public/app.js`)**
+  - Nuevas funciones para gestión de modal adaptativo
+  - Event listeners reconfigurables para contenido dinámico
+  - Mejor separación de responsabilidades en gestión de sesiones
+
+- **Limpieza de base de datos**
+  - Eliminado EVSE duplicado `7259d532-cc47-4cbc-a574-7360cfaa0998` de tabla `evses`
+  - Verificación de integridad: sin duplicados entre tablas
+  - Backup de seguridad creado antes de corrección
+
 ## [0.8.0] - 2025-09-08
 
 ### Added

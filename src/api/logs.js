@@ -105,6 +105,33 @@ function broadcastLog(logData) {
 }
 
 /**
+ * Función para enviar logs de recarga a todos los clientes conectados
+ * Esta función será llamada desde el endpoint de charging logs
+ */
+function broadcastChargingLog(logData) {
+    const logEvent = {
+        type: 'charging_log',
+        timestamp: logData.timestamp || new Date().toISOString(),
+        level: logData.type === 'error' ? 'ERROR' : 
+               logData.type === 'warning' ? 'WARN' : 
+               logData.type === 'success' ? 'INFO' : 'INFO',
+        message: logData.message || logData,
+        source: 'charging',
+        sessionId: logData.sessionId
+    };
+
+    // Enviar a todas las conexiones activas
+    activeConnections.forEach(sendLog => {
+        try {
+            sendLog(logEvent);
+        } catch (error) {
+            // Si hay error, remover la conexión
+            activeConnections.delete(sendLog);
+        }
+    });
+}
+
+/**
  * @swagger
  * /logs/recent:
  *   get:
@@ -212,7 +239,8 @@ router.get('/recent', (req, res) => {
                                 source: 'error'
                             };
                         }
-                    }).filter(log => log !== null).reverse(); // Filtrar nulos y más recientes primero
+                    }).filter(log => log !== null)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Ordenar por timestamp descendente
                     
                 } else {
                     // Archivo pequeño, leer completo
@@ -257,7 +285,8 @@ router.get('/recent', (req, res) => {
                                 source: 'error'
                             };
                         }
-                    }).filter(log => log !== null).reverse(); // Filtrar nulos y más recientes primero
+                    }).filter(log => log !== null)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Ordenar por timestamp descendente
                 }
                 
                 console.log(`📊 Logs procesados: ${recentLogs.length}`);
@@ -401,4 +430,4 @@ function shouldExcludeLog(message) {
     return false;
 }
 
-module.exports = { router, broadcastLog };
+module.exports = { router, broadcastLog, broadcastChargingLog };

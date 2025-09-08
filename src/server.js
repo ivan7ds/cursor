@@ -146,6 +146,7 @@ app.use('/api/sessions', authMiddleware, sessionsRoutes);
 app.use('/api/ext-sessions', authMiddleware, require('./api/extSessions'));
 app.use('/api/charging-logs', require('./api/chargingLogs'));
 app.use('/api/handshake', authMiddleware, require('./api/handshake'));
+app.use('/api', authMiddleware, require('./api/deleteConnection'));
 app.use('/api/config', authMiddleware, configRoutes);
 
   // ===== RUTAS EMSP =====

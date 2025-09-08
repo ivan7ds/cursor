@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
+const { broadcastChargingLog } = require('./logs');
 
 // Almacenar logs de recarga en memoria
 let chargingLogs = [];
@@ -44,6 +45,9 @@ router.post('/', async (req, res) => {
         if (chargingLogs.length > 100) {
             chargingLogs = chargingLogs.slice(-100);
         }
+
+        // Enviar también al sistema de streaming de logs
+        broadcastChargingLog(logEntry);
 
         logger.info(`📝 Charging log added: ${message}`, { type, sessionId });
 

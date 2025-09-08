@@ -388,3 +388,33 @@ body {
     background-color: #6c757d !important;
     transform: scale(1.05);
 }
+
+/* Estilos para logs de recarga vs logs del sistema */
+.log-source {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+}
+
+.log-source.charging-log {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.log-source.system-log {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Mejorar la visualización de logs de recarga */
+.log-entry .charging-log {
+    border-left: 3px solid #ffc107;
+    padding-left: 0.5rem;
+}
+
+.log-entry .system-log {
+    border-left: 3px solid #6c757d;
+    padding-left: 0.5rem;
+}

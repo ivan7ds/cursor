@@ -10,6 +10,27 @@ const requestLogger = (req, res, next) => {
     return next();
   }
   
+  // Excluir peticiones del navegador (aplicación web)
+  const userAgent = req.get('User-Agent') || '';
+  if (userAgent.includes('Mozilla') || userAgent.includes('Chrome') || userAgent.includes('Safari')) {
+    return next();
+  }
+  
+  // Excluir recursos estáticos
+  if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    return next();
+  }
+  
+  // Excluir health check
+  if (req.path === '/health') {
+    return next();
+  }
+  
+  // Excluir peticiones de la interfaz web (API calls desde el frontend)
+  if (req.path.startsWith('/api/') && userAgent.includes('Mozilla')) {
+    return next();
+  }
+  
   // Capturar el tiempo de inicio
   const startTime = Date.now();
   
