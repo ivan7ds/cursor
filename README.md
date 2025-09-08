@@ -11,7 +11,7 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Paginación OCPI 2.2**: Endpoints con paginación estándar
 - **Base de Datos Limpia**: Sin sincronización automática de Sequelize
 - **Datos Persistentes**: Información mantenida entre reinicios
-- **Autenticación por Tokens**: Sistema de tokens OCPI 2.2
+- **Autenticación por Tokens**: Sistema de tokens OCPI 2.2 con Real-time Authorization
 - **Logging Detallado**: Monitoreo completo de peticiones y respuestas
 - **Dashboard Frontend**: Interfaz web integrada para gestión y monitoreo
 - **Funcionalidad eMSP**: Capacidad para actuar como eMSP y conectar con CPOs externos
@@ -135,6 +135,7 @@ Get-Content scripts/populate_tariffs.sql | docker exec -i cursorconcepto-postgre
 - `POST /ocpi/2.2/tokens` - Crear nuevo token
 - `PUT /ocpi/2.2/tokens/{id}` - Actualizar token existente
 - `DELETE /ocpi/2.2/tokens/{id}` - Eliminar token
+- `POST /ocpi/cpo/2.2/tokens/{token_uid}/authorize` - Real-time authorization de tokens
 
 ### Funcionalidad eMSP
 - `GET /ocpi/emsp/2.2/locations` - Ubicaciones recibidas de CPOs externos
@@ -184,6 +185,8 @@ src/
 │   ├── evses.js         # Gestión de EVSEs
 │   ├── tariffs.js       # Gestión de tarifas
 │   ├── credentials.js   # Gestión de credenciales OCPI 2.2
+│   ├── authorization.js # Real-time authorization de tokens
+│   ├── commands.js      # Comandos OCPI (START_SESSION, STOP_SESSION)
 │   ├── emsp.js          # Endpoints eMSP para datos recibidos
 │   ├── emspActions.js   # Acciones eMSP (guardar datos de CPO)
 │   ├── logs.js          # Streaming y consulta de logs
@@ -193,6 +196,7 @@ src/
 ├── models/        # Modelos de Sequelize
 ├── services/      # Servicios
 │   ├── ocpiTokenService.js    # Gestión de tokens OCPI
+│   ├── authorizationService.js # Real-time authorization de tokens
 │   └── evseNotificationService.js # Notificaciones automáticas
 ├── utils/         # Utilidades (logger, etc.)
 └── public/        # Frontend dashboard
@@ -525,6 +529,53 @@ curl -H "Authorization: Token OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgK
 - **Logs**: Seguimiento de todas las operaciones eMSP
 - **Health Check**: Estado de las conexiones externas
 
+## 🔐 Real-time Authorization OCPI 2.2.1
+
+### Funcionalidad de Autorización en Tiempo Real
+
+La aplicación implementa el sistema de Real-time Authorization según la especificación OCPI 2.2.1:
+
+#### **Endpoint de Autorización**
+- **`POST /ocpi/cpo/2.2/tokens/{token_uid}/authorize`**: Autorización en tiempo real de tokens
+- **Validación Completa**: Existencia, validez, expiración, whitelist, restricciones de ubicación/EVSE
+- **Respuestas Estructuradas**: Códigos de estado OCPI apropiados
+- **Integración Automática**: Con comandos `START_SESSION`
+
+#### **Lógica de Whitelist**
+- **`ALWAYS`**: Token siempre autorizado
+- **`ALLOWED`**: Token autorizado normalmente
+- **`ALLOWED_OFFLINE`**: Token autorizado sin conexión
+- **`NEVER`**: Token requiere autorización en tiempo real (aceptado si viene del eMSP)
+
+#### **Casos de Uso**
+```bash
+# Autorizar token específico
+curl -X POST "http://localhost:3000/ocpi/cpo/2.2/tokens/MOCK_TEST_KEY/authorize" \
+     -H "Authorization: Token OCPI_XXXXX" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "type": "OTHER",
+       "issuer": "empark",
+       "location_id": "location-123",
+       "evse_uid": "evse-456"
+     }'
+```
+
+#### **Respuesta de Autorización**
+```json
+{
+  "status_code": 1000,
+  "status_message": "Token authorized by eMSP",
+  "data": {
+    "allowed": "ALLOWED",
+    "location_id": "location-123",
+    "evse_uid": "evse-456",
+    "validity": "VALID"
+  },
+  "timestamp": "2025-09-08T11:00:00.000Z"
+}
+```
+
 ## 🔑 Gestión de Tokens OCPI
 
 ### Comandos de Gestión de Tokens
@@ -656,11 +707,13 @@ docker-compose logs -f app | grep -E "(SSE|EventSource|streaming)"
 - **EVSEs**: ~2,500 (distribuidos uniformemente)
 - **Tarifas**: 6 (3 por país)
 - **Cobertura**: España y Portugal
-- **Protocolo**: OCPI 2.2 completo
+- **Protocolo**: OCPI 2.2 completo con Real-time Authorization 2.2.1
 - **Conectores por EVSE**: 1-2 (IEC_62196_T2, DOMESTIC_F)
 - **Tipos de Conectores**: SOCKET, CABLE
 - **Potencia**: 16A-32A (AC_1_PHASE, AC_3_PHASE)
 - **Voltaje**: 40V-230V
+- **Autorización**: Real-time Authorization implementada
+- **Tokens eMSP**: 20 tokens predefinidos para funcionalidad eMSP
 
 ## 🤝 Contribuir
 

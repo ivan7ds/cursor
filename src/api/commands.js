@@ -4,6 +4,7 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const { EVSE, Location, Token, Credentials, Session, CDR } = require('../models');
 const logger = require('../utils/logger');
+const AuthorizationService = require('../services/authorizationService');
 
 /**
  * Envía notificación al response_url con el resultado del comando
@@ -220,27 +221,32 @@ router.post('/START_SESSION', async (req, res) => {
       return;
     }
 
-    // Verificar si el token es válido
-    const validToken = await Token.findOne({
-      where: {
-        uid: token.uid,
-        country_code: token.country_code,
-        party_id: token.party_id,
-        valid: true
-      }
+    // Real-time authorization del token
+    logger.info('🔐 START_SESSION: Performing real-time authorization', {
+      token_uid: token.uid,
+      location_id,
+      evse_uid
     });
 
-    if (!validToken) {
-      logger.error('❌ START_SESSION: Invalid token', {
+    const authResult = await AuthorizationService.authorizeToken(token.uid, {
+      type: token.type,
+      issuer: token.issuer,
+      locationId: location_id,
+      evseUid: evse_uid
+    });
+
+    if (!authResult.success || authResult.data.allowed !== "ALLOWED") {
+      logger.error('❌ START_SESSION: Token authorization failed', {
         token_uid: token.uid,
-        token_country_code: token.country_code,
-        token_party_id: token.party_id
+        auth_result: authResult,
+        location_id,
+        evse_uid
       });
       
       // Primero responder al EMSP
       const response = {
         status_code: 1000,
-        status_message: "Start rejected: token not valid",
+        status_message: `Start rejected: ${authResult.status_message}`,
         data: {
           result: "REJECTED",
           timeout: 0
@@ -255,13 +261,20 @@ router.post('/START_SESSION', async (req, res) => {
         await notifyCommandResult(
           response_url,
           'REJECTED',
-          'Remote start rejected: token not authorized',
+          `Remote start rejected: ${authResult.status_message}`,
           token.uid
         );
       });
       
       return;
     }
+
+    logger.info('✅ START_SESSION: Token authorized successfully', {
+      token_uid: token.uid,
+      validity: authResult.data.validity,
+      location_id,
+      evse_uid
+    });
 
     // Verificar si el EVSE está disponible
     if (evse.status !== 'AVAILABLE') {

@@ -7,6 +7,55 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.0] - 2025-09-08
+
+### Added
+- **Real-time Authorization para tokens OCPI 2.2.1**
+  - Nuevo endpoint `POST /ocpi/cpo/2.2/tokens/{token_uid}/authorize` para autorización en tiempo real
+  - Servicio `AuthorizationService` para lógica de validación de tokens
+  - Validación completa: existencia, validez, expiración, whitelist, restricciones de ubicación/EVSE
+  - Integración con comando `START_SESSION` para autorización automática
+  - Respuestas estructuradas con códigos de estado OCPI apropiados
+
+- **Corrección de lógica de whitelist según OCPI 2.2.1**
+  - Implementación correcta de `whitelist: "NEVER"` para tokens de eMSP
+  - Tokens con `whitelist: "NEVER"` ahora son aceptados cuando vienen del eMSP
+  - Autorización en tiempo real requerida para tokens con whitelist prohibido
+  - Cumplimiento estricto de especificación OCPI 2.2.1
+
+### Fixed
+- **Corrección de autorización de tokens MOCK_TEST_KEY**
+  - Token `MOCK_TEST_KEY` con `whitelist: "NEVER"` ahora es aceptado correctamente
+  - Eliminada lógica incorrecta que rechazaba tokens del eMSP
+  - Implementación conforme a documentación oficial OCPI 2.2.1
+  - Tokens de eMSP con whitelist prohibido funcionan correctamente
+
+### Changed
+- **Lógica de autorización mejorada**
+  - `AuthorizationService.authorizeToken()`: Nueva lógica para tokens con `whitelist: "NEVER"`
+  - Asunción de autorización previa por eMSP para tokens enviados en `START_SESSION`
+  - Mejor logging para debugging de autorización en tiempo real
+  - Respuestas más descriptivas para diferentes escenarios de autorización
+
+### Technical
+- **Nuevo servicio de autorización**
+  - `src/services/authorizationService.js`: Servicio dedicado para lógica de autorización
+  - Validación robusta de tokens con múltiples criterios
+  - Manejo de errores específicos para cada tipo de validación
+  - Logging estructurado para debugging y monitoreo
+
+- **Integración con START_SESSION**
+  - `src/api/commands.js`: Integración de autorización en tiempo real
+  - Validación automática antes de iniciar sesiones de recarga
+  - Respuestas apropiadas según resultado de autorización
+  - Mejor manejo de errores de autorización
+
+- **Endpoint de autorización independiente**
+  - `src/api/authorization.js`: Endpoint dedicado para autorización de tokens
+  - Validación de parámetros de entrada
+  - Respuestas HTTP apropiadas según códigos de estado OCPI
+  - Manejo de errores robusto con logging detallado
+
 ## [0.8.1] - 2025-09-08
 
 ### Added
@@ -590,7 +639,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.6.0 (Estado actual)
+### Versión 0.9.0 (Estado actual)
+- **Real-time Authorization completa según OCPI 2.2.1**
+- **Corrección de lógica de whitelist para tokens de eMSP**
+- **Token MOCK_TEST_KEY ahora funciona correctamente**
+- **Cumplimiento estricto de especificación OCPI 2.2.1**
+- **Servicio de autorización dedicado con validación robusta**
+
+### Versión 0.6.0
 - **Nueva pestaña "Ext Sessions" para gestión completa de sesiones externas**
 - **Funcionalidad simplificada de cierre de sesiones con actualización directa en BD**
 - **Campo de token personalizado para pruebas de recarga**

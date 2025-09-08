@@ -138,6 +138,7 @@ app.use('/ocpi/cpo/2.2/sessions', authMiddleware, sessionsRoutes);
 app.use('/ocpi/cpo/2.2/cdrs', authMiddleware, cdrsRoutes);
 app.use('/ocpi/cpo/2.2/tariffs', authMiddleware, tariffsRoutes);
 app.use('/ocpi/cpo/2.2/tokens', authMiddleware, tokensRoutes);
+app.use('/ocpi/cpo/2.2/tokens', authMiddleware, require('./api/authorization'));
 app.use('/ocpi/cpo/2.2/commands', authMiddleware, commandsRoutes);
 app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
 
