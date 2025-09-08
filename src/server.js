@@ -143,6 +143,8 @@ app.use('/ocpi/cpo/2.2/notifications', authMiddleware, notificationsRoutes);
 
 // API Routes
 app.use('/api/sessions', authMiddleware, sessionsRoutes);
+app.use('/api/ext-sessions', authMiddleware, require('./api/extSessions'));
+app.use('/api/charging-logs', require('./api/chargingLogs'));
 app.use('/api/config', authMiddleware, configRoutes);
 
   // ===== RUTAS EMSP =====

@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
+const EVSE = require('../models/EVSE');
+const EmspEVSE = require('../models/EmspEVSE');
 
 // PUT /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
 // Crear o actualizar un EVSE en una location específica
 router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) => {
     try {
-        const { sequelize } = require('../models');
         const { country_code, party_id, location_id, evse_uid } = req.params;
         const evseData = req.body;
 
@@ -21,16 +22,12 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
         });
 
         // Verificar que el EVSE existe en emsp_evses (contiene tanto id como location_id)
-        const evseQuery = `
-            SELECT id, location_id FROM emsp_evses 
-            WHERE id = '${evse_uid}' AND deleted_at IS NULL
-        `;
-        
-        const evseResult = await sequelize.query(evseQuery, {
-            type: sequelize.QueryTypes.SELECT
+        const evseResult = await EmspEVSE.findOne({
+            where: { id: evse_uid },
+            attributes: ['id', 'location_id']
         });
 
-        if (evseResult.length === 0) {
+        if (!evseResult) {
             logger.warn(`⚠️ EVSE not found in emsp_evses: ${evse_uid}`, {
                 country_code,
                 party_id,
@@ -45,33 +42,19 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
         }
 
         // Usar el location_id obtenido de emsp_evses
-        const actualLocationId = evseResult[0].location_id;
+        const actualLocationId = evseResult.location_id;
 
         // Verificar si el EVSE ya existe en la tabla evses
-        const existingEvseQuery = `
-            SELECT id FROM evses 
-            WHERE id = '${evse_uid}' AND deleted_at IS NULL
-        `;
-        
-        const existingEvse = await sequelize.query(existingEvseQuery, {
-            type: sequelize.QueryTypes.SELECT
-        });
+        const existingEvse = await EVSE.findByPk(evse_uid);
 
-        if (existingEvse.length > 0) {
+        if (existingEvse) {
             // Actualizar EVSE existente
-            const updateQuery = `
-                UPDATE evses SET
-                    status = '${evseData.status}',
-                    capabilities = '${JSON.stringify(evseData.capabilities || []).replace(/'/g, "''")}'::jsonb,
-                    connectors = '${JSON.stringify(evseData.connectors || []).replace(/'/g, "''")}'::jsonb,
-                    physical_reference = ${evseData.physical_reference ? `'${evseData.physical_reference}'` : 'NULL'},
-                    last_updated = '${evseData.last_updated || new Date().toISOString()}',
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = '${evse_uid}'
-            `;
-
-            await sequelize.query(updateQuery, {
-                type: sequelize.QueryTypes.UPDATE
+            await existingEvse.update({
+                status: evseData.status,
+                capabilities: evseData.capabilities || [],
+                connectors: evseData.connectors || [],
+                physical_reference: evseData.physical_reference || null,
+                last_updated: evseData.last_updated || new Date().toISOString()
             });
 
             logger.info(`✅ EVSE updated in location`, {
@@ -81,24 +64,17 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
             });
         } else {
             // Crear nuevo EVSE
-            const insertQuery = `
-                INSERT INTO evses (
-                    id, location_id, country_code, party_id, evse_id,
-                    status, capabilities, connectors, physical_reference, last_updated,
-                    created_at, updated_at
-                ) VALUES (
-                    '${evse_uid}', '${actualLocationId}', '${country_code}', '${party_id}', 
-                    '${evseData.evse_id || ''}', '${evseData.status}', 
-                    '${JSON.stringify(evseData.capabilities || []).replace(/'/g, "''")}'::jsonb,
-                    '${JSON.stringify(evseData.connectors || []).replace(/'/g, "''")}'::jsonb,
-                    ${evseData.physical_reference ? `'${evseData.physical_reference}'` : 'NULL'},
-                    '${evseData.last_updated || new Date().toISOString()}',
-                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-                )
-            `;
-
-            await sequelize.query(insertQuery, {
-                type: sequelize.QueryTypes.INSERT
+            await EVSE.create({
+                id: evse_uid,
+                location_id: actualLocationId,
+                country_code: country_code,
+                party_id: party_id,
+                evse_id: evseData.evse_id || '',
+                status: evseData.status,
+                capabilities: evseData.capabilities || [],
+                connectors: evseData.connectors || [],
+                physical_reference: evseData.physical_reference || null,
+                last_updated: evseData.last_updated || new Date().toISOString()
             });
 
             logger.info(`✅ EVSE created in location`, {
@@ -134,7 +110,6 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
 // Actualizar parcialmente un EVSE en una location específica
 router.patch('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) => {
     try {
-        const { sequelize } = require('../models');
         const { country_code, party_id, location_id, evse_uid } = req.params;
         const updateData = req.body;
 
@@ -148,16 +123,9 @@ router.patch('/:country_code/:party_id/:location_id/:evse_uid', async (req, res)
         });
 
         // Verificar que el EVSE existe
-        const evseQuery = `
-            SELECT id FROM evses 
-            WHERE id = '${evse_uid}' AND deleted_at IS NULL
-        `;
-        
-        const evseResult = await sequelize.query(evseQuery, {
-            type: sequelize.QueryTypes.SELECT
-        });
+        const evseResult = await EVSE.findByPk(evse_uid);
 
-        if (evseResult.length === 0) {
+        if (!evseResult) {
             logger.warn(`⚠️ EVSE not found: ${evse_uid}`, {
                 country_code,
                 party_id,
@@ -171,29 +139,26 @@ router.patch('/:country_code/:party_id/:location_id/:evse_uid', async (req, res)
             });
         }
 
-        // Construir la consulta UPDATE dinámicamente
-        const updateFields = [];
+        // Construir el objeto de actualización dinámicamente
+        const updateFields = {};
 
         if (updateData.status !== undefined) {
-            updateFields.push(`status = '${updateData.status}'`);
+            updateFields.status = updateData.status;
         }
         if (updateData.capabilities !== undefined) {
-            updateFields.push(`capabilities = '${JSON.stringify(updateData.capabilities).replace(/'/g, "''")}'::jsonb`);
+            updateFields.capabilities = updateData.capabilities;
         }
         if (updateData.connectors !== undefined) {
-            updateFields.push(`connectors = '${JSON.stringify(updateData.connectors).replace(/'/g, "''")}'::jsonb`);
+            updateFields.connectors = updateData.connectors;
         }
         if (updateData.physical_reference !== undefined) {
-            updateFields.push(`physical_reference = ${updateData.physical_reference ? `'${updateData.physical_reference}'` : 'NULL'}`);
+            updateFields.physical_reference = updateData.physical_reference;
         }
         if (updateData.last_updated !== undefined) {
-            updateFields.push(`last_updated = '${updateData.last_updated}'`);
+            updateFields.last_updated = updateData.last_updated;
         }
 
-        // Siempre actualizar updated_at
-        updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-
-        if (updateFields.length === 1) { // Solo updated_at
+        if (Object.keys(updateFields).length === 0) {
             logger.warn(`⚠️ No fields to update for PATCH`, {
                 country_code,
                 party_id,
@@ -207,15 +172,7 @@ router.patch('/:country_code/:party_id/:location_id/:evse_uid', async (req, res)
             });
         }
 
-        const query = `
-            UPDATE evses 
-            SET ${updateFields.join(', ')}
-            WHERE id = '${evse_uid}'
-        `;
-
-        await sequelize.query(query, {
-            type: sequelize.QueryTypes.UPDATE
-        });
+        await evseResult.update(updateFields);
 
         logger.info(`✅ EVSE patched in location`, {
             evse_uid,

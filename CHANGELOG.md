@@ -7,6 +7,109 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-09-05
+
+### Added
+- **Pestaña "Ext Sessions" en el dashboard**
+  - Nueva pestaña dedicada para visualizar sesiones externas almacenadas en `emsp_sessions`
+  - Tabla con información completa de sesiones: ID, estado, fechas, costos, organización origen
+  - Filtro "Solo Activas/Pendientes" para mostrar únicamente sesiones en progreso
+  - Botón de actualización manual para recargar sesiones externas
+  - Contador dinámico de sesiones totales y filtradas
+
+- **Funcionalidad de cierre de sesiones externas simplificada**
+  - Botón "Cerrar Sesión" para sesiones activas en pestaña "Ext Sessions"
+  - Actualización directa en base de datos sin comunicación externa
+  - Marca sesiones como `COMPLETED` con `end_datetime` actualizado
+  - Confirmación de acción antes de cerrar sesión
+  - Recarga automática de lista después del cierre
+
+- **Endpoint PATCH para actualización de sesiones externas**
+  - Nueva ruta `PATCH /api/ext-sessions/:sessionId` para actualizar sesiones
+  - Búsqueda por `session_id` en lugar de ID interno
+  - Validación de existencia de sesión antes de actualizar
+  - Respuesta con datos de sesión actualizada
+
+- **Campo de token personalizado en modal de recarga**
+  - Input "Token Personalizado" en modal "Seleccionar EVSE para Recarga"
+  - Permite introducir tokens no registrados en el sistema para pruebas
+  - Prioridad sobre tokens de base de datos cuando se proporciona
+  - Botón "Limpiar" para resetear campo de token personalizado
+
+- **Sistema de logging mejorado para consola de recarga**
+  - Nuevo endpoint `/api/charging-logs` para logs en tiempo real
+  - Almacenamiento en memoria con límite de 100 logs
+  - Logs detallados de requests/responses de START_SESSION y STOP_SESSION
+  - Categorización de logs por tipo: request, response, system, debug, token, evse, session, time
+  - Timestamps precisos con milisegundos para mejor debugging
+
+### Changed
+- **Renombrado de funcionalidad EMSP Actions**
+  - Botón "Obtener EVSEs" renombrado a "Obtener Sessions"
+  - Cambio de icono de EVSEs a sesiones (lightning-charge)
+  - Funcionalidad actualizada para consultar y almacenar sesiones externas
+
+- **Almacenamiento de sesiones externas en base de datos**
+  - Endpoint `GET /emsp/actions/get-external-sessions` ahora guarda sesiones en `emsp_sessions`
+  - Mapeo completo de campos OCPI 2.2 a estructura de base de datos
+  - Manejo de `total_cost` como valor numérico directo
+  - Almacenamiento de `charging_periods` como JSONB
+  - Enriquecimiento con información de organización origen
+
+- **Mejoras en visualización de sesiones externas**
+  - Filtro actualizado para incluir estados `ACTIVE`, `PENDING`, `IN_PROGRESS`
+  - Etiqueta de filtro cambiada a "Solo Activas/Pendientes"
+  - Botones de acción contextuales según estado de sesión
+  - Tooltips informativos para detalles de sesiones
+
+### Fixed
+- **Corrección de errores de base de datos**
+  - Eliminado error `column "deleted_at" does not exist` en emspLocations.js
+  - Reemplazadas consultas SQL directas por modelos Sequelize
+  - Creado modelo EmspEVSE para manejo correcto de tabla emsp_evses
+  - Mejorada estabilidad y seguridad del sistema
+
+- **Corrección de payload PATCH de EVSEs**
+  - Eliminado campo `status` innecesario del payload PATCH de EVSEs
+  - Payload PATCH ahora incluye solo `tariff_ids` y `last_updated` según especificación OCPI 2.2
+  - Corregido método `prepareEVSEPatchPayload` para enviar payloads mínimos y correctos
+  - Mejorada extracción de `tariff_ids` únicos de conectores de EVSEs
+
+- **Manejo de datos de conectores**
+  - Corregido parsing de `connectors` de string a JSON antes de procesar notificaciones
+  - Asegurada consistencia de datos entre base de datos y notificaciones OCPI
+  - Mejorado manejo de arrays de `tariff_ids` en conectores
+
+- **Corrección de errores de frontend**
+  - Eliminado error `ReferenceError: global is not defined` en app.js
+  - Reemplazado uso de `global.dashboardApp` por endpoint API dedicado
+  - Mejorada comunicación backend-frontend para logging en tiempo real
+
+### Technical Details
+- **Frontend**: Nueva pestaña "Ext Sessions" con funcionalidad completa de visualización y gestión
+- **Backend**: Endpoint PATCH para actualización de sesiones externas con validación robusta
+- **Base de datos**: Mejorado manejo de modelos Sequelize y eliminación de consultas SQL directas
+- **OCPI 2.2**: Cumplimiento estricto de especificación para payloads PATCH de EVSEs
+- **Logging**: Sistema de logs en tiempo real con categorización y timestamps precisos
+- **UX**: Campo de token personalizado para pruebas y debugging mejorado
+
+## [0.5.2] - 2025-09-05
+
+### Added
+- **Funcionalidad de cierre de sesiones externas**
+  - Botón "Cerrar Sesión" para sesiones activas en la pestaña "Ext Sessions"
+  - Función `closeExtSession()` que envía comando STOP_SESSION al CPO externo
+  - Confirmación de acción antes de cerrar sesión
+  - Recarga automática de sesiones externas después del cierre
+  - Notificaciones de éxito/error para el usuario
+
+### Fixed
+- **Corrección de errores de base de datos**
+  - Eliminado error `column "deleted_at" does not exist` en emspLocations.js
+  - Reemplazadas consultas SQL directas por modelos Sequelize
+  - Creado modelo EmspEVSE para manejo correcto de tabla emsp_evses
+  - Mejorada estabilidad y seguridad del sistema
+
 ## [0.5.1] - 2025-09-05
 
 ### Added
@@ -352,7 +455,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.5.1 (Estado actual)
+### Versión 0.6.0 (Estado actual)
+- **Nueva pestaña "Ext Sessions" para gestión completa de sesiones externas**
+- **Funcionalidad simplificada de cierre de sesiones con actualización directa en BD**
+- **Campo de token personalizado para pruebas de recarga**
+- **Sistema de logging mejorado con logs en tiempo real**
+- **Endpoint PATCH para actualización de sesiones externas**
+- **Corrección de errores de base de datos y frontend**
+- **Mejoras en UX/UI para mejor experiencia de usuario**
+
+### Versión 0.5.1
 - **Funcionalidad de consulta de sesiones externas desde EMSP Actions**
 - **Corrección de payloads PATCH de EVSEs según especificación OCPI 2.2**
 - **Logging mejorado para debugging de notificaciones OCPI**

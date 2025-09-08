@@ -19,6 +19,42 @@ router.put('/:country_code/:party_id/:session_id', async (req, res) => {
             timestamp: new Date().toISOString()
         });
 
+        // Enviar log a la consola de recarga
+        try {
+            const axios = require('axios');
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `📥 Notificación PUT recibida del CPO`,
+                type: 'response',
+                sessionId: session_id
+            });
+            
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `   📝 Session ID: ${session_id}`,
+                type: 'session',
+                sessionId: session_id
+            });
+            
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `   📊 Estado: ${sessionData.status}`,
+                type: 'info',
+                sessionId: session_id
+            });
+            
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `   ⚡ Energía: ${sessionData.kwh || 0} kWh`,
+                type: 'info',
+                sessionId: session_id
+            });
+            
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `   🔌 EVSE: ${sessionData.evse_uid}`,
+                type: 'evse',
+                sessionId: session_id
+            });
+        } catch (logError) {
+            logger.warn('⚠️ Could not send log to charging console:', logError.message);
+        }
+
         // Usar SQL directo para insertar/actualizar
         const query = `
             INSERT INTO emsp_sessions (
@@ -103,6 +139,61 @@ router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
             updateFields: Object.keys(updateData),
             timestamp: new Date().toISOString()
         });
+
+        // Enviar log a la consola de recarga
+        try {
+            const axios = require('axios');
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `📥 Notificación PATCH recibida del CPO`,
+                type: 'response',
+                sessionId: session_id
+            });
+            
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `   📝 Session ID: ${session_id}`,
+                type: 'session',
+                sessionId: session_id
+            });
+            
+            await axios.post('http://localhost:3000/api/charging-logs', {
+                message: `   🔄 Campos actualizados: ${Object.keys(updateData).join(', ')}`,
+                type: 'debug',
+                sessionId: session_id
+            });
+            
+            // Mostrar detalles específicos de la actualización
+            if (updateData.kwh !== undefined) {
+                await axios.post('http://localhost:3000/api/charging-logs', {
+                    message: `   ⚡ Energía: ${updateData.kwh} kWh`,
+                    type: 'info',
+                    sessionId: session_id
+                });
+            }
+            if (updateData.total_cost !== undefined) {
+                const cost = typeof updateData.total_cost === 'object' ? updateData.total_cost.excl_vat : updateData.total_cost;
+                await axios.post('http://localhost:3000/api/charging-logs', {
+                    message: `   💰 Costo: ${cost} EUR`,
+                    type: 'info',
+                    sessionId: session_id
+                });
+            }
+            if (updateData.status !== undefined) {
+                await axios.post('http://localhost:3000/api/charging-logs', {
+                    message: `   📊 Estado: ${updateData.status}`,
+                    type: 'info',
+                    sessionId: session_id
+                });
+            }
+            if (updateData.charging_periods !== undefined) {
+                await axios.post('http://localhost:3000/api/charging-logs', {
+                    message: `   ⏱️ Períodos de carga: ${updateData.charging_periods.length} períodos`,
+                    type: 'info',
+                    sessionId: session_id
+                });
+            }
+        } catch (logError) {
+            logger.warn('⚠️ Could not send log to charging console:', logError.message);
+        }
 
         // Construir la consulta UPDATE dinámicamente con valores directos
         const updateFields = [];

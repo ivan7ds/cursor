@@ -7,6 +7,16 @@ module.exports = (sequelize) => {
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true
         },
+        emsp_party_id: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
+            comment: 'ID del operador EMSP (hasta 10 caracteres)'
+        },
+        emsp_country_code: {
+            type: DataTypes.STRING(2),
+            allowNull: false,
+            comment: 'Código de país del EMSP (2 caracteres)'
+        },
         country_code: {
             type: DataTypes.STRING(2),
             allowNull: false,
@@ -32,6 +42,16 @@ module.exports = (sequelize) => {
             allowNull: true,
             comment: 'Fecha y hora de fin de la sesión'
         },
+        start_datetime: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'Fecha y hora de inicio de la sesión (formato legacy)'
+        },
+        end_datetime: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            comment: 'Fecha y hora de fin de la sesión (formato legacy)'
+        },
         kwh: {
             type: DataTypes.DECIMAL(10, 3),
             allowNull: true,
@@ -42,6 +62,11 @@ module.exports = (sequelize) => {
             type: DataTypes.JSONB,
             allowNull: true,
             comment: 'Token utilizado para la sesión (JSON)'
+        },
+        id_token: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+            comment: 'ID del token utilizado'
         },
         auth_method: {
             type: DataTypes.STRING(50),

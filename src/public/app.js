@@ -8,8 +8,11 @@ class DashboardApp {
         this.logsStreaming = false;
         this.logsEventSource = null;
         this.allSessions = []; // Almacenar todas las sesiones para filtrado
+        this.allExtSessions = []; // Almacenar todas las sesiones externas para filtrado
         this.currentChargingSession = null; // Sesión de recarga activa
         this.cpoEvses = []; // EVSEs del CPO externo
+        this.filterActiveExtSessions = true; // Filtro de sesiones externas activas
+        this.logPollingInterval = null; // Intervalo para consultar logs
         
         console.log('✅ Constructor completado');
     }
@@ -256,6 +259,29 @@ if (refreshEmspTokens) {
     console.warn('⚠️ Elemento refreshEmspTokens no encontrado');
 }
 
+// Event listeners para Ext Sessions
+const refreshExtSessions = document.getElementById('refreshExtSessions');
+if (refreshExtSessions) {
+    refreshExtSessions.addEventListener('click', () => {
+        console.log('☁️ Botón refreshExtSessions clickeado');
+        this.loadExtSessions();
+    });
+    console.log('✅ Event listener para refreshExtSessions agregado');
+} else {
+    console.warn('⚠️ Elemento refreshExtSessions no encontrado');
+}
+
+const filterActiveExtSessions = document.getElementById('filterActiveExtSessions');
+if (filterActiveExtSessions) {
+    filterActiveExtSessions.addEventListener('change', () => {
+        console.log('🔍 Filtro de sesiones externas activas cambiado:', filterActiveExtSessions.checked);
+        this.filterExtSessions();
+    });
+    console.log('✅ Event listener para filterActiveExtSessions agregado');
+} else {
+    console.warn('⚠️ Elemento filterActiveExtSessions no encontrado');
+}
+
             // Botones de acciones EMSP
             const getCpoVersions = document.getElementById('getCpoVersions');
             if (getCpoVersions) {
@@ -357,16 +383,31 @@ if (refreshEmspTokens) {
                 console.warn('⚠️ Elemento clearChargingConsole no encontrado');
             }
 
-            const refreshCpoEvses = document.getElementById('refreshCpoEvses');
-            if (refreshCpoEvses) {
-                refreshCpoEvses.addEventListener('click', () => {
-                    console.log('🔄 Botón refreshCpoEvses clickeado');
-                    this.loadCpoEvsesForCharging();
-                });
-                console.log('✅ Event listener para refreshCpoEvses agregado');
-            } else {
-                console.warn('⚠️ Elemento refreshCpoEvses no encontrado');
-            }
+                    const refreshCpoEvses = document.getElementById('refreshCpoEvses');
+        if (refreshCpoEvses) {
+            refreshCpoEvses.addEventListener('click', () => {
+                console.log('🔄 Botón refreshCpoEvses clickeado');
+                this.loadCpoEvsesForCharging();
+            });
+            console.log('✅ Event listener para refreshCpoEvses agregado');
+        } else {
+            console.warn('⚠️ Elemento refreshCpoEvses no encontrado');
+        }
+
+        const clearCustomTokenBtn = document.getElementById('clearCustomTokenBtn');
+        if (clearCustomTokenBtn) {
+            clearCustomTokenBtn.addEventListener('click', () => {
+                console.log('🧹 Botón clearCustomTokenBtn clickeado');
+                const customTokenInput = document.getElementById('customTokenInput');
+                if (customTokenInput) {
+                    customTokenInput.value = '';
+                    this.logToChargingConsole('🧹 Token personalizado limpiado, se usará token de la base de datos', 'token');
+                }
+            });
+            console.log('✅ Event listener para clearCustomTokenBtn agregado');
+        } else {
+            console.warn('⚠️ Elemento clearCustomTokenBtn no encontrado');
+        }
 
             const clearCpoResponse = document.getElementById('clearCpoResponse');
             if (clearCpoResponse) {
@@ -866,6 +907,9 @@ if (refreshEmspTokens) {
                     break;
                 case 'emsp-tokens':
                     this.loadEmspTokens(); // Cargar tokens de EMSP específicamente
+                    break;
+                case 'ext-sessions':
+                    this.loadExtSessions(); // Cargar sesiones externas
                     break;
                 case 'emsp-contracts':
                     console.log('📝 Pestaña de EMSP contracts - no requiere carga de datos');
@@ -5754,10 +5798,12 @@ if (refreshEmspTokens) {
             const data = await response.json();
             
             // Formatear la respuesta para mostrar información útil
-            let responseText = `📊 RESULTADO DE CONSULTA DE SESSIONS\n`;
-            responseText += `=====================================\n\n`;
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE SESSIONS\n`;
+            responseText += `===============================================\n\n`;
             responseText += `📈 Total de sesiones encontradas: ${data.metadata?.total_sessions || 0}\n`;
             responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Sesiones guardadas en BD: ${data.metadata?.sessions_saved || 0}\n`;
+            responseText += `⚠️ Sesiones duplicadas (saltadas): ${data.metadata?.sessions_duplicates || 0}\n`;
             responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
             
             if (data.metadata?.errors && data.metadata.errors.length > 0) {
@@ -5796,7 +5842,7 @@ if (refreshEmspTokens) {
             
             this.showCpoResponse(responseText, 'success');
             
-            console.log('✅ Sessions de organizaciones externas obtenidas exitosamente');
+            console.log('✅ Sessions de organizaciones externas obtenidas y guardadas exitosamente');
             
         } catch (error) {
             console.error('❌ Error consultando organizaciones externas:', error);
@@ -6048,6 +6094,7 @@ if (refreshEmspTokens) {
         const modal = new bootstrap.Modal(document.getElementById('selectCpoEvseModal'));
         this.hideStopChargingButton(); // Ocultar botón de finalizar al abrir el modal
         this.loadCpoEvsesForCharging();
+        this.startLogPolling(); // Iniciar polling de logs
         modal.show();
     }
 
@@ -6146,14 +6193,19 @@ if (refreshEmspTokens) {
     // Iniciar recarga con EVSE seleccionado
     async startChargingWithEvse(evseUid, locationId) {
         try {
-            this.logToChargingConsole(`🚀 Iniciando recarga con EVSE: ${evseUid}`, 'info');
+            // Obtener información del EVSE para mostrar EVSE_ID
+            const evseInfo = this.cpoEvses.find(evse => evse.id === evseUid);
+            const evseId = evseInfo ? evseInfo.evse_id : 'N/A';
+            
+            this.logToChargingConsole(`🚀 Iniciando recarga con EVSE: ${evseUid}`, 'system');
+            this.logToChargingConsole(`🏷️ EVSE ID: ${evseId}`, 'evse');
             
             const cpoUrl = document.getElementById('cpoUrl').value;
             const cpoToken = document.getElementById('cpoToken').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
-            this.logToChargingConsole(`🔗 URL del CPO: ${cpoUrl}`, 'info');
-            this.logToChargingConsole(`🔑 Token del CPO: ${cpoToken ? cpoToken.substring(0, 10) + '...' : 'No definido'}`, 'info');
+            this.logToChargingConsole(`🔗 URL del CPO: ${cpoUrl}`, 'debug');
+            this.logToChargingConsole(`🔑 Token del CPO: ${cpoToken ? cpoToken.substring(0, 10) + '...' : 'No definido'}`, 'debug');
 
             if (!cpoUrl || !cpoToken) {
                 this.logToChargingConsole('❌ Error: URL y Token del CPO son obligatorios', 'error');
@@ -6172,7 +6224,19 @@ if (refreshEmspTokens) {
 
             // Generar UUID para el response_url
             const responseUid = crypto.randomUUID();
-            this.logToChargingConsole(`🆔 UUID del response: ${responseUid}`, 'info');
+            this.logToChargingConsole(`🆔 UUID del response: ${responseUid}`, 'debug');
+            
+            // Preparar payload para START_SESSION
+            const startSessionPayload = {
+                response_url: `${baseUrl}/ocpi/cpo/2.2/commands/START_SESSION/${responseUid}`,
+                token: realToken,
+                location_id: locationId,
+                evse_uid: evseUid
+            };
+            
+            this.logToChargingConsole(`📤 Enviando START_SESSION al CPO...`, 'request');
+            this.logToChargingConsole(`   URL: ${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/START_SESSION`, 'request');
+            this.logToChargingConsole(`   Payload: ${JSON.stringify(startSessionPayload, null, 2)}`, 'request');
             
             // Enviar comando START_SESSION al CPO externo
             const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/START_SESSION`, {
@@ -6181,35 +6245,42 @@ if (refreshEmspTokens) {
                     'Authorization': `Token ${cpoToken}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    response_url: `${baseUrl}/ocpi/cpo/2.2/commands/START_SESSION/${responseUid}`,
-                    token: realToken,
-                    location_id: locationId,
-                    evse_uid: evseUid
-                })
+                body: JSON.stringify(startSessionPayload)
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
+                this.logToChargingConsole(`❌ Error del CPO: HTTP ${response.status}`, 'error');
+                this.logToChargingConsole(`   Error: ${errorText}`, 'error');
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
             const result = await response.json();
             
+            this.logToChargingConsole(`📥 Respuesta del CPO recibida:`, 'response');
+            this.logToChargingConsole(`   Status: ${response.status} ${response.statusText}`, 'response');
+            this.logToChargingConsole(`   Response: ${JSON.stringify(result, null, 2)}`, 'response');
+            
             if (result.data && result.data.result === 'ACCEPTED') {
+                // Obtener el session_id real de la respuesta del CPO
+                const realSessionId = result.data.session_id || `session_${Date.now()}`;
+                
                 this.currentChargingSession = {
                     evseUid: evseUid,
+                    evseId: evseId,
                     locationId: locationId,
                     token: realToken,
                     startTime: new Date(),
-                    sessionId: `session_${Date.now()}`
+                    sessionId: realSessionId
                 };
 
                 this.logToChargingConsole(`✅ Recarga iniciada exitosamente`, 'success');
-                this.logToChargingConsole(`📋 Detalles de la sesión:`, 'info');
-                this.logToChargingConsole(`   • EVSE: ${evseUid}`, 'info');
-                this.logToChargingConsole(`   • Token: ${realToken.uid}`, 'info');
-                this.logToChargingConsole(`   • Sesión: ${this.currentChargingSession.sessionId}`, 'info');
+                this.logToChargingConsole(`📋 Detalles de la sesión:`, 'session');
+                this.logToChargingConsole(`   🔌 EVSE UID: ${evseUid}`, 'evse');
+                this.logToChargingConsole(`   🏷️ EVSE ID: ${evseId}`, 'evse');
+                this.logToChargingConsole(`   🎫 Token: ${realToken.uid} (${realToken.type})`, 'token');
+                this.logToChargingConsole(`   📝 Sesión: ${realSessionId}`, 'session');
+                this.logToChargingConsole(`   📍 Ubicación: ${locationId}`, 'debug');
 
                 this.updateChargingButton();
                 this.showStopChargingButton();
@@ -6231,7 +6302,11 @@ if (refreshEmspTokens) {
                 return;
             }
 
-            this.logToChargingConsole(`🛑 Finalizando recarga...`, 'info');
+            this.logToChargingConsole(`🛑 Finalizando recarga...`, 'system');
+            this.logToChargingConsole(`📋 Sesión actual: ${this.currentChargingSession.sessionId}`, 'session');
+            this.logToChargingConsole(`   🔌 EVSE UID: ${this.currentChargingSession.evseUid}`, 'evse');
+            this.logToChargingConsole(`   🏷️ EVSE ID: ${this.currentChargingSession.evseId}`, 'evse');
+            this.logToChargingConsole(`   🎫 Token: ${this.currentChargingSession.token.uid}`, 'token');
             
             const cpoUrl = document.getElementById('cpoUrl').value;
             const cpoToken = document.getElementById('cpoToken').value;
@@ -6247,11 +6322,21 @@ if (refreshEmspTokens) {
                 return;
             }
 
-            this.logToChargingConsole(`🆔 Session ID real del CPO: ${realSessionId}`, 'info');
+            this.logToChargingConsole(`🆔 Session ID real del CPO: ${realSessionId}`, 'debug');
 
             // Generar UUID para el response_url
             const responseUid = crypto.randomUUID();
-            this.logToChargingConsole(`🆔 UUID del response: ${responseUid}`, 'info');
+            this.logToChargingConsole(`🆔 UUID del response: ${responseUid}`, 'debug');
+            
+            // Preparar payload para STOP_SESSION
+            const stopSessionPayload = {
+                response_url: `${baseUrl}/ocpi/cpo/2.2/commands/STOP_SESSION/${responseUid}`,
+                session_id: realSessionId
+            };
+            
+            this.logToChargingConsole(`📤 Enviando STOP_SESSION al CPO...`, 'request');
+            this.logToChargingConsole(`   URL: ${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/STOP_SESSION`, 'request');
+            this.logToChargingConsole(`   Payload: ${JSON.stringify(stopSessionPayload, null, 2)}`, 'request');
             
             // Enviar comando STOP_SESSION al CPO externo
             const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/STOP_SESSION`, {
@@ -6260,22 +6345,25 @@ if (refreshEmspTokens) {
                     'Authorization': `Token ${cpoToken}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    response_url: `${baseUrl}/ocpi/cpo/2.2/commands/STOP_SESSION/${responseUid}`,
-                    session_id: realSessionId
-                })
+                body: JSON.stringify(stopSessionPayload)
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
+                this.logToChargingConsole(`❌ Error del CPO: HTTP ${response.status}`, 'error');
+                this.logToChargingConsole(`   Error: ${errorText}`, 'error');
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
             const result = await response.json();
             
+            this.logToChargingConsole(`📥 Respuesta del CPO recibida:`, 'response');
+            this.logToChargingConsole(`   Status: ${response.status} ${response.statusText}`, 'response');
+            this.logToChargingConsole(`   Response: ${JSON.stringify(result, null, 2)}`, 'response');
+            
             if (result.data && result.data.result === 'ACCEPTED') {
                 this.logToChargingConsole(`✅ Recarga finalizada exitosamente`, 'success');
-                this.logToChargingConsole(`📋 Sesión finalizada: ${this.currentChargingSession.sessionId}`, 'info');
+                this.logToChargingConsole(`📋 Sesión finalizada: ${realSessionId}`, 'session');
                 
                 this.currentChargingSession = null;
                 this.updateChargingButton();
@@ -6331,6 +6419,7 @@ if (refreshEmspTokens) {
         if (modal) {
             modal.hide();
         }
+        this.stopLogPolling(); // Detener polling de logs
     }
 
     // Log a la consola de recarga
@@ -6338,12 +6427,27 @@ if (refreshEmspTokens) {
         const console = document.getElementById('chargingConsole');
         if (!console) return;
 
-        const timestamp = new Date().toLocaleTimeString();
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString('es-ES', { 
+            hour12: false, 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit',
+            fractionalSecondDigits: 3
+        });
         const typeClass = {
             'info': 'text-info',
             'success': 'text-success',
             'error': 'text-danger',
-            'warning': 'text-warning'
+            'warning': 'text-warning',
+            'request': 'text-cyan',
+            'response': 'text-primary',
+            'system': 'text-light',
+            'debug': 'text-muted',
+            'token': 'text-warning',
+            'evse': 'text-info',
+            'session': 'text-success',
+            'time': 'text-secondary'
         }[type] || 'text-light';
 
         const logEntry = document.createElement('div');
@@ -6365,17 +6469,124 @@ if (refreshEmspTokens) {
         `;
     }
 
+    // Iniciar polling de logs del servidor
+    startLogPolling() {
+        if (this.logPollingInterval) {
+            clearInterval(this.logPollingInterval);
+        }
+        
+        this.logPollingInterval = setInterval(async () => {
+            await this.fetchServerLogs();
+        }, 2000); // Consultar cada 2 segundos
+    }
+
+    // Detener polling de logs
+    stopLogPolling() {
+        if (this.logPollingInterval) {
+            clearInterval(this.logPollingInterval);
+            this.logPollingInterval = null;
+        }
+    }
+
+    // Obtener logs del servidor
+    async fetchServerLogs() {
+        try {
+            if (!this.currentChargingSession) {
+                return; // Solo consultar si hay una sesión activa
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/charging-logs?sessionId=${this.currentChargingSession.sessionId}&limit=10`);
+            if (!response.ok) return;
+
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                // Procesar logs nuevos
+                for (const log of data.data) {
+                    this.addServerLogToConsole(log);
+                }
+            }
+        } catch (error) {
+            console.warn('⚠️ Error fetching server logs:', error);
+        }
+    }
+
+    // Agregar log del servidor a la consola
+    addServerLogToConsole(log) {
+        const console = document.getElementById('chargingConsole');
+        if (!console) return;
+
+        // Verificar si el log ya existe (por ID)
+        const existingLog = console.querySelector(`[data-log-id="${log.id}"]`);
+        if (existingLog) return;
+
+        const typeClass = {
+            'info': 'text-info',
+            'success': 'text-success',
+            'error': 'text-danger',
+            'warning': 'text-warning',
+            'request': 'text-info',
+            'response': 'text-primary',
+            'system': 'text-light',
+            'debug': 'text-muted',
+            'token': 'text-warning',
+            'evse': 'text-info',
+            'session': 'text-success',
+            'time': 'text-secondary'
+        }[log.type] || 'text-light';
+
+        const logEntry = document.createElement('div');
+        logEntry.className = typeClass;
+        logEntry.setAttribute('data-log-id', log.id);
+        logEntry.innerHTML = `[${log.timestamp}] ${log.message}`;
+        
+        console.appendChild(logEntry);
+        console.scrollTop = console.scrollHeight;
+    }
+
     // Obtener la URL base del servidor desde la configuración
     async getServerBaseUrl() {
         // Por ahora usamos la URL de ngrok que está en el docker-compose
         const ocpiBaseUrl = 'https://f106470a83a3.ngrok-free.app';
-        this.logToChargingConsole(`🌐 URL base configurada: ${ocpiBaseUrl}`, 'info');
+                    this.logToChargingConsole(`🌐 URL base configurada: ${ocpiBaseUrl}`, 'debug');
         return ocpiBaseUrl;
     }
 
-    // Obtener un token real de la base de datos
+    // Obtener un token real de la base de datos o usar token personalizado
     async getRealToken() {
         try {
+            // Verificar si hay un token personalizado
+            const customTokenInput = document.getElementById('customTokenInput');
+            const customTokenType = document.getElementById('customTokenType');
+            
+            if (customTokenInput && customTokenInput.value.trim()) {
+                const customToken = customTokenInput.value.trim();
+                const tokenType = customTokenType ? customTokenType.value : 'RFID';
+                
+                this.logToChargingConsole(`🎫 Usando token personalizado: ${customToken} (${tokenType})`, 'token');
+                
+                // Crear un token personalizado con la estructura OCPI 2.2
+                const localPartyId = window.OCPI_PARTY_ID || 'IPD';
+                const localCountryCode = window.OCPI_COUNTRY_CODE || 'ES';
+                
+                const customTokenData = {
+                    country_code: localCountryCode,
+                    party_id: localPartyId,
+                    uid: customToken,
+                    type: tokenType,
+                    contract_id: `CONTRACT_${customToken}`,
+                    issuer: 'TEST_SYSTEM',
+                    valid: true,
+                    whitelist: 'ALWAYS',
+                    last_updated: new Date().toISOString()
+                };
+                
+                this.logToChargingConsole(`✅ Token personalizado creado: ${customTokenData.uid} (${customTokenData.type}) - Party: ${customTokenData.party_id}`, 'token');
+                return customTokenData;
+            }
+            
+            // Si no hay token personalizado, obtener uno de la base de datos
+            this.logToChargingConsole(`🔍 Obteniendo token de la base de datos...`, 'info');
+            
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
                 headers: {
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
@@ -6390,7 +6601,7 @@ if (refreshEmspTokens) {
                     const ipdTokens = data.data.filter(token => token.party_id === localPartyId);
                     if (ipdTokens.length > 0) {
                         const token = ipdTokens[0];
-                        this.logToChargingConsole(`🎫 Token obtenido: ${token.uid} (${token.type}) - Party: ${token.party_id}`, 'info');
+                        this.logToChargingConsole(`🎫 Token obtenido de BD: ${token.uid} (${token.type}) - Party: ${token.party_id}`, 'token');
                         
                         // Filtrar solo los campos requeridos por OCPI 2.2 para START_SESSION
                         const cleanToken = {
@@ -6537,6 +6748,412 @@ ${JSON.stringify(data, null, 2)}`;
             }
         }, 5000);
     }
+
+    // ===== MÉTODOS PARA SESIONES EXTERNAS =====
+
+    async loadExtSessions() {
+        try {
+            console.log('☁️ Cargando sesiones externas...');
+            
+            const response = await fetch(`${this.baseUrl}/api/ext-sessions`, {
+                headers: { 
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.allExtSessions = data.data || [];
+            
+            console.log(`✅ ${this.allExtSessions.length} sesiones externas cargadas`);
+            console.log('🔍 Datos de sesiones externas:', this.allExtSessions);
+            this.renderExtSessions();
+            this.updateExtSessionsCount();
+            
+        } catch (error) {
+            console.error('❌ Error cargando sesiones externas:', error);
+            this.renderExtSessionsError();
+        }
+    }
+
+    renderExtSessions() {
+        console.log('🎨 Iniciando renderExtSessions...');
+        console.log('📊 allExtSessions:', this.allExtSessions);
+        console.log('🔍 filterActiveExtSessions:', this.filterActiveExtSessions);
+        
+        const tbody = document.getElementById('extSessionsTableBody');
+        if (!tbody) {
+            console.error('❌ No se encontró extSessionsTableBody');
+            return;
+        }
+
+        if (this.allExtSessions.length === 0) {
+            console.log('⚠️ No hay sesiones externas para mostrar');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="text-center text-muted py-4">
+                        <i class="bi bi-cloud-download fs-1 d-block mb-2"></i>
+                        No hay sesiones externas disponibles
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const sessionsToShow = this.filterActiveExtSessions ? 
+            this.allExtSessions.filter(session => 
+                session.status === 'ACTIVE' || 
+                session.status === 'PENDING' || 
+                session.status === 'IN_PROGRESS'
+            ) : 
+            this.allExtSessions;
+            
+        console.log('🔍 Sesiones a mostrar:', sessionsToShow.length);
+        console.log('📋 Datos de sesiones a mostrar:', sessionsToShow);
+        
+        // Debug: mostrar los status únicos de las sesiones
+        const uniqueStatuses = [...new Set(this.allExtSessions.map(s => s.status))];
+        console.log('🏷️ Status únicos encontrados:', uniqueStatuses);
+
+        tbody.innerHTML = sessionsToShow.map(session => `
+            <tr>
+                <td>
+                    <span class="text-truncate d-inline-block" style="max-width: 150px;" 
+                          title="${session.session_id}">
+                        ${session.session_id}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-info">${session.emsp_party_id}</span>
+                </td>
+                <td>
+                    <span class="text-truncate d-inline-block" style="max-width: 100px;" 
+                          title="${session.id_token || 'N/A'}">
+                        ${session.id_token || 'N/A'}
+                    </span>
+                </td>
+                <td>
+                    <span class="text-truncate d-inline-block" style="max-width: 100px;" 
+                          title="${session.evse_uid || 'N/A'}">
+                        ${session.evse_uid || 'N/A'}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${this.getExtSessionStatusBadgeClass(session.status)}">
+                        ${session.status || 'UNKNOWN'}
+                    </span>
+                </td>
+                <td>
+                    ${session.start_datetime ? new Date(session.start_datetime).toLocaleString('es-ES') : 'N/A'}
+                </td>
+                <td>
+                    ${session.end_datetime ? new Date(session.end_datetime).toLocaleString('es-ES') : 'N/A'}
+                </td>
+                <td>
+                    ${session.kwh ? parseFloat(session.kwh).toFixed(3) : '0.000'} kWh
+                </td>
+                <td>
+                    ${session.total_cost ? `€${parseFloat(session.total_cost).toFixed(2)}` : 'N/A'}
+                </td>
+                <td>
+                    <span class="badge bg-secondary">${session.currency || 'EUR'}</span>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-info btn-sm" 
+                                onclick="window.dashboardApp.viewExtSessionDetails('${session.session_id}')"
+                                title="Ver detalles">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        ${session.status === 'ACTIVE' || session.status === 'IN_PROGRESS' ? `
+                            <button class="btn btn-outline-danger btn-sm" 
+                                    onclick="window.dashboardApp.closeExtSession('${session.session_id}', '${session.evse_uid || ''}')"
+                                    title="Cerrar sesión">
+                                <i class="bi bi-stop-circle"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    renderExtSessionsError() {
+        const tbody = document.getElementById('extSessionsTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-triangle fs-1 d-block mb-2"></i>
+                    Error cargando sesiones externas
+                </td>
+            </tr>
+        `;
+    }
+
+    filterExtSessions() {
+        try {
+            console.log('🔍 Iniciando filtro de sesiones externas');
+            // Actualizar el estado del filtro desde el checkbox
+            const filterCheckbox = document.getElementById('filterActiveExtSessions');
+            if (filterCheckbox) {
+                this.filterActiveExtSessions = filterCheckbox.checked;
+                console.log('🔍 Estado del filtro actualizado:', this.filterActiveExtSessions);
+            }
+            this.renderExtSessions();
+            this.updateExtSessionsCount();
+        } catch (error) {
+            console.error('❌ Error filtrando sesiones externas:', error);
+        }
+    }
+
+    updateExtSessionsCount() {
+        const countElement = document.getElementById('extSessionsCount');
+        if (!countElement) return;
+
+        const totalSessions = this.allExtSessions ? this.allExtSessions.length : 0;
+        const activeSessions = this.allExtSessions ? 
+            this.allExtSessions.filter(session => session.status === 'ACTIVE').length : 0;
+
+        if (this.filterActiveExtSessions) {
+            countElement.textContent = `${activeSessions}/${totalSessions}`;
+        } else {
+            countElement.textContent = totalSessions.toString();
+        }
+    }
+
+    getExtSessionStatusBadgeClass(status) {
+        const statusClasses = {
+            'ACTIVE': 'bg-success',
+            'COMPLETED': 'bg-primary',
+            'PENDING': 'bg-warning',
+            'INVALID': 'bg-danger',
+            'UNKNOWN': 'bg-secondary'
+        };
+        return statusClasses[status] || 'bg-secondary';
+    }
+
+    viewExtSessionDetails(sessionId) {
+        const session = this.allExtSessions.find(s => s.session_id === sessionId);
+        if (!session) {
+            this.showNotification('Sesión no encontrada', 'error');
+            return;
+        }
+
+        const details = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Información de la Sesión</h6>
+                    <p><strong>ID:</strong> ${session.session_id}</p>
+                    <p><strong>Estado:</strong> <span class="badge ${this.getExtSessionStatusBadgeClass(session.status)}">${session.status}</span></p>
+                    <p><strong>Inicio:</strong> ${session.start_datetime ? new Date(session.start_datetime).toLocaleString('es-ES') : 'N/A'}</p>
+                    <p><strong>Fin:</strong> ${session.end_datetime ? new Date(session.end_datetime).toLocaleString('es-ES') : 'N/A'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Información Técnica</h6>
+                    <p><strong>Organización:</strong> ${session.emsp_party_id} (${session.emsp_country_code})</p>
+                    <p><strong>EVSE UID:</strong> ${session.evse_uid || 'N/A'}</p>
+                    <p><strong>Token ID:</strong> ${session.id_token || 'N/A'}</p>
+                    <p><strong>Método Auth:</strong> ${session.auth_method || 'N/A'}</p>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h6>Consumo y Costo</h6>
+                    <p><strong>Energía:</strong> ${session.kwh ? parseFloat(session.kwh).toFixed(3) : '0.000'} kWh</p>
+                    <p><strong>Costo Total:</strong> ${session.total_cost ? `€${parseFloat(session.total_cost).toFixed(2)}` : 'N/A'}</p>
+                    <p><strong>Moneda:</strong> ${session.currency || 'EUR'}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Ubicación</h6>
+                    <p><strong>Location ID:</strong> ${session.location_id || 'N/A'}</p>
+                    <p><strong>Connector ID:</strong> ${session.connector_id || 'N/A'}</p>
+                    <p><strong>Última Actualización:</strong> ${session.last_updated ? new Date(session.last_updated).toLocaleString('es-ES') : 'N/A'}</p>
+                </div>
+            </div>
+        `;
+
+        // Crear modal dinámicamente
+        const modalHtml = `
+            <div class="modal fade" id="extSessionDetailsModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-cloud-download"></i> Detalles de Sesión Externa
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remover modal existente si existe
+        const existingModal = document.getElementById('extSessionDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('extSessionDetailsModal'));
+        modal.show();
+    }
+
+    // Obtener información del CPO para una sesión específica
+    async getCpoInfoForSession(session) {
+        try {
+            console.log('🔍 Obteniendo información del CPO para sesión:', session.session_id);
+            
+            // Para sesiones externas, necesitamos encontrar el CPO externo que tiene estas sesiones
+            // Las sesiones tienen emsp_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
+            const targetPartyId = session.emsp_party_id;
+            const targetCountryCode = session.emsp_country_code;
+            
+            console.log('🎯 Buscando CPO externo para sesión de party_id:', targetPartyId, 'country_code:', targetCountryCode);
+            console.log('ℹ️ Nota: Las sesiones externas son de nuestro CPO, necesitamos encontrar el CPO externo que las originó');
+
+            // Buscar directamente en la tabla de credenciales
+            const credentialsResponse = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/credentials`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+
+            if (credentialsResponse.ok) {
+                const credentialsData = await credentialsResponse.json();
+                console.log('🔑 Credenciales obtenidas:', credentialsData);
+                
+                if (credentialsData.data && Array.isArray(credentialsData.data)) {
+                    // Buscar credenciales que NO sean de nuestro CPO (EFI)
+                    // Las sesiones externas vienen de CPOs externos, no de nuestro CPO
+                    for (const cred of credentialsData.data) {
+                        if (cred.party_id !== 'EFI' && cred.party_id !== 'IPD') {
+                            console.log('✅ Credenciales de CPO externo encontradas:', cred);
+                            return {
+                                url: cred.url,
+                                token: cred.token,
+                                party_id: cred.party_id,
+                                country_code: cred.country_code,
+                                business_details: cred.business_details
+                            };
+                        }
+                    }
+                }
+            }
+
+            // Si no se encuentra en credenciales, intentar obtener desde la tabla de sesiones externas
+            console.log('⚠️ CPO no encontrado en credenciales, buscando en sesiones externas...');
+            
+            // Buscar en la tabla de sesiones externas para obtener información del CPO
+            const sessionsResponse = await fetch(`${this.baseUrl}/api/ext-sessions`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`
+                }
+            });
+
+            if (sessionsResponse.ok) {
+                const sessionsData = await sessionsResponse.json();
+                console.log('📊 Sesiones externas obtenidas:', sessionsData);
+                
+                if (sessionsData.data && Array.isArray(sessionsData.data)) {
+                    // Buscar una sesión del mismo CPO
+                    const matchingSession = sessionsData.data.find(s => 
+                        s.emsp_party_id === targetPartyId && s.emsp_country_code === targetCountryCode
+                    );
+                    
+                    if (matchingSession && matchingSession.source_organization) {
+                        console.log('✅ Información del CPO encontrada en sesión:', matchingSession.source_organization);
+                        return {
+                            url: matchingSession.source_organization.url,
+                            token: matchingSession.source_organization.token,
+                            party_id: matchingSession.source_organization.party_id,
+                            country_code: matchingSession.source_organization.country_code,
+                            business_details: matchingSession.source_organization.business_details
+                        };
+                    }
+                }
+            }
+
+            console.error('❌ No se encontró información del CPO para party_id:', targetPartyId, 'country_code:', targetCountryCode);
+            return null;
+
+        } catch (error) {
+            console.error('❌ Error obteniendo información del CPO:', error);
+            return null;
+        }
+    }
+
+    // Cerrar sesión externa activa (marcar como completada en BD)
+    async closeExtSession(sessionId, evseUid) {
+        try {
+            console.log('🛑 Cerrando sesión externa:', { sessionId, evseUid });
+            
+            // Confirmar acción
+            if (!confirm(`¿Estás seguro de que quieres cerrar la sesión ${sessionId}?`)) {
+                return;
+            }
+
+            // Obtener información de la sesión
+            const session = this.allExtSessions.find(s => s.session_id === sessionId);
+            if (!session) {
+                this.showNotification('Sesión no encontrada', 'error');
+                return;
+            }
+
+            console.log('🔍 Sesión encontrada:', session);
+
+            // Actualizar sesión en la base de datos
+            const updateData = {
+                status: 'COMPLETED',
+                end_datetime: new Date().toISOString(),
+                last_updated: new Date().toISOString()
+            };
+
+            console.log('📝 Actualizando sesión en BD:', updateData);
+
+            const response = await fetch(`${this.baseUrl}/api/ext-sessions/${sessionId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'OCPI_Ni4T45t7N4LGkog8BHf3EnpU06YcnPTk6CIDbjpNdJvgKVdHhmKcR6B5atb'}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (response.ok) {
+                console.log('✅ Sesión actualizada exitosamente');
+                this.showNotification(`Sesión ${sessionId} cerrada exitosamente`, 'success');
+                
+                // Recargar las sesiones externas para actualizar el estado
+                await this.loadExtSessions();
+            } else {
+                const errorData = await response.json();
+                console.error('❌ Error actualizando sesión:', errorData);
+                this.showNotification(`Error cerrando sesión: ${errorData.message || 'Error desconocido'}`, 'error');
+            }
+
+        } catch (error) {
+            console.error('❌ Error cerrando sesión externa:', error);
+            this.showNotification(`Error cerrando sesión: ${error.message}`, 'error');
+        }
+    }
 }
 
 // Inicializar la aplicación cuando el DOM esté listo
@@ -6546,6 +7163,10 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🎯 DOM Content Loaded event disparado');
     try {
         window.dashboardApp = new DashboardApp();
+        // Hacer disponible globalmente para el backend (solo en Node.js)
+        if (typeof global !== 'undefined') {
+            global.dashboardApp = window.dashboardApp;
+        }
         window.dashboardApp.init();
         console.log('✅ Dashboard inicializado correctamente');
     } catch (error) {

@@ -84,6 +84,11 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ext-sessions-tab" data-bs-toggle="tab" data-bs-target="#ext-sessions" type="button" role="tab">
+                    <i class="bi bi-cloud-download"></i> Ext Sessions
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="emsp-actions-tab" data-bs-toggle="tab" data-bs-target="#emsp-actions" type="button" role="tab">
                     <i class="bi bi-play-circle-fill"></i> EMSP Actions
                 </button>
@@ -662,6 +667,58 @@
                                         </td>
                                     </tbody>
                                 </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext Sessions -->
+            <div class="tab-pane fade" id="ext-sessions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cloud-download"></i> Sesiones Externas
+                        </h5>
+                        <div class="d-flex gap-2 align-items-center">
+                                                            <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filterActiveExtSessions" checked>
+                                    <label class="form-check-label" for="filterActiveExtSessions">
+                                        Solo Activas/Pendientes
+                                    </label>
+                                </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshExtSessions">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="extSessionsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID Sesión</th>
+                                        <th>Organización</th>
+                                        <th>Token UID</th>
+                                        <th>EVSE UID</th>
+                                        <th>Estado</th>
+                                        <th>Inicio</th>
+                                        <th>Fin</th>
+                                        <th>Energía (kWh)</th>
+                                        <th>Costo</th>
+                                        <th>Moneda</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="extSessionsTableBody">
+                                    <tr>
+                                        <td colspan="11" class="text-center text-muted py-4">
+                                            <i class="bi bi-cloud-download fs-1 d-block mb-2"></i>
+                                            No hay sesiones externas disponibles
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1822,6 +1879,44 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Sección de Token Personalizado -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-key"></i> Token para Recarga
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <label for="customTokenInput" class="form-label">Token Personalizado (Opcional)</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="customTokenInput" 
+                                                       placeholder="Introduce un token personalizado para pruebas (ej: TEST123456789)">
+                                                <button type="button" class="btn btn-outline-secondary" id="clearCustomTokenBtn">
+                                                    <i class="bi bi-x-circle"></i> Limpiar
+                                                </button>
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                Si no introduces un token, se usará uno de la base de datos
+                                            </small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="customTokenType" class="form-label">Tipo de Token</label>
+                                            <select class="form-select" id="customTokenType">
+                                                <option value="RFID">RFID</option>
+                                                <option value="APP_USER">APP_USER</option>
+                                                <option value="OTHER">OTHER</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <h6>EVSEs Disponibles del CPO</h6>
@@ -1847,7 +1942,7 @@
                         </div>
                         <div class="col-md-6">
                             <h6>Consola de Recarga</h6>
-                            <div class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px;" id="chargingConsole">
+                            <div class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;" id="chargingConsole">
                                 <div class="text-success">[Sistema] Consola de recarga iniciada</div>
                                 <div class="text-muted">[Info] Selecciona un EVSE para comenzar la recarga</div>
                             </div>
@@ -1873,6 +1968,71 @@
             </div>
         </div>
     </div>
+
+    <!-- Estilos personalizados para la consola de recarga -->
+    <style>
+        #chargingConsole .text-cyan {
+            color: #17a2b8 !important;
+        }
+        #chargingConsole .text-muted {
+            color: #6c757d !important;
+        }
+        #chargingConsole .text-secondary {
+            color: #6c757d !important;
+        }
+        #chargingConsole .text-warning {
+            color: #ffc107 !important;
+        }
+        #chargingConsole .text-info {
+            color: #17a2b8 !important;
+        }
+        #chargingConsole .text-success {
+            color: #28a745 !important;
+        }
+        #chargingConsole .text-danger {
+            color: #dc3545 !important;
+        }
+        #chargingConsole .text-primary {
+            color: #007bff !important;
+        }
+        #chargingConsole .text-light {
+            color: #f8f9fa !important;
+        }
+        
+        /* Efectos de resaltado para diferentes tipos de logs */
+        #chargingConsole .text-system {
+            color: #f8f9fa !important;
+            font-weight: bold;
+        }
+        #chargingConsole .text-token {
+            color: #ffc107 !important;
+            font-weight: 500;
+        }
+        #chargingConsole .text-evse {
+            color: #17a2b8 !important;
+            font-weight: 500;
+        }
+        #chargingConsole .text-session {
+            color: #28a745 !important;
+            font-weight: 500;
+        }
+        #chargingConsole .text-debug {
+            color: #6c757d !important;
+            font-style: italic;
+        }
+        #chargingConsole .text-request {
+            color: #17a2b8 !important;
+            background-color: rgba(23, 162, 184, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        #chargingConsole .text-response {
+            color: #007bff !important;
+            background-color: rgba(0, 123, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
 
     <!-- Scripts -->
     <script src="bootstrap.bundle.min.js"></script>

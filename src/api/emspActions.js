@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { sequelize } = require('../database/connection');
 const { authMiddleware } = require('../middleware/auth');
+const EmspSession = require('../models/EmspSession')(sequelize);
 
 // ===== ENDPOINTS PARA ACCIONES EMSP =====
 // Estos endpoints permiten actuar como eMSP y guardar datos de CPOs externos
@@ -478,10 +479,10 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
     }
 });
 
-// GET /emsp/actions/get-external-sessions - Obtener sesiones de organizaciones externas conectadas
+// GET /emsp/actions/get-external-sessions - Obtener y guardar sesiones de organizaciones externas conectadas
 router.get('/get-external-sessions', authMiddleware, async (req, res) => {
     try {
-        console.log('🌐 Obteniendo sesiones de organizaciones externas conectadas...');
+        console.log('🌐 Obteniendo y guardando sesiones de organizaciones externas conectadas...');
         
         // Obtener todas las organizaciones configuradas (excluyendo nuestro CPO)
         const organizations = await sequelize.query(`
@@ -509,6 +510,8 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
         
         const allSessions = [];
         const errors = [];
+        let savedSessionsCount = 0;
+        let duplicateSessionsCount = 0;
         
         // Consultar sesiones de cada organización
         for (const org of organizations) {
@@ -529,18 +532,75 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.data && Array.isArray(data.data)) {
-                        // Agregar información de la organización a cada sesión
-                        const sessionsWithOrg = data.data.map(session => ({
-                            ...session,
-                            source_organization: {
-                                party_id: org.party_id,
-                                country_code: org.country_code,
-                                url: org.url,
-                                business_details: org.business_details
+                        console.log(`📥 Procesando ${data.data.length} sesiones de ${org.party_id}`);
+                        
+                        // Procesar cada sesión
+                        for (const session of data.data) {
+                            try {
+                                // Agregar información de la organización a la sesión
+                                const sessionWithOrg = {
+                                    ...session,
+                                    source_organization: {
+                                        party_id: org.party_id,
+                                        country_code: org.country_code,
+                                        url: org.url,
+                                        business_details: org.business_details
+                                    }
+                                };
+                                
+                                allSessions.push(sessionWithOrg);
+                                
+                                // Preparar datos para guardar en base de datos
+                                const sessionData = {
+                                    emsp_party_id: org.party_id,
+                                    emsp_country_code: org.country_code,
+                                    country_code: session.country_code || org.country_code,
+                                    party_id: session.party_id || org.party_id,
+                                    session_id: session.id,
+                                    start_date_time: session.start_date_time ? new Date(session.start_date_time) : null,
+                                    end_date_time: session.end_date_time ? new Date(session.end_date_time) : null,
+                                    start_datetime: session.start_date_time ? new Date(session.start_date_time) : new Date(),
+                                    end_datetime: session.end_date_time ? new Date(session.end_date_time) : null,
+                                    kwh: session.kwh || 0.0,
+                                    cdr_token: session.auth_id ? {
+                                        uid: session.auth_id.uid,
+                                        type: session.auth_id.type,
+                                        issuer: session.auth_id.issuer
+                                    } : null,
+                                    id_token: session.auth_id?.uid || session.id || 'unknown',
+                                    auth_method: session.auth_method || 'RFID',
+                                    location_id: session.location_id || null,
+                                    evse_uid: session.evse_uid || session.location_id || 'unknown',
+                                    connector_id: session.connector_id || null,
+                                    currency: session.currency || 'EUR',
+                                    status: session.status || 'PENDING',
+                                    last_updated: session.last_updated ? new Date(session.last_updated) : new Date(),
+                                    total_cost: session.total_cost?.excl_vat || session.total_cost || null,
+                                    charging_periods: session.charging_periods || null
+                                };
+                                
+                                // Intentar guardar en base de datos
+                                try {
+                                    await EmspSession.create(sessionData);
+                                    savedSessionsCount++;
+                                    console.log(`✅ Sesión ${session.id} guardada exitosamente`);
+                                } catch (dbError) {
+                                    if (dbError.name === 'SequelizeUniqueConstraintError') {
+                                        duplicateSessionsCount++;
+                                        console.log(`⚠️ Sesión ${session.id} ya existe, saltando...`);
+                                    } else {
+                                        console.error(`❌ Error guardando sesión ${session.id}:`, dbError.message);
+                                        errors.push(`Error guardando sesión ${session.id}: ${dbError.message}`);
+                                    }
+                                }
+                                
+                            } catch (sessionError) {
+                                console.error(`❌ Error procesando sesión:`, sessionError);
+                                errors.push(`Error procesando sesión: ${sessionError.message}`);
                             }
-                        }));
-                        allSessions.push(...sessionsWithOrg);
-                        console.log(`✅ ${sessionsWithOrg.length} sesiones obtenidas de ${org.party_id}`);
+                        }
+                        
+                        console.log(`✅ ${data.data.length} sesiones procesadas de ${org.party_id}`);
                     } else {
                         console.log(`⚠️ No se encontraron sesiones en ${org.party_id}`);
                     }
@@ -559,8 +619,10 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
         }
         
         console.log(`✅ Total de sesiones obtenidas: ${allSessions.length}`);
+        console.log(`💾 Sesiones guardadas en BD: ${savedSessionsCount}`);
+        console.log(`⚠️ Sesiones duplicadas (saltadas): ${duplicateSessionsCount}`);
         if (errors.length > 0) {
-            console.log(`⚠️ Errores encontrados: ${errors.length}`);
+            console.log(`❌ Errores encontrados: ${errors.length}`);
         }
         
         res.status(200).json({
@@ -569,6 +631,8 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
             metadata: {
                 total_sessions: allSessions.length,
                 organizations_consulted: organizations.length,
+                sessions_saved: savedSessionsCount,
+                sessions_duplicates: duplicateSessionsCount,
                 errors: errors,
                 timestamp: new Date().toISOString()
             },
