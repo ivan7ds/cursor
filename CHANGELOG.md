@@ -7,6 +7,61 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-09-08
+
+### Added
+- **Funcionalidad de handshake OCPI en pestaña "Conexiones"**
+  - Botón "Nueva Conexión" para iniciar handshake con organizaciones externas
+  - Modal con dos opciones: conectar a organización externa (como EMSP) y recibir conexión (como CPO)
+  - Endpoint `POST /api/handshake/connect-to-organization` para conectar a organizaciones externas
+  - Endpoint `POST /api/handshake/generate-credentials` para generar credenciales propias
+  - Almacenamiento automático de credenciales de organizaciones externas en tabla `credentials`
+  - Validación de autenticación OCPI para operaciones de handshake
+  - Notificaciones de éxito/error para operaciones de handshake
+  - Recarga automática de conexiones después de operaciones exitosas
+
+- **Banner personalizado con imagen de Sparkle**
+  - Imagen `sparkle.png` en el banner de la aplicación
+  - Título actualizado a "✨ OCPI Test Application - OCPI 2.2"
+  - Diseño visual mejorado con sombra y efectos de profundidad
+  - Integración de imagen real de Sparkle chibi en lugar de SVG
+
+### Changed
+- **Título de la aplicación actualizado**
+  - "IPD CPO Dashboard" → "✨ OCPI Test Application"
+  - Mejor representación del propósito de la aplicación como herramienta de pruebas OCPI
+  - Integración visual con el tema de Sparkle
+
+- **Interfaz de handshake mejorada**
+  - Formularios con validación client-side para campos obligatorios
+  - Labels genéricos "Organización" en lugar de "CPO" para mayor flexibilidad
+  - Modal de credenciales generadas con botón de copia
+  - Mejor UX con notificaciones y feedback visual
+
+### Fixed
+- **Eliminación de botón de prueba innecesario**
+  - Removido botón "🧪 BOTÓN DE PRUEBA" del frontend
+  - Limpieza de código JavaScript eliminando método `createTestButton()`
+  - Interfaz más limpia sin elementos de debugging
+
+### Technical
+- **Nuevos endpoints de handshake OCPI**
+  - `POST /api/handshake/connect-to-organization`: Conectar a organización externa
+  - `POST /api/handshake/generate-credentials`: Generar credenciales propias
+  - Validación de tokens OCPI contra tablas `ocpi_tokens` y `credentials`
+  - Manejo de errores robusto con códigos de estado OCPI apropiados
+
+- **Mejoras en autenticación**
+  - Middleware `authMiddleware` aplicado a endpoints de handshake
+  - Validación de credenciales propias antes de generar nuevas
+  - Manejo de errores de conectividad con organizaciones externas
+
+- **Frontend mejorado**
+  - Nuevos métodos JavaScript para manejo de handshake
+  - Validación de formularios mejorada
+  - Integración de imagen real en lugar de SVG
+  - Limpieza de código eliminando elementos de debugging
+
 ## [0.7.0] - 2025-09-08
 
 ### Added

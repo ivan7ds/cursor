@@ -649,39 +649,258 @@ if (filterActiveExtSessions) {
             // Event listeners para modal de edición de EVSEs
             this.setupEditEvseModalEventListeners();
             
-            // Crear botón de prueba
-            this.createTestButton();
+            // ===== EVENT LISTENERS PARA HANDSHAKE OCPI =====
+            console.log('🔧 Configurando event listeners para handshake OCPI...');
             
+            // Botón para abrir modal de nueva conexión
+            const initiateHandshakeBtn = document.getElementById('initiateHandshakeBtn');
+            if (initiateHandshakeBtn) {
+                initiateHandshakeBtn.addEventListener('click', () => {
+                    console.log('🔗 Botón initiateHandshakeBtn clickeado');
+                    this.showHandshakeModal();
+                });
+                console.log('✅ Event listener para initiateHandshakeBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento initiateHandshakeBtn no encontrado');
+            }
+            
+            // Formulario para conectar a organización externa (como EMSP)
+            const connectToCpoForm = document.getElementById('connectToCpoForm');
+            if (connectToCpoForm) {
+                connectToCpoForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    console.log('🔗 Formulario connectToCpoForm enviado');
+                    this.handleConnectToExternalOrganization();
+                });
+                console.log('✅ Event listener para connectToCpoForm agregado');
+            } else {
+                console.warn('⚠️ Elemento connectToCpoForm no encontrado');
+            }
+            
+            // Formulario para generar credenciales (como CPO)
+            const generateCredentialsForm = document.getElementById('generateCredentialsForm');
+            if (generateCredentialsForm) {
+                generateCredentialsForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    console.log('🔑 Formulario generateCredentialsForm enviado');
+                    this.handleGenerateCredentials();
+                });
+                console.log('✅ Event listener para generateCredentialsForm agregado');
+            } else {
+                console.warn('⚠️ Elemento generateCredentialsForm no encontrado');
+            }
         } catch (error) {
             console.error('❌ Error configurando event listeners simples:', error);
         }
     }
 
-    createTestButton() {
+    // ===== FUNCIONES DE HANDSHAKE OCPI =====
+    
+    showHandshakeModal() {
         try {
-            console.log('🧪 Creando botón de prueba...');
+            console.log('🔗 Mostrando modal de handshake...');
+            const modal = new bootstrap.Modal(document.getElementById('handshakeModal'));
+            modal.show();
+            console.log('✅ Modal de handshake mostrado');
+        } catch (error) {
+            console.error('❌ Error mostrando modal de handshake:', error);
+            this.showNotification('Error abriendo modal de conexión', 'error');
+        }
+    }
+
+    async handleConnectToExternalOrganization() {
+        try {
+            console.log('🔗 Iniciando conexión a organización externa...');
             
-            // Crear un botón de prueba
-            const testButton = document.createElement('button');
-            testButton.id = 'testButton';
-            testButton.textContent = '🧪 BOTÓN DE PRUEBA';
-            testButton.className = 'btn btn-danger btn-sm';
-            testButton.style.position = 'fixed';
-            testButton.style.top = '10px';
-            testButton.style.right = '10px';
-            testButton.style.zIndex = '9999';
+            // Obtener datos del formulario
+            const formData = {
+                url: document.getElementById('cpoUrl').value,
+                token: document.getElementById('cpoToken').value,
+                partyId: document.getElementById('cpoPartyId').value,
+                countryCode: document.getElementById('cpoCountryCode').value
+            };
             
-            // Event listener simple
-            testButton.addEventListener('click', () => {
-                console.log('🧪 ¡BOTÓN DE PRUEBA FUNCIONA!');
-                alert('¡El botón de prueba funciona!');
+            console.log('📋 Datos del formulario:', formData);
+            
+            // Validar datos
+            if (!formData.url || !formData.token || !formData.partyId || !formData.countryCode) {
+                this.showNotification('Por favor, completa todos los campos', 'warning');
+                return;
+            }
+            
+            // Mostrar loading
+            this.showNotification('Conectando a organización externa...', 'info');
+            
+            // Llamar a la API
+            const response = await fetch('/api/handshake/connect-to-organization', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${window.OCPI_TOKEN || 'test-token'}`
+                },
+                body: JSON.stringify(formData)
             });
             
-            document.body.appendChild(testButton);
-            console.log('✅ Botón de prueba creado y agregado al DOM');
+            const result = await response.json();
+            
+            if (response.ok) {
+                console.log('✅ Conexión exitosa:', result);
+                this.showNotification('Conexión establecida exitosamente', 'success');
+                
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('handshakeModal'));
+                if (modal) modal.hide();
+                
+                // Limpiar formulario
+                document.getElementById('connectToCpoForm').reset();
+                
+                // Recargar conexiones
+                this.loadConnections();
+            } else {
+                console.error('❌ Error en conexión:', result);
+                this.showNotification(`Error: ${result.status_message || 'Error desconocido'}`, 'error');
+            }
             
         } catch (error) {
-            console.error('❌ Error creando botón de prueba:', error);
+            console.error('❌ Error conectando a organización externa:', error);
+            this.showNotification('Error de conexión: ' + error.message, 'error');
+        }
+    }
+
+    async handleGenerateCredentials() {
+        try {
+            console.log('🔑 Generando credenciales para organización externa...');
+            
+            // Obtener datos del formulario
+            const formData = {
+                partyId: document.getElementById('emspPartyId').value,
+                countryCode: document.getElementById('emspCountryCode').value,
+                url: document.getElementById('emspUrl').value
+            };
+            
+            console.log('📋 Datos del formulario:', formData);
+            
+            // Validar datos
+            if (!formData.partyId || !formData.countryCode || !formData.url) {
+                this.showNotification('Por favor, completa todos los campos', 'warning');
+                return;
+            }
+            
+            // Mostrar loading
+            this.showNotification('Generando credenciales...', 'info');
+            
+            // Llamar a la API
+            const response = await fetch('/api/handshake/generate-credentials', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${window.OCPI_TOKEN || 'test-token'}`
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                console.log('✅ Credenciales generadas:', result);
+                this.showNotification('Credenciales generadas exitosamente', 'success');
+                
+                // Mostrar credenciales generadas
+                this.showGeneratedCredentials(result.data);
+                
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('handshakeModal'));
+                if (modal) modal.hide();
+                
+                // Limpiar formulario
+                document.getElementById('generateCredentialsForm').reset();
+                
+                // Recargar conexiones
+                this.loadConnections();
+            } else {
+                console.error('❌ Error generando credenciales:', result);
+                this.showNotification(`Error: ${result.status_message || 'Error desconocido'}`, 'error');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error generando credenciales:', error);
+            this.showNotification('Error generando credenciales: ' + error.message, 'error');
+        }
+    }
+
+    showGeneratedCredentials(credentials) {
+        try {
+            console.log('🔑 Mostrando credenciales generadas:', credentials);
+            
+            // Crear modal para mostrar credenciales
+            const credentialsModal = document.createElement('div');
+            credentialsModal.className = 'modal fade';
+            credentialsModal.id = 'credentialsModal';
+            credentialsModal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-key"></i> Credenciales Generadas
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Instrucciones:</strong> Comparte estas credenciales con la organización externa para que puedan conectarse a ti.
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Credenciales para la Organización Externa:</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>URL:</strong></label>
+                                        <input type="text" class="form-control" value="${credentials.url}" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Token:</strong></label>
+                                        <input type="text" class="form-control" value="${credentials.token}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Información de la Organización:</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Party ID:</strong></label>
+                                        <input type="text" class="form-control" value="${credentials.party_id}" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>País:</strong></label>
+                                        <input type="text" class="form-control" value="${credentials.country_code}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="navigator.clipboard.writeText('${credentials.token}')">
+                                <i class="bi bi-clipboard"></i> Copiar Token
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(credentialsModal);
+            
+            // Mostrar modal
+            const modal = new bootstrap.Modal(credentialsModal);
+            modal.show();
+            
+            // Limpiar modal cuando se cierre
+            credentialsModal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(credentialsModal);
+            });
+            
+            console.log('✅ Modal de credenciales mostrado');
+            
+        } catch (error) {
+            console.error('❌ Error mostrando credenciales:', error);
+            this.showNotification('Error mostrando credenciales: ' + error.message, 'error');
         }
     }
 
