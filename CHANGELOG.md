@@ -7,6 +7,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.1] - 2025-09-08
+
+### Fixed
+- **Corrección de script de configuración de base de datos (`setup_database.sh`)**
+  - Agregados permisos de ejecución al script (`chmod +x`)
+  - Implementado timeout de 60 segundos para verificación de PostgreSQL
+  - Agregada verificación robusta de errores con mensajes descriptivos
+  - Soporte para variables de entorno con valores por defecto
+  - TRUNCATE seguro que no falla si las tablas no existen
+  - Incluidas todas las tablas `emsp_*` en el proceso de limpieza
+
+- **Mejoras en `complete_database_setup.sql`**
+  - TRUNCATE condicional que verifica existencia de tablas antes de ejecutar
+  - Manejo seguro de tablas `emsp_*` (locations, evses, tariffs, sessions, cdrs, tokens, contracts)
+  - Prevención de errores en entornos donde las tablas no existen
+
+### Improved
+- **Robustez del proceso de configuración de base de datos**
+  - Mejor experiencia de usuario con mensajes de error claros
+  - Flexibilidad para diferentes entornos (Docker, local, producción)
+  - Verificación de conectividad antes de ejecutar scripts SQL
+  - Progreso visual durante la espera de PostgreSQL
+
 ## [0.9.0] - 2025-09-08
 
 ### Added
@@ -639,7 +662,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.9.0 (Estado actual)
+### Versión 0.9.1 (Estado actual)
+- **Corrección de script de configuración de base de datos**
+- **Mejoras en robustez del proceso de setup**
+- **Soporte para variables de entorno**
+- **Verificación de errores mejorada**
+- **TRUNCATE seguro para diferentes entornos**
+- **Timeout para verificación de PostgreSQL**
+- **Mensajes de error descriptivos y claros**
+
+### Versión 0.9.0
 - **Real-time Authorization completa según OCPI 2.2.1**
 - **Corrección de lógica de whitelist para tokens de eMSP**
 - **Token MOCK_TEST_KEY ahora funciona correctamente**

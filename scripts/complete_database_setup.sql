@@ -1,8 +1,20 @@
 -- Complete Database Setup Script
 -- This script populates the database with clean, consistent data
 
--- Clear all existing data
-TRUNCATE TABLE evses, locations, sessions, cdrs, tariffs, tokens, credentials RESTART IDENTITY CASCADE;
+-- Clear all existing data (only if tables exist)
+DO $$ 
+BEGIN
+    -- Only truncate if the main tables exist
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'locations') THEN
+        -- Truncate main tables
+        TRUNCATE TABLE evses, locations, sessions, cdrs, tariffs, tokens, credentials RESTART IDENTITY CASCADE;
+        
+        -- Truncate emsp tables if they exist
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'emsp_locations') THEN
+            TRUNCATE TABLE emsp_locations, emsp_evses, emsp_tariffs, emsp_sessions, emsp_cdrs, emsp_tokens, emsp_contracts RESTART IDENTITY CASCADE;
+        END IF;
+    END IF;
+END $$;
 
 -- Insert Locations (distributed across Spain and Portugal)
 INSERT INTO locations (id, country_code, party_id, name, address, city, country, coordinates, parking_type, time_zone, created_at, updated_at, last_updated) VALUES

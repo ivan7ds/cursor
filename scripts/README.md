@@ -38,25 +38,14 @@ Script de configuración programática usando Sequelize.
 
 ## 📊 Scripts de Datos de Prueba
 
-### `populate_database.sql`
-Script de población de locations de prueba.
-- 75 locations distribuidas por España y Portugal
-- Coordenadas reales y datos consistentes
-
-### `populate_evses.sql`
-Script de población de EVSEs de prueba.
-- EVSEs distribuidos por locations
-- Conectores con especificaciones reales
-
-### `populate_tariffs.sql`
-Script de población de tarifas de prueba.
+### `complete_database_setup.sql`
+Script consolidado de población de base de datos.
+- Dataset completo en una sola transacción
+- Locations distribuidas por España y Portugal
+- EVSEs con especificaciones realistas
 - Tarifas básicas para diferentes tipos de carga
+- Tokens eMSP con diferentes tipos según OCPI 2.2
 - Estructura compatible con OCPI 2.2
-
-### `populate_emsp_tokens.sql`
-Script de población de tokens EMSP.
-- 20 tokens de prueba para funcionalidad EMSP
-- Diferentes tipos: AD_HOC_USER, APP_USER, RFID
 
 ## 🧪 Scripts de Test
 
@@ -113,10 +102,9 @@ scripts/
 ├── README.md                    # Este archivo
 ├── init.sql                     # Inicialización básica
 ├── init_database.sql            # Creación de tablas
-├── complete_database_setup.sql  # Setup completo
+├── complete_database_setup.sql  # Setup completo consolidado
 ├── setup_database.sh            # Script maestro
 ├── setup.js                     # Setup programático
-├── populate_*.sql               # Scripts de población
 ├── test_*.sql                   # Scripts de test
 ├── generate_*.sql               # Scripts de generación
 ├── generate-ocpi-token.js       # Generador de tokens
@@ -134,7 +122,7 @@ psql -U cpo_user -d cpo_ocpi -f scripts/init.sql
 # 2. Crear tablas
 psql -U cpo_user -d cpo_ocpi -f scripts/init_database.sql
 
-# 3. Poblar con datos de prueba
+# 3. Poblar con dataset completo
 psql -U cpo_user -d cpo_ocpi -f scripts/complete_database_setup.sql
 ```
 

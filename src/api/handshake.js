@@ -4,6 +4,66 @@ const { v4: uuidv4 } = require('uuid');
 const { Credentials } = require('../models');
 const logger = require('../utils/logger');
 const axios = require('axios');
+const { URL } = require('url');
+
+/**
+ * Valida y sanitiza una URL para prevenir ataques SSRF
+ * @param {string} url - URL a validar
+ * @returns {string|null} - URL sanitizada o null si es inválida
+ */
+function validateAndSanitizeUrl(url) {
+    try {
+        const parsedUrl = new URL(url);
+        
+        // Solo permitir HTTPS y HTTP
+        if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
+            return null;
+        }
+        
+        // Bloquear URLs internas y locales
+        const hostname = parsedUrl.hostname.toLowerCase();
+        const blockedHosts = [
+            'localhost',
+            '127.0.0.1',
+            '0.0.0.0',
+            '::1',
+            '0:0:0:0:0:0:0:1',
+            '169.254.169.254', // AWS metadata
+            '10.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16'
+        ];
+        
+        // Verificar hosts bloqueados
+        for (const blockedHost of blockedHosts) {
+            if (hostname === blockedHost || hostname.startsWith(blockedHost)) {
+                return null;
+            }
+        }
+        
+        // Verificar rangos de IP privadas
+        if (isPrivateIP(hostname)) {
+            return null;
+        }
+        
+        // Retornar URL sanitizada
+        return parsedUrl.toString();
+        
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Verifica si una IP es privada
+ * @param {string} hostname - Hostname a verificar
+ * @returns {boolean} - true si es IP privada
+ */
+function isPrivateIP(hostname) {
+    // Patrón para IPs privadas
+    const privateIPPattern = /^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/;
+    return privateIPPattern.test(hostname);
+}
 
 /**
  * @swagger
@@ -58,6 +118,16 @@ router.post('/connect-to-organization', async (req, res) => {
             });
         }
         
+        // Validar y sanitizar URL para prevenir SSRF
+        const sanitizedUrl = validateAndSanitizeUrl(url);
+        if (!sanitizedUrl) {
+            return res.status(400).json({
+                status_code: 2001,
+                status_message: 'Invalid or unsafe URL provided',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
         // Obtener nuestras credenciales para enviar
         const ourCredentials = await Credentials.findOne({
             where: { party_id: process.env.OCPI_PARTY_ID || 'IPD' }
@@ -84,7 +154,7 @@ router.post('/connect-to-organization', async (req, res) => {
         console.log('📤 Enviando credenciales a organización externa:', credentialsPayload);
         
         // Enviar credenciales a la organización externa
-        const response = await axios.post(`${url}/ocpi/2.2/credentials`, credentialsPayload, {
+        const response = await axios.post(`${sanitizedUrl}/ocpi/2.2/credentials`, credentialsPayload, {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
@@ -98,7 +168,7 @@ router.post('/connect-to-organization', async (req, res) => {
         const externalCredentials = {
             id: uuidv4(),
             token: token,
-            url: url,
+            url: sanitizedUrl,
             business_details: response.data.data.business_details || {},
             party_id: partyId,
             country_code: countryCode,
@@ -116,7 +186,7 @@ router.post('/connect-to-organization', async (req, res) => {
                 external_organization: {
                     party_id: partyId,
                     country_code: countryCode,
-                    url: url
+                    url: sanitizedUrl
                 },
                 our_credentials: credentialsPayload
             },

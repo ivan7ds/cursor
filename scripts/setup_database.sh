@@ -5,41 +5,54 @@
 
 echo "🚀 Starting CPO OCPI 2.2 database setup..."
 
-# Database connection parameters
-DB_HOST="localhost"
-DB_PORT="5432"
-DB_NAME="cpo_ocpi"
-DB_USER="cpo_user"
-DB_PASSWORD="cpo_ocpi"
+# Database connection parameters (with environment variable support)
+DB_HOST="${DB_HOST:-localhost}"
+DB_PORT="${DB_PORT:-5432}"
+DB_NAME="${DB_NAME:-cpo_ocpi}"
+DB_USER="${DB_USER:-cpo_user}"
+DB_PASSWORD="${DB_PASSWORD:-cpo_ocpi}"
 
-# Wait for PostgreSQL to be ready
+# Wait for PostgreSQL to be ready (with timeout)
 echo "⏳ Waiting for PostgreSQL to be ready..."
+TIMEOUT=60
+ELAPSED=0
 until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME; do
-    echo "PostgreSQL is not ready yet, waiting..."
+    if [ $ELAPSED -ge $TIMEOUT ]; then
+        echo "❌ Timeout waiting for PostgreSQL to be ready!"
+        echo "   Please check that PostgreSQL is running and accessible."
+        echo "   Connection details: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
+        exit 1
+    fi
+    echo "PostgreSQL is not ready yet, waiting... (${ELAPSED}s/${TIMEOUT}s)"
     sleep 2
+    ELAPSED=$((ELAPSED + 2))
 done
 
 echo "✅ PostgreSQL is ready!"
 
-# Execute scripts in order
+# Execute scripts in order with error checking
 echo "📊 Creating database tables..."
-psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/init_database.sql
+if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/init_database.sql; then
+    echo "❌ Error creating database tables!"
+    echo "   Please check that PostgreSQL is running and accessible."
+    echo "   Connection details: $DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
+    exit 1
+fi
 
-echo "📍 Populating locations..."
-psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/populate_database.sql
-
-echo "🔌 Populating EVSEs..."
-psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/populate_evses.sql
-
-echo "💰 Populating tariffs..."
-psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/populate_tariffs.sql
+echo "🗃️ Populating database with complete dataset..."
+if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/complete_database_setup.sql; then
+    echo "❌ Error populating database!"
+    echo "   Please check that the tables were created successfully."
+    exit 1
+fi
 
 echo "✅ Database setup completed successfully!"
 echo ""
 echo "📊 Summary:"
 echo "   - Tables created and configured"
-echo "   - 75 locations across Spain and Portugal"
-echo "   - EVSEs distributed (max 50 per location)"
-echo "   - Basic tariffs configured"
+echo "   - Complete dataset populated (locations, EVSEs, tariffs, tokens)"
+echo "   - Locations across Spain and Portugal"
+echo "   - EVSEs distributed with realistic specifications"
+echo "   - Tariffs and tokens configured"
 echo ""
 echo "🌐 You can now start the application!"

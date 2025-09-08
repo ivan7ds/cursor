@@ -6,7 +6,6 @@ const logger = require('../utils/logger');
 // Crear o actualizar una sesión completa
 router.put('/:country_code/:party_id/:session_id', async (req, res) => {
     try {
-        const { sequelize } = require('../models');
         const { country_code, party_id, session_id } = req.params;
         const sessionData = req.body;
 
@@ -55,46 +54,41 @@ router.put('/:country_code/:party_id/:session_id', async (req, res) => {
             logger.warn('⚠️ Could not send log to charging console:', logError.message);
         }
 
-        // Usar SQL directo para insertar/actualizar
-        const query = `
-            INSERT INTO emsp_sessions (
-                id, emsp_party_id, emsp_country_code, session_id, evse_uid, 
-                connector_id, id_token, start_datetime, end_datetime, 
-                total_cost, status, last_updated, country_code, party_id, 
-                start_date_time, kwh, cdr_token, auth_method, location_id, 
-                currency, charging_periods
-            ) VALUES (
-                gen_random_uuid(), '${party_id}', '${country_code}', '${session_id}', '${sessionData.evse_uid || ''}', 
-                '${sessionData.connector_id || ''}', '${sessionData.cdr_token?.uid || ''}', '${sessionData.start_date_time}', ${sessionData.end_date_time ? `'${sessionData.end_date_time}'` : 'NULL'}, 
-                ${sessionData.total_cost ? (typeof sessionData.total_cost === 'object' ? sessionData.total_cost.excl_vat || 0 : sessionData.total_cost) : 0}, 
-                '${sessionData.status}', '${sessionData.last_updated || new Date().toISOString()}', 
-                '${country_code}', '${party_id}', '${sessionData.start_date_time}', 
-                ${sessionData.kwh || 0.0}, 
-                ${sessionData.cdr_token ? `'${JSON.stringify(sessionData.cdr_token).replace(/'/g, "''")}'::jsonb` : 'NULL'},
-                ${sessionData.auth_method ? `'${sessionData.auth_method}'` : 'NULL'},
-                ${sessionData.location_id ? `'${sessionData.location_id}'` : 'NULL'},
-                '${sessionData.currency || 'EUR'}',
-                ${sessionData.charging_periods ? `'${JSON.stringify(sessionData.charging_periods).replace(/'/g, "''")}'::jsonb` : 'NULL'}
-            )
-            ON CONFLICT (country_code, party_id, session_id) 
-            DO UPDATE SET
-                start_date_time = EXCLUDED.start_date_time,
-                kwh = EXCLUDED.kwh,
-                status = EXCLUDED.status,
-                last_updated = EXCLUDED.last_updated,
-                cdr_token = EXCLUDED.cdr_token,
-                auth_method = EXCLUDED.auth_method,
-                location_id = EXCLUDED.location_id,
-                evse_uid = EXCLUDED.evse_uid,
-                connector_id = EXCLUDED.connector_id,
-                currency = EXCLUDED.currency,
-                total_cost = EXCLUDED.total_cost,
-                charging_periods = EXCLUDED.charging_periods,
-                updated_at = CURRENT_TIMESTAMP
-        `;
-
-        await sequelize.query(query, {
-            type: sequelize.QueryTypes.INSERT
+        // Usar Sequelize para insertar/actualizar de forma segura
+        const { EmspSession } = require('../models');
+        
+        // Extraer lógica de total_cost para mejorar legibilidad
+        let totalCost = 0;
+        if (sessionData.total_cost) {
+            if (typeof sessionData.total_cost === 'object') {
+                totalCost = sessionData.total_cost.excl_vat || 0;
+            } else {
+                totalCost = sessionData.total_cost;
+            }
+        }
+        
+        await EmspSession.upsert({
+            emsp_party_id: party_id,
+            emsp_country_code: country_code,
+            session_id: session_id,
+            evse_uid: sessionData.evse_uid || '',
+            connector_id: sessionData.connector_id || '',
+            id_token: sessionData.cdr_token?.uid || '',
+            start_datetime: sessionData.start_date_time,
+            end_datetime: sessionData.end_date_time,
+            start_date_time: sessionData.start_date_time,
+            end_date_time: sessionData.end_date_time,
+            total_cost: totalCost,
+            status: sessionData.status,
+            last_updated: sessionData.last_updated || new Date().toISOString(),
+            country_code: country_code,
+            party_id: party_id,
+            kwh: sessionData.kwh || 0.0,
+            cdr_token: sessionData.cdr_token ? JSON.stringify(sessionData.cdr_token) : null,
+            auth_method: sessionData.auth_method,
+            location_id: sessionData.location_id,
+            currency: sessionData.currency || 'EUR',
+            charging_periods: sessionData.charging_periods ? JSON.stringify(sessionData.charging_periods) : null
         });
 
         logger.info(`✅ Session upserted`, {
@@ -128,7 +122,6 @@ router.put('/:country_code/:party_id/:session_id', async (req, res) => {
 // Actualizar parcialmente una sesión
 router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
     try {
-        const { sequelize } = require('../models');
         const { country_code, party_id, session_id } = req.params;
         const updateData = req.body;
 
@@ -195,39 +188,41 @@ router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
             logger.warn('⚠️ Could not send log to charging console:', logError.message);
         }
 
-        // Construir la consulta UPDATE dinámicamente con valores directos
-        const updateFields = [];
+        // Construir objeto de actualización de forma segura
+        const { EmspSession } = require('../models');
+        const updateFields = {};
 
         if (updateData.start_date_time !== undefined) {
-            updateFields.push(`start_date_time = '${updateData.start_date_time}'`);
+            updateFields.start_date_time = updateData.start_date_time;
         }
         if (updateData.end_date_time !== undefined) {
-            updateFields.push(`end_date_time = '${updateData.end_date_time}'`);
+            updateFields.end_date_time = updateData.end_date_time;
         }
         if (updateData.kwh !== undefined) {
-            updateFields.push(`kwh = ${updateData.kwh}`);
+            updateFields.kwh = updateData.kwh;
         }
         if (updateData.total_cost !== undefined) {
             // Manejar total_cost como objeto o número
-            const totalCostValue = typeof updateData.total_cost === 'object' 
-                ? (updateData.total_cost.excl_vat || 0) 
-                : updateData.total_cost;
-            updateFields.push(`total_cost = ${totalCostValue}`);
+            let totalCost = 0;
+            if (typeof updateData.total_cost === 'object') {
+                totalCost = updateData.total_cost.excl_vat || 0;
+            } else {
+                totalCost = updateData.total_cost;
+            }
+            updateFields.total_cost = totalCost;
         }
         if (updateData.charging_periods !== undefined) {
-            updateFields.push(`charging_periods = '${JSON.stringify(updateData.charging_periods).replace(/'/g, "''")}'::jsonb`);
+            updateFields.charging_periods = JSON.stringify(updateData.charging_periods);
         }
         if (updateData.status !== undefined) {
-            updateFields.push(`status = '${updateData.status}'`);
+            updateFields.status = updateData.status;
         }
         if (updateData.last_updated !== undefined) {
-            updateFields.push(`last_updated = '${updateData.last_updated}'`);
+            updateFields.last_updated = updateData.last_updated;
         }
 
-        // Siempre actualizar updated_at
-        updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-
-        if (updateFields.length === 1) { // Solo updated_at
+        // Verificar si hay campos para actualizar
+        if (Object.keys(updateFields).length === 0) {
             logger.warn(`⚠️ No fields to update for PATCH`, {
                 country_code,
                 party_id,
@@ -240,19 +235,16 @@ router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
             });
         }
 
-        const query = `
-            UPDATE emsp_sessions 
-            SET ${updateFields.join(', ')}
-            WHERE country_code = '${country_code}' 
-            AND party_id = '${party_id}' 
-            AND session_id = '${session_id}'
-        `;
-
-        const result = await sequelize.query(query, {
-            type: sequelize.QueryTypes.UPDATE
+        // Actualizar usando Sequelize de forma segura
+        const [affectedRows] = await EmspSession.update(updateFields, {
+            where: {
+                country_code: country_code,
+                party_id: party_id,
+                session_id: session_id
+            }
         });
 
-        if (result[1] === 0) {
+        if (affectedRows === 0) {
             logger.warn(`⚠️ Session not found for PATCH`, {
                 country_code,
                 party_id,

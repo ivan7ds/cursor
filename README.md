@@ -104,9 +104,7 @@ docker-compose logs postgres
 
 # O ejecutar scripts individualmente
 Get-Content scripts/init_database.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
-Get-Content scripts/populate_database.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
-Get-Content scripts/populate_evses.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
-Get-Content scripts/populate_tariffs.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
+Get-Content scripts/complete_database_setup.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
 ```
 
 ## 🌐 Endpoints Disponibles
@@ -155,23 +153,18 @@ Get-Content scripts/populate_tariffs.sql | docker exec -i cursorconcepto-postgre
 ### `scripts/init_database.sql`
 Crea todas las tablas necesarias sin usar Sequelize sync.
 
-### `scripts/populate_database.sql`
-Inserta 75 ubicaciones distribuidas por España y Portugal.
-
-### `scripts/populate_evses.sql`
-Genera EVSEs distribuidos uniformemente (máximo 50 por ubicación).
-
-### `scripts/populate_tariffs.sql`
-Inserta tarifas básicas para España y Portugal.
+### `scripts/complete_database_setup.sql`
+Script consolidado que pobla la base de datos con un dataset completo incluyendo:
+- Ubicaciones distribuidas por España y Portugal
+- EVSEs con especificaciones realistas (máximo 50 por ubicación)
+- Tarifas básicas para España y Portugal
+- Tokens eMSP con diferentes tipos según OCPI 2.2
 
 ### `scripts/setup_database.ps1`
 Script maestro que ejecuta todos los scripts en orden.
 
 ### `scripts/init_emsp_tables.sql`
 Crea tablas específicas para funcionalidad eMSP (emsp_locations, emsp_evses, emsp_tariffs).
-
-### `scripts/populate_emsp_tokens.sql`
-Inserta 20 tokens eMSP con diferentes tipos según la especificación OCPI 2.2 (AD_HOC_USER, APP_USER, OTHER, RFID).
 
 ## 🔧 Desarrollo
 
@@ -207,10 +200,7 @@ src/
 scripts/           # Scripts de base de datos y utilidades
 ├── init_database.sql
 ├── init_emsp_tables.sql
-├── populate_database.sql
-├── populate_evses.sql
-├── populate_tariffs.sql
-├── populate_emsp_tokens.sql
+├── complete_database_setup.sql
 ├── setup_database.ps1
 ├── generate-ocpi-token.js
 ├── view-logs.js
@@ -497,8 +487,8 @@ Cada EVSE incluye información detallada de conectores:
 
 #### **Configurar Tokens eMSP**
 ```bash
-# Ejecutar script para poblar tokens eMSP
-docker exec -i cursor-postgres-1 psql -U cpo_user -d cpo_ocpi < scripts/populate_emsp_tokens.sql
+# Ejecutar script completo de configuración
+docker exec -i cursor-postgres-1 psql -U cpo_user -d cpo_ocpi < scripts/complete_database_setup.sql
 
 # Verificar tokens creados
 docker exec -i cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT type, COUNT(*) FROM tokens WHERE party_id LIKE 'EMSP%' GROUP BY type;"
