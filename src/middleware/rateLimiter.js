@@ -9,7 +9,7 @@ const disableRateLimit = process.env.DISABLE_RATE_LIMIT === 'true';
 const rateLimiter = new RateLimiterRedis({
   storeClient: redisClient,
   keyPrefix: 'middleware',
-  points: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 2000, // Aumentado a 2000 para dashboard
+  points: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10000, // Aumentado a 10000 para dashboard
   duration: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
   blockDuration: 60 * 2, // Reducido a 2 minutos
 });
@@ -22,18 +22,20 @@ const rateLimiterMiddleware = async (req, res, next) => {
   }
 
   // Excluir ciertas rutas del rate limiting (dashboard y health)
-  const excludedPaths = ['/health', '/logs/stream', '/logs/recent'];
+  const excludedPaths = ['/health', '/logs/stream', '/logs/recent', '/api-docs', '/api/charging-logs'];
   if (excludedPaths.some(path => req.path.startsWith(path))) {
     return next();
   }
 
-  // Rate limiting más permisivo para el dashboard
-  const isDashboardRequest = req.path.startsWith('/ocpi/cpo/2.2/') || req.path === '/';
+  // Rate limiting más permisivo para el dashboard y APIs internas
+  const isDashboardRequest = req.path.startsWith('/ocpi/cpo/2.2/') || 
+                            req.path.startsWith('/api/') || 
+                            req.path === '/';
   const rateLimiterToUse = isDashboardRequest ? 
     new RateLimiterRedis({
       storeClient: redisClient,
       keyPrefix: 'dashboard',
-      points: 5000, // Mucho más permisivo para dashboard
+      points: 20000, // Mucho más permisivo para dashboard
       duration: 900000, // 15 minutos
       blockDuration: 60, // Solo 1 minuto de bloqueo
     }) : rateLimiter;

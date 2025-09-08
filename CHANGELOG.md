@@ -7,6 +7,45 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-09-08
+
+### Added
+- **Favicon personalizado con emoji ✨**
+  - Nuevo favicon usando emoji Sparkle (✨) en formato SVG
+  - Compatible con todos los navegadores modernos
+  - Apple Touch Icon incluido para dispositivos iOS
+  - Título de pestaña actualizado con emoji: "✨ IPD CPO Dashboard"
+
+### Changed
+- **Nomenclatura de pestañas actualizada de "EMSP" a "Ext"**
+  - "EMSP Locations" → "Ext Locations"
+  - "EMSP EVSEs" → "Ext EVSEs" 
+  - "EMSP Tariffs" → "Ext Tariffs"
+  - "EMSP Tokens" → "Ext Tokens"
+  - "EMSP Actions" → "Ext Actions"
+  - "EMSP Sessions" → "Ext Sessions"
+  - Mejor claridad semántica: "Ext" = organizaciones externas
+
+- **Rate Limiting significativamente aumentado**
+  - Límite general: 2,000 → **10,000 requests por 15 minutos**
+  - Límite dashboard/APIs: 5,000 → **20,000 requests por 15 minutos**
+  - Nuevas rutas excluidas: `/api-docs`, `/api/charging-logs`
+  - Rate limiting permisivo para todas las rutas `/api/*`
+  - Variables de entorno configurables en docker-compose
+
+### Fixed
+- **Eliminación de errores 429 (Too Many Requests)**
+  - Rate limiting más permisivo para uso intensivo del dashboard
+  - Mejor experiencia de usuario sin interrupciones
+  - Configuración optimizada para desarrollo y producción
+
+### Technical
+- **Configuración de rate limiting mejorada**
+  - Variables de entorno: `RATE_LIMIT_MAX_REQUESTS`, `RATE_LIMIT_WINDOW_MS`
+  - Exclusión inteligente de rutas críticas
+  - Logging mejorado para debugging de rate limits
+  - Soporte para deshabilitar rate limiting en desarrollo
+
 ## [0.6.0] - 2025-09-05
 
 ### Added

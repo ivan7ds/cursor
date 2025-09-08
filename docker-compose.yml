@@ -18,6 +18,9 @@ services:
       - OCPI_COUNTRY_CODE=ES
       - OCPI_BASE_URL=https://f106470a83a3.ngrok-free.app
       - EVSE_NOTIFICATION_INTERVAL_MS=${EVSE_NOTIFICATION_INTERVAL_MS}
+      - RATE_LIMIT_MAX_REQUESTS=10000
+      - RATE_LIMIT_WINDOW_MS=900000
+      - DISABLE_RATE_LIMIT=false
     depends_on:
       - postgres
       - redis
