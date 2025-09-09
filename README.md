@@ -98,14 +98,48 @@ docker-compose logs postgres
 ```
 
 ### 4. Configurar la base de datos
-```bash
-# Usar el script maestro (PowerShell)
-.\scripts\setup_database.ps1
 
-# O ejecutar scripts individualmente
-Get-Content scripts/init_database.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
-Get-Content scripts/complete_database_setup.sql | docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi
+#### Opción A: Con Docker (Recomendado)
+```bash
+# Ejecutar el script de configuración dentro del contenedor
+docker exec -it cursor-app-1 ./scripts/setup_database.sh
 ```
+
+#### Opción B: Sin Docker (Base de datos local)
+```bash
+# Asegúrate de que PostgreSQL esté ejecutándose localmente
+# Ejecutar el script de configuración
+./scripts/setup_database.sh
+```
+
+#### Opción C: Scripts individuales (Docker)
+```bash
+# Ejecutar scripts individualmente
+docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi -f /app/scripts/init_database.sql
+docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi -f /app/scripts/complete_database_setup.sql
+```
+
+**⚠️ Importante**: La aplicación debe estar ejecutándose **antes** de configurar la base de datos.
+
+### 5. Verificar la instalación
+```bash
+# Verificar que la aplicación esté funcionando
+curl http://localhost:3000/ocpi/2.2/versions
+
+# Verificar el dashboard
+# Abrir navegador en: http://localhost:3000
+```
+
+### 6. Acceder al dashboard
+- **URL**: http://localhost:3000
+- **Funcionalidades disponibles**:
+  - Gestión de ubicaciones y EVSEs
+  - Monitoreo de sesiones de carga
+  - Gestión de tarifas
+  - Tokens eMSP
+  - Sesiones externas
+  - Logs en tiempo real
+  - Conexiones OCPI
 
 ## 🌐 Endpoints Disponibles
 

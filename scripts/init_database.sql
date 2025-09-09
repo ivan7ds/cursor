@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS locations (
     coordinates JSONB NOT NULL,
     related_locations JSON,
     parking_type VARCHAR(50),
-    evse_list JSON,
-    directions VARCHAR(500),
+    evses JSON,
+    directions JSON,
     operator JSON,
     suboperator JSON,
     owner JSON,
@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS locations (
     charging_when_closed BOOLEAN,
     images JSON,
     energy_mix JSON,
+    publish BOOLEAN DEFAULT true,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -112,9 +114,10 @@ CREATE TABLE IF NOT EXISTS tokens (
     party_id VARCHAR(10) NOT NULL,
     uid VARCHAR(36) NOT NULL,
     type VARCHAR(50) NOT NULL,
+    auth_method VARCHAR(50) NOT NULL,
     contract_id VARCHAR(36),
-    visual_number VARCHAR(255),
-    issuer VARCHAR(100) NOT NULL,
+    visual_number VARCHAR(64),
+    issuer VARCHAR(64) NOT NULL,
     group_id VARCHAR(36),
     valid BOOLEAN NOT NULL,
     whitelist VARCHAR(50),
@@ -170,7 +173,7 @@ ALTER TABLE cdrs ADD CONSTRAINT fk_cdrs_session_id
 
 -- Create ENUM types for status fields
 DO $$ BEGIN
-    CREATE TYPE evse_status_enum AS ENUM ('AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'MAINTENANCE', 'RESERVED', 'UNKNOWN');
+    CREATE TYPE evse_status_enum AS ENUM ('AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -210,8 +213,8 @@ CREATE TABLE IF NOT EXISTS emsp_locations (
     coordinates JSONB NOT NULL,
     related_locations JSON,
     parking_type VARCHAR(50),
-    evse_list JSON,
-    directions VARCHAR(500),
+    evses JSON,
+    directions JSON,
     operator JSON,
     suboperator JSON,
     owner JSON,

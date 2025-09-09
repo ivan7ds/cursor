@@ -7,6 +7,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.3] - 2025-09-08
+
+### Fixed
+- **Corrección de esquema de base de datos para compatibilidad con modelos Sequelize**
+  - Agregado campo `auth_method` faltante en tabla `tokens`
+  - Agregados campos `publish` y `deleted_at` faltantes en tabla `locations`
+  - Corregido nombre de campo `evse_list` a `evses` en tablas `locations` y `emsp_locations`
+  - Corregido tipo de campo `directions` de VARCHAR(500) a JSON en tablas de ubicaciones
+  - Actualizado ENUM de status de EVSE con valores completos según OCPI 2.2
+  - Corregidos tamaños de campos `visual_number` y `issuer` en tabla `tokens`
+
+- **Sincronización completa entre modelos Sequelize y estructura SQL**
+  - Eliminadas discrepancias entre definiciones de modelos y tablas
+  - Asegurada compatibilidad total para operaciones CRUD
+  - Soporte completo para soft delete y publicación selectiva
+  - Estructura JSON correcta para campos complejos
+
+### Improved
+- **Robustez del esquema de base de datos**
+  - Estructura de tablas completamente alineada con modelos de aplicación
+  - Eliminación de errores de mapeo entre ORM y base de datos
+  - Mejor soporte para funcionalidades avanzadas (soft delete, filtros)
+
 ## [0.9.2] - 2025-09-08
 
 ### Fixed
@@ -683,7 +706,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.9.2 (Estado actual)
+### Versión 0.9.3 (Estado actual)
+- **Corrección de esquema de base de datos**
+- **Sincronización completa con modelos Sequelize**
+- **Eliminación de discrepancias entre ORM y SQL**
+- **Soporte completo para soft delete y publicación selectiva**
+- **Estructura JSON correcta para campos complejos**
+- **Compatibilidad total para operaciones CRUD**
+
+### Versión 0.9.2
 - **Corrección de rutas en script de configuración**
 - **Unificación de contraseñas de base de datos**
 - **Script funciona desde cualquier directorio**
