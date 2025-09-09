@@ -103,6 +103,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Corregida función `notifyEMSPAboutSessionEnd` para obtener `location_id` del EVSE asociado
   - Agregada validación para verificar que el EVSE existe antes de enviar la notificación
   - Ahora las notificaciones de fin de sesión incluyen correctamente el `location_id` requerido por OCPI
+- **Agregada versión de la aplicación al banner del frontend**
+  - Actualizado banner principal para mostrar "OCPI Test Application v0.10.4"
+  - Actualizado título de la página para incluir la versión
+  - Sincronizada versión en `package.json` con la versión actual del CHANGELOG
+  - Mejorada identificación visual de la versión de la aplicación
+- **Aumentado tamaño del icono sparkle en el banner**
+  - Incrementado tamaño del favicon de 32x32 a 50x50 píxeles
+  - Mejorada visibilidad del icono sparkle en el navbar
+  - Mantenido el efecto de sombra y proporciones del icono
+- **Revertido banner al diseño azul original**
+  - Restaurado color azul Bootstrap (`bg-primary`) en el navbar
+  - Eliminados estilos CSS personalizados del gradiente
+  - Mantenido el icono sparkle de 50x50 píxeles y la versión v0.10.4
+  - Restaurada la apariencia clásica y profesional del banner
 
 ## [0.10.0] - 2025-09-09
 
