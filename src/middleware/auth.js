@@ -56,19 +56,32 @@ const authMiddleware = async (req, res, next) => {
         });
       }
     } else {
-      // Si el token es temporal, rechazarlo en el middleware normal
+      // Si el token es temporal, verificar si está permitido en este endpoint
       if (tokenInfo.temp === true) {
-        logger.warn('Authentication failed: Temporary token not allowed for this endpoint', { 
-          ip: req.ip, 
-          path: req.path,
-          providedToken: providedToken ? providedToken.substring(0, 10) + '...' : 'none'
-        });
+        // Endpoints que permiten tokens temporales (handshake)
+        const tempTokenAllowedPaths = [
+          '/ocpi/versions',
+          '/ocpi/cpo/2.2/details', 
+          '/ocpi/cpo/2.2/credentials'
+        ];
         
-        return res.status(403).json({
-          status_code: 2002,
-          status_message: 'Forbidden: This endpoint requires a permanent token',
-          timestamp: new Date().toISOString()
-        });
+        const isTempTokenAllowed = tempTokenAllowedPaths.some(path => 
+          req.originalUrl.startsWith(path)
+        );
+        
+        if (!isTempTokenAllowed) {
+          logger.warn('Authentication failed: Temporary token not allowed for this endpoint', { 
+            ip: req.ip, 
+            path: req.path,
+            providedToken: providedToken ? providedToken.substring(0, 10) + '...' : 'none'
+          });
+          
+          return res.status(403).json({
+            status_code: 2002,
+            status_message: 'Forbidden: This endpoint requires a permanent token',
+            timestamp: new Date().toISOString()
+          });
+        }
       }
     }
 

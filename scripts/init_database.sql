@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS credentials (
     business_details JSON,
     party_id VARCHAR(10) NOT NULL,
     country_code VARCHAR(2) NOT NULL,
+    external_party_id VARCHAR(10),
     valid BOOLEAN NOT NULL DEFAULT true,
     temp BOOLEAN NOT NULL DEFAULT false,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -183,6 +184,7 @@ CREATE INDEX IF NOT EXISTS idx_credentials_country_party ON credentials(country_
 CREATE INDEX IF NOT EXISTS idx_credentials_last_updated ON credentials(last_updated);
 CREATE INDEX IF NOT EXISTS idx_credentials_valid ON credentials(valid);
 CREATE INDEX IF NOT EXISTS idx_credentials_temp ON credentials(temp);
+CREATE INDEX IF NOT EXISTS idx_credentials_external_party_id ON credentials(external_party_id);
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_token ON ocpi_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_party ON ocpi_tokens(party_id, country_code);
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_active ON ocpi_tokens(is_active);

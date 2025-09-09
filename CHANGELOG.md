@@ -56,6 +56,43 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Eliminados todos los errores de "Temp token auth failed" en el frontend
   - Corregido formato de respuesta del endpoint `/api/connections` para incluir campos `token` y `last_updated`
   - Solucionado problema de campos "N/A" y "Invalid Date" en la pestaña de conexiones del frontend
+- **Implementación completa del proceso de handshake OCPI 2.2.1**
+  - Reescrito endpoint POST `/ocpi/cpo/2.2/credentials` para manejar handshake correctamente
+  - Validación de tokens temporales en header Authorization para autenticación
+  - Invalidación automática de tokens temporales después del handshake exitoso
+  - Creación de tokens permanentes para organizaciones externas conectadas
+  - Respuesta con credenciales del sistema según protocolo OCPI 2.2.1
+  - Tokens permanentes pueden acceder a todos los endpoints OCPI
+  - Tokens temporales invalidados ya no pueden acceder a ningún endpoint
+  - **Corregido enfoque de credenciales del sistema**
+    - Eliminadas credenciales del sistema de la tabla `credentials` (mezclaba datos internos con externos)
+    - Utilizado token interno existente `ocpi_token_ipd_2024_secure_key` para credenciales del sistema
+    - Endpoint POST `/credentials` ahora usa credenciales hardcodeadas del sistema (IPD/ES)
+    - Mantenida separación clara entre tokens de operadores externos y token interno del sistema
+- **Corregido almacenamiento de tokens bidireccionales en handshake**
+  - Ahora se guardan ambos tokens: el que nos envían y el que nosotros generamos
+  - Token de organización externa: para autenticar sus peticiones hacia nosotros
+  - Token que generamos: para autenticar nuestras peticiones hacia ellos
+  - Implementado flujo bidireccional completo según protocolo OCPI 2.2.1
+- **Corregida autenticación de endpoints de handshake**
+  - Endpoints `/versions`, `/details` y `/credentials` ahora aceptan tanto tokens temporales como permanentes
+  - Cambiados de `tempTokenAuth` a `authMiddleware` con lógica específica para tokens temporales
+  - Tokens temporales: permitidos solo en endpoints de handshake (`/versions`, `/details`, `/credentials`)
+  - Tokens permanentes: permitidos en todos los endpoints OCPI
+  - Solucionado problema de tokens permanentes generados en handshake que no funcionaban en `/versions`
+- **Corregido bug de entradas duplicadas en handshake**
+  - Eliminado bug que creaba 3 entradas en lugar de 2 durante el handshake
+  - Token temporal ahora se actualiza con el token del operador externo en lugar de crear nueva entrada
+  - Flujo corregido: 1 entrada para token del operador externo + 1 entrada para nuestro token
+  - Mejorada trazabilidad y eliminada confusión de entradas "huérfanas"
+  - Mantenida funcionalidad bidireccional completa
+- **Mejorada identificación de tokens en frontend**
+  - Agregado campo `external_party_id` a tabla `credentials` para identificar para qué operador son válidos nuestros tokens
+  - Actualizado modelo Sequelize `Credentials.js` con nuevo campo
+  - Modificado endpoint POST `/credentials` para establecer `external_party_id` al crear nuestros tokens
+  - Agregado script de migración `migrate_add_external_party_id.sql`
+  - Actualizado script de inicialización `init_database.sql` con nuevo campo e índice
+  - Solucionado problema de UX: ahora se puede identificar claramente para qué operador es cada token
 
 ## [0.10.0] - 2025-09-09
 

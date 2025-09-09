@@ -147,58 +147,122 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Extraer business_details del primer rol (asumiendo que todos tienen la misma información)
-    const businessDetails = roles[0].business_details || {};
+    // Obtener el token de autenticación del header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Token ')) {
+      return res.status(401).json({
+        status_code: 2001,
+        status_message: 'Authentication failed: Missing token in Authorization header',
+        timestamp: new Date().toISOString()
+      });
+    }
 
-    // Guardar las credenciales recibidas en nuestra base de datos
-    const credentials = await Credentials.create({
-      id: uuidv4(),
-      token,
-      url,
+    const authToken = authHeader.substring(6); // Remove 'Token ' prefix
+
+    // Buscar el token temporal en nuestra base de datos
+    const tempCredentials = await Credentials.findOne({
+      where: {
+        token: authToken,
+        valid: true,
+        temp: true
+      }
+    });
+
+    if (!tempCredentials) {
+      logger.warn('Handshake failed: Invalid or expired temporary token', {
+        ip: req.ip,
+        providedToken: authToken.substring(0, 10) + '...'
+      });
+      
+      return res.status(401).json({
+        status_code: 2001,
+        status_message: 'Authentication failed: Invalid or expired temporary token',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Extraer información de la organización externa del primer rol
+    const externalRole = roles[0];
+    const businessDetails = externalRole.business_details || {};
+
+    // Actualizar la entrada del token temporal con el token del operador externo
+    await tempCredentials.update({
+      token: token, // Reemplazar token temporal con el token del operador
+      url: url,
       business_details: businessDetails,
-      party_id: process.env.OCPI_PARTY_ID,
-      country_code: process.env.OCPI_COUNTRY_CODE,
+      party_id: externalRole.party_id,
+      country_code: externalRole.country_code,
+      valid: true,
+      temp: false, // Ya no es temporal, ahora es permanente
       last_updated: new Date()
     });
 
-    // Generar un nuevo token para la conexión con este eMSP
-    const newToken = `OCPI_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+    logger.info('Temporary token converted to permanent external token', {
+      partyId: externalRole.party_id,
+      countryCode: externalRole.country_code,
+      externalToken: token.substring(0, 10) + '...'
+    });
+
+    // Generar nuestro token para la organización externa
+    const ourToken = `OCPI_${uuidv4().replace(/-/g, '')}`;
+    
+    // Guardar nuestro token para autenticar peticiones hacia la organización externa
+    const ourCredentials = await Credentials.create({
+      id: uuidv4(),
+      token: ourToken,
+      url: url, // URL de la organización externa
+      business_details: {
+        name: 'IPD',
+        website: 'https://www.ipd.com'
+      },
+      party_id: process.env.OCPI_PARTY_ID || 'IPD',
+      country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
+      external_party_id: externalRole.party_id, // Identificar para qué operador es este token
+      valid: true,
+      temp: false,
+      last_updated: new Date()
+    });
+
+    logger.info('Our credentials created for external organization', {
+      externalPartyId: externalRole.party_id,
+      ourToken: ourToken.substring(0, 10) + '...'
+    });
     
     // Construir la URL base para nuestra respuesta
     const baseUrl = process.env.OCPI_BASE_URL || `${req.protocol}://${req.get('host')}`;
     const cleanBaseUrl = baseUrl.replace(/\/$/, '');
 
-    // Devolver nuestras credenciales con ambos roles según el patrón OCPI 2.2
+    // Usar credenciales del sistema (mismo token que usa el frontend)
+    const systemPartyId = process.env.OCPI_PARTY_ID || 'IPD';
+    const systemCountryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+    const systemBusinessDetails = {
+      name: 'IPD',
+      website: 'https://www.ipd.com'
+    };
+
+    // Devolver nuestras credenciales según OCPI 2.2.1
     const response = {
       status_code: 1000,
       data: {
-        token: newToken,
+        token: ourToken,
         url: `${cleanBaseUrl}/ocpi/cpo/versions`,
-        roles: [
-          {
-            role: "CPO",
-            business_details: {
-              name: "IPD"
-            },
-            party_id: "IPD",
-            country_code: "ES"
-          },
-          {
-            role: "EMSP",
-            business_details: {
-              name: "IPD"
-            },
-            party_id: "IPD",
-            country_code: "ES"
-          }
-        ]
+        business_details: systemBusinessDetails,
+        party_id: systemPartyId,
+        country_code: systemCountryCode,
+        last_updated: new Date().toISOString()
       },
       timestamp: new Date().toISOString()
     };
 
+    logger.info('Handshake completed successfully', {
+      externalPartyId: externalRole.party_id,
+      externalCountryCode: externalRole.country_code,
+      ourToken: ourToken.substring(0, 10) + '...'
+    });
+
     res.status(200).json(response);
   } catch (error) {
-    logger.error('Error creating credentials:', error);
+    logger.error('Error during handshake:', error);
     res.status(500).json({
       status_code: 2000,
       status_message: 'Internal server error',

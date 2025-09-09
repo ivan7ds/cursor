@@ -130,9 +130,9 @@ app.get('/test-emsp-locations', (req, res) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // OCPI 2.2 Routes
-app.use('/ocpi/versions', tempTokenAuth, versionsRoutes);
-app.use('/ocpi/cpo/2.2/details', tempTokenAuth, detailsRoutes);
-app.use('/ocpi/cpo/2.2/credentials', tempTokenAuth, credentialsRoutes);
+app.use('/ocpi/versions', authMiddleware, versionsRoutes);
+app.use('/ocpi/cpo/2.2/details', authMiddleware, detailsRoutes);
+app.use('/ocpi/cpo/2.2/credentials', authMiddleware, credentialsRoutes);
 app.use('/ocpi/cpo/2.2/locations', authMiddleware, locationsRoutes);
 app.use('/ocpi/cpo/2.2/evses', authMiddleware, evsesRoutes);
 app.use('/ocpi/cpo/2.2/sessions', authMiddleware, sessionsRoutes);

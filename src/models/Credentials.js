@@ -28,6 +28,10 @@ const Credentials = sequelize.define('Credentials', {
     type: DataTypes.STRING(2),
     allowNull: false
   },
+  external_party_id: {
+    type: DataTypes.STRING(10),
+    allowNull: true
+  },
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false
