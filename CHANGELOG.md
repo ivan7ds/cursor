@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.6] - 2025-09-09
+
+### Fixed
+- **Corrección masiva de esquema de base de datos para soporte de soft delete**
+  - Agregada columna `deleted_at TIMESTAMP WITH TIME ZONE` faltante en tabla `tariffs`
+  - Agregada columna `deleted_at TIMESTAMP WITH TIME ZONE` faltante en tabla `tokens`
+  - Agregada columna `deleted_at TIMESTAMP WITH TIME ZONE` faltante en tabla `emsp_tariffs`
+  - Agregada columna `deleted_at TIMESTAMP WITH TIME ZONE` faltante en tabla `emsp_tokens`
+  - Resuelto error "column deleted_at does not exist" en consultas de tarifas
+  - Eliminada inconsistencia masiva entre modelos Sequelize y script de inicialización SQL
+
+### Improved
+- **Sincronización completa entre modelos y esquema de base de datos**
+  - Script `init_database.sql` ahora coincide exactamente con todas las definiciones de modelos
+  - Agregados índices optimizados para columnas `deleted_at` en todas las tablas
+  - Soporte completo para soft delete en todas las entidades del sistema
+  - Eliminados errores de mapeo entre ORM y estructura de base de datos
+
 ## [0.9.5] - 2025-09-09
 
 ### Fixed
@@ -744,7 +762,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.9.5 (Estado actual)
+### Versión 0.9.6 (Estado actual)
+- **Corrección masiva de esquema de base de datos para soporte de soft delete**
+- **Resuelto error "column deleted_at does not exist" en consultas de tarifas**
+- **Sincronización completa entre modelos y esquema de base de datos**
+- **Agregadas columnas deleted_at en todas las tablas: tariffs, tokens, emsp_tariffs, emsp_tokens**
+
+### Versión 0.9.5
 - **Corrección crítica de esquema de base de datos para tabla sessions**
 - **Resuelto error "column Session.kwh does not exist" en consultas de sesiones activas**
 - **Sincronización completa entre modelos y esquema de base de datos**

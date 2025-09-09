@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS tariffs (
     start_date_time TIMESTAMP WITH TIME ZONE,
     end_date_time TIMESTAMP WITH TIME ZONE,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -127,6 +128,7 @@ CREATE TABLE IF NOT EXISTS tokens (
     default_profile_type VARCHAR(50),
     energy_contract JSON,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -171,8 +173,10 @@ CREATE INDEX IF NOT EXISTS idx_cdrs_country_party ON cdrs(country_code, party_id
 CREATE INDEX IF NOT EXISTS idx_cdrs_last_updated ON cdrs(last_updated);
 CREATE INDEX IF NOT EXISTS idx_tariffs_country_party ON tariffs(country_code, party_id);
 CREATE INDEX IF NOT EXISTS idx_tariffs_last_updated ON tariffs(last_updated);
+CREATE INDEX IF NOT EXISTS idx_tariffs_deleted_at ON tariffs(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_tokens_country_party ON tokens(country_code, party_id);
 CREATE INDEX IF NOT EXISTS idx_tokens_last_updated ON tokens(last_updated);
+CREATE INDEX IF NOT EXISTS idx_tokens_deleted_at ON tokens(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_credentials_country_party ON credentials(country_code, party_id);
 CREATE INDEX IF NOT EXISTS idx_credentials_last_updated ON credentials(last_updated);
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_token ON ocpi_tokens(token);
@@ -281,6 +285,7 @@ CREATE TABLE IF NOT EXISTS emsp_tariffs (
     start_date_time TIMESTAMP WITH TIME ZONE,
     end_date_time TIMESTAMP WITH TIME ZONE,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -343,6 +348,7 @@ CREATE TABLE IF NOT EXISTS emsp_tokens (
     default_profile_type VARCHAR(50),
     energy_contract JSON,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -376,12 +382,14 @@ CREATE INDEX IF NOT EXISTS idx_emsp_evses_location_id ON emsp_evses(location_id)
 CREATE INDEX IF NOT EXISTS idx_emsp_evses_status ON emsp_evses(status);
 CREATE INDEX IF NOT EXISTS idx_emsp_tariffs_emsp_party ON emsp_tariffs(emsp_party_id, emsp_country_code);
 CREATE INDEX IF NOT EXISTS idx_emsp_tariffs_last_updated ON emsp_tariffs(last_updated);
+CREATE INDEX IF NOT EXISTS idx_emsp_tariffs_deleted_at ON emsp_tariffs(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_emsp_sessions_emsp_party ON emsp_sessions(emsp_party_id, emsp_country_code);
 CREATE INDEX IF NOT EXISTS idx_emsp_sessions_last_updated ON emsp_sessions(last_updated);
 CREATE INDEX IF NOT EXISTS idx_emsp_cdrs_emsp_party ON emsp_cdrs(emsp_party_id, emsp_country_code);
 CREATE INDEX IF NOT EXISTS idx_emsp_cdrs_last_updated ON emsp_cdrs(last_updated);
 CREATE INDEX IF NOT EXISTS idx_emsp_tokens_emsp_party ON emsp_tokens(emsp_party_id, emsp_country_code);
 CREATE INDEX IF NOT EXISTS idx_emsp_tokens_last_updated ON emsp_tokens(last_updated);
+CREATE INDEX IF NOT EXISTS idx_emsp_tokens_deleted_at ON emsp_tokens(deleted_at);
 CREATE INDEX IF NOT EXISTS idx_emsp_contracts_emsp_party ON emsp_contracts(emsp_party_id, emsp_country_code);
 CREATE INDEX IF NOT EXISTS idx_emsp_contracts_last_updated ON emsp_contracts(last_updated);
 
