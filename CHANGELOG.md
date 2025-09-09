@@ -7,6 +7,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.10.5] - 2025-09-09
+
+### Fixed
+- **Corrección crítica del handshake OCPI 2.2.1**
+  - Corregido error "Our credentials not found" en endpoint `connect-to-organization`
+  - Eliminada búsqueda incorrecta de credenciales del sistema en tabla `credentials`
+  - Implementado uso de variables de entorno para credenciales del sistema
+  - Credenciales del sistema ahora se obtienen de `.env` en lugar de base de datos
+  - Separación clara entre credenciales internas (variables de entorno) y externas (tabla `credentials`)
+- **Corrección de construcción de URLs en handshake OCPI**
+  - Solucionado problema de dobles barras (`//ocpi/versions`) en URLs de handshake
+  - Implementado `replace(/\/$/, '')` para eliminar barras finales de URLs base
+  - URLs ahora se construyen correctamente: `http://host:port/ocpi/versions`
+  - Aplicado a todos los endpoints del handshake: `/versions`, `/details`, `/credentials`
+  - Eliminado error `ECONNREFUSED` causado por URLs malformadas
+
+### Technical
+- **Mejoras en endpoint `connect-to-organization`**
+  - Credenciales del sistema obtenidas de variables de entorno: `OCPI_PARTY_ID`, `OCPI_COUNTRY_CODE`, `OCPI_TOKEN`, `OCPI_BASE_URL`
+  - Construcción robusta de URLs sin dobles barras
+  - Mejor manejo de errores de conectividad
+  - Logging mejorado para debugging del handshake
+
 ## [0.10.1] - 2025-09-09
 
 ### Fixed

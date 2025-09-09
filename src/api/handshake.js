@@ -107,7 +107,7 @@ router.post('/connect-to-organization', async (req, res) => {
     try {
         const { url, token, partyId, countryCode } = req.body;
         
-        console.log('🔗 Iniciando conexión a organización externa:', { url, partyId, countryCode });
+        console.log('🔗 Iniciando handshake OCPI 2.2.1 con organización externa:', { url, partyId, countryCode });
         
         // Validar datos de entrada
         if (!url || !token || !partyId || !countryCode) {
@@ -128,75 +128,130 @@ router.post('/connect-to-organization', async (req, res) => {
             });
         }
         
-        // Obtener nuestras credenciales para enviar
-        const ourCredentials = await Credentials.findOne({
-            where: { party_id: process.env.OCPI_PARTY_ID || 'IPD' }
+        // Obtener nuestras credenciales del sistema desde variables de entorno
+        const ourCredentials = {
+            party_id: process.env.OCPI_PARTY_ID || 'IPD',
+            country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
+            token: process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key',
+            url: process.env.OCPI_BASE_URL || 'https://localhost:3000',
+            business_details: {
+                name: process.env.OCPI_BUSINESS_NAME || 'Test CPO',
+                website: process.env.OCPI_BUSINESS_WEBSITE || 'https://test.com'
+            }
+        };
+        
+        // PASO 1: GET /ocpi/versions - Obtener endpoint de details
+        console.log('📡 Paso 1: Obteniendo versión OCPI...');
+        const versionsUrl = `${sanitizedUrl.replace(/\/$/, '')}/ocpi/versions`;
+        const versionsResponse = await axios.get(versionsUrl, {
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
         
-        if (!ourCredentials) {
-            return res.status(500).json({
-                status_code: 2000,
-                status_message: 'Our credentials not found',
+        console.log('✅ Versión OCPI obtenida:', versionsResponse.data);
+        
+        // Extraer endpoint de details de la respuesta
+        const versionData = versionsResponse.data.data || versionsResponse.data;
+        const detailsEndpoint = versionData.find(v => v.version === '2.2')?.url;
+        
+        if (!detailsEndpoint) {
+            return res.status(400).json({
+                status_code: 2001,
+                status_message: 'OCPI 2.2 not supported by external organization',
                 timestamp: new Date().toISOString()
             });
         }
         
-        // Preparar payload para enviar a la organización externa
+        // PASO 2: GET /ocpi/cpo/2.2/details - Obtener endpoints del operador
+        console.log('📡 Paso 2: Obteniendo detalles del operador...');
+        const detailsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/details`;
+        const detailsResponse = await axios.get(detailsUrl, {
+            headers: {
+                'Authorization': `Token ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('✅ Detalles del operador obtenidos:', detailsResponse.data);
+        
+        // Extraer endpoints del operador
+        const operatorEndpoints = detailsResponse.data.endpoints || [];
+        
+        // PASO 3: POST /ocpi/cpo/2.2/credentials - Enviar nuestro token y recibir el suyo
+        console.log('📡 Paso 3: Enviando credenciales...');
+        
         const credentialsPayload = {
             token: ourCredentials.token,
             url: ourCredentials.url,
-            business_details: ourCredentials.business_details,
-            party_id: ourCredentials.party_id,
-            country_code: ourCredentials.country_code,
-            last_updated: new Date().toISOString()
+            roles: [{
+                role: 'CPO',
+                party_id: ourCredentials.party_id,
+                country_code: ourCredentials.country_code,
+                business_details: ourCredentials.business_details
+            }]
         };
         
         console.log('📤 Enviando credenciales a organización externa:', credentialsPayload);
         
-        // Enviar credenciales a la organización externa
-        const response = await axios.post(`${sanitizedUrl}/ocpi/2.2/credentials`, credentialsPayload, {
+        const credentialsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/credentials`;
+        const credentialsResponse = await axios.post(credentialsUrl, credentialsPayload, {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            },
-            timeout: 10000
+            }
         });
         
-        console.log('📥 Respuesta de la organización externa:', response.data);
+        console.log('✅ Respuesta de credenciales:', credentialsResponse.data);
         
-        // Guardar las credenciales de la organización externa en nuestra base de datos
+        // Almacenar credenciales de la organización externa con endpoints
         const externalCredentials = {
             id: uuidv4(),
-            token: token,
-            url: sanitizedUrl,
-            business_details: response.data.data.business_details || {},
+            token: credentialsResponse.data.token,
+            url: credentialsResponse.data.url,
+            business_details: credentialsResponse.data.business_details,
             party_id: partyId,
             country_code: countryCode,
+            valid: true,
+            temp: false,
+            external_party_id: partyId,
             last_updated: new Date().toISOString()
         };
         
+        // Almacenar endpoints del operador externo
+        if (operatorEndpoints.length > 0) {
+            externalCredentials.endpoints = operatorEndpoints;
+        }
+        
         await Credentials.create(externalCredentials);
         
-        console.log('✅ Conexión establecida exitosamente');
+        // Invalidar token temporal si existe
+        if (token !== credentialsResponse.data.token) {
+            await Credentials.update(
+                { valid: false },
+                { where: { token: token } }
+            );
+        }
+        
+        console.log('✅ Handshake OCPI 2.2.1 completado exitosamente');
         
         res.status(200).json({
             status_code: 1000,
-            status_message: 'Connection established successfully',
+            status_message: 'OCPI 2.2.1 handshake completed successfully',
             data: {
-                external_organization: {
-                    party_id: partyId,
-                    country_code: countryCode,
-                    url: sanitizedUrl
-                },
-                our_credentials: credentialsPayload
+                party_id: partyId,
+                country_code: countryCode,
+                token: credentialsResponse.data.token,
+                endpoints: operatorEndpoints
             },
             timestamp: new Date().toISOString()
         });
         
     } catch (error) {
-        console.error('❌ Error conectando a organización externa:', error);
+        console.error('❌ Error en handshake OCPI:', error);
         
-        let errorMessage = 'Error connecting to external organization';
+        let errorMessage = 'Internal server error';
         let statusCode = 2000;
         
         if (error.response) {
@@ -271,20 +326,15 @@ router.post('/generate-credentials', async (req, res) => {
         // Generar token inicial único para el handshake
         const initialToken = `OCPI_${uuidv4().replace(/-/g, '')}`;
         
-        // Obtener nuestras credenciales del sistema (usar cualquier credencial existente como base)
-        const ourCredentials = await Credentials.findOne({
-            where: { 
-                party_id: { [require('sequelize').Op.ne]: null } // Cualquier credencial existente
+        // Usar configuración del sistema desde variables de entorno
+        const ourCredentials = {
+            party_id: process.env.OCPI_PARTY_ID || 'IPD',
+            country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
+            business_details: {
+                name: process.env.OCPI_BUSINESS_NAME || 'Test CPO',
+                website: process.env.OCPI_BUSINESS_WEBSITE || 'https://test.com'
             }
-        });
-        
-        if (!ourCredentials) {
-            return res.status(500).json({
-                status_code: 2000,
-                status_message: 'No system credentials found. Please ensure the system is properly configured.',
-                timestamp: new Date().toISOString()
-            });
-        }
+        };
         
         // Crear credenciales temporales para el handshake inicial
         const handshakeCredentials = {
