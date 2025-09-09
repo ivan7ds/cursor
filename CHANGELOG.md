@@ -31,6 +31,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Corregido token de autenticación en frontend para usar token válido del localStorage
   - Corregida visualización de credenciales generadas para mostrar datos correctos en lugar de undefined
   - Corregido formato de instrucciones para mostrar texto legible en lugar de [object Object]
+- **Corrección de URL hardcodeada en endpoints OCPI**
+  - Corregida configuración de OCPI_BASE_URL en docker-compose.yml para usar archivo .env
+  - Agregada directiva env_file para cargar variables de entorno desde .env
+  - Eliminada URL de ngrok hardcodeada en frontend
+  - Implementada obtención dinámica de URL base desde configuración del servidor
+  - Endpoints /versions y /details ahora usan correctamente la variable de entorno OCPI_BASE_URL del archivo .env
 
 ## [0.10.0] - 2025-09-09
 

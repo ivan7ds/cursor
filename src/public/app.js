@@ -7373,10 +7373,32 @@ if (filterActiveExtSessions) {
 
     // Obtener la URL base del servidor desde la configuración
     async getServerBaseUrl() {
-        // Por ahora usamos la URL de ngrok que está en el docker-compose
-        const ocpiBaseUrl = 'https://f106470a83a3.ngrok-free.app';
-                    this.logToChargingConsole(`🌐 URL base configurada: ${ocpiBaseUrl}`, 'debug');
-        return ocpiBaseUrl;
+        try {
+            // Obtener la URL base desde la configuración del servidor
+            const response = await fetch('/api/config/ocpi-settings', {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
+            
+            if (response.ok) {
+                const config = await response.json();
+                const ocpiBaseUrl = config.data?.baseUrl || window.location.origin;
+                this.logToChargingConsole(`🌐 URL base configurada: ${ocpiBaseUrl}`, 'debug');
+                return ocpiBaseUrl;
+            } else {
+                // Fallback a la URL actual si no se puede obtener la configuración
+                const ocpiBaseUrl = window.location.origin;
+                this.logToChargingConsole(`🌐 URL base (fallback): ${ocpiBaseUrl}`, 'debug');
+                return ocpiBaseUrl;
+            }
+        } catch (error) {
+            console.error('❌ Error obteniendo URL base:', error);
+            // Fallback a la URL actual
+            const ocpiBaseUrl = window.location.origin;
+            this.logToChargingConsole(`🌐 URL base (fallback): ${ocpiBaseUrl}`, 'debug');
+            return ocpiBaseUrl;
+        }
     }
 
     // Obtener un token real de la base de datos o usar token personalizado
