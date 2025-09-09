@@ -858,7 +858,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${window.OCPI_TOKEN || 'test-token'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -896,6 +896,24 @@ if (filterActiveExtSessions) {
         try {
             console.log('🔑 Mostrando credenciales generadas:', credentials);
             
+            // Extraer datos de la respuesta
+            const ourCredentials = credentials.our_credentials || {};
+            const externalOrg = credentials.external_organization || {};
+            const instructions = credentials.instructions || {};
+            
+            // Formatear instrucciones
+            let instructionsText = '';
+            if (typeof instructions === 'string') {
+                instructionsText = instructions;
+            } else if (instructions.message) {
+                instructionsText = instructions.message;
+                if (instructions.next_step) {
+                    instructionsText += ` ${instructions.next_step}`;
+                }
+            } else {
+                instructionsText = 'Use the provided token to initiate handshake with the external organization';
+            }
+            
             // Crear modal para mostrar credenciales
             const credentialsModal = document.createElement('div');
             credentialsModal.className = 'modal fade';
@@ -912,36 +930,36 @@ if (filterActiveExtSessions) {
                         <div class="modal-body">
                             <div class="alert alert-info">
                                 <i class="bi bi-info-circle"></i>
-                                <strong>Instrucciones:</strong> Comparte estas credenciales con la organización externa para que puedan conectarse a ti.
+                                <strong>Instrucciones:</strong> ${instructionsText}
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <h6>Credenciales para la Organización Externa:</h6>
                                     <div class="mb-3">
                                         <label class="form-label"><strong>URL:</strong></label>
-                                        <input type="text" class="form-control" value="${credentials.url}" readonly>
+                                        <input type="text" class="form-control" value="${ourCredentials.url || 'N/A'}" readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label"><strong>Token:</strong></label>
-                                        <input type="text" class="form-control" value="${credentials.token}" readonly>
+                                        <input type="text" class="form-control" value="${ourCredentials.token || 'N/A'}" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <h6>Información de la Organización:</h6>
                                     <div class="mb-3">
                                         <label class="form-label"><strong>Party ID:</strong></label>
-                                        <input type="text" class="form-control" value="${credentials.party_id}" readonly>
+                                        <input type="text" class="form-control" value="${externalOrg.party_id || 'N/A'}" readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label"><strong>País:</strong></label>
-                                        <input type="text" class="form-control" value="${credentials.country_code}" readonly>
+                                        <input type="text" class="form-control" value="${externalOrg.country_code || 'N/A'}" readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-primary" onclick="navigator.clipboard.writeText('${credentials.token}')">
+                            <button type="button" class="btn btn-primary" onclick="navigator.clipboard.writeText('${ourCredentials.token || ''}')">
                                 <i class="bi bi-clipboard"></i> Copiar Token
                             </button>
                         </div>

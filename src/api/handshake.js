@@ -257,7 +257,7 @@ router.post('/generate-credentials', async (req, res) => {
     try {
         const { partyId, countryCode, url } = req.body;
         
-        console.log('🔑 Generando credenciales para organización externa:', { partyId, countryCode, url });
+        console.log('🔑 Generando token inicial para handshake OCPI:', { partyId, countryCode, url });
         
         // Validar datos de entrada
         if (!partyId || !countryCode || !url) {
@@ -268,26 +268,28 @@ router.post('/generate-credentials', async (req, res) => {
             });
         }
         
-        // Generar token único para la organización externa
-        const token = uuidv4();
+        // Generar token inicial único para el handshake
+        const initialToken = `OCPI_${uuidv4().replace(/-/g, '')}`;
         
-        // Obtener nuestras credenciales
+        // Obtener nuestras credenciales del sistema (usar cualquier credencial existente como base)
         const ourCredentials = await Credentials.findOne({
-            where: { party_id: process.env.OCPI_PARTY_ID || 'IPD' }
+            where: { 
+                party_id: { [require('sequelize').Op.ne]: null } // Cualquier credencial existente
+            }
         });
         
         if (!ourCredentials) {
             return res.status(500).json({
                 status_code: 2000,
-                status_message: 'Our credentials not found',
+                status_message: 'No system credentials found. Please ensure the system is properly configured.',
                 timestamp: new Date().toISOString()
             });
         }
         
-        // Crear credenciales para la organización externa
-        const externalCredentials = {
+        // Crear credenciales temporales para el handshake inicial
+        const handshakeCredentials = {
             id: uuidv4(),
-            token: token,
+            token: initialToken,
             url: url,
             business_details: ourCredentials.business_details,
             party_id: partyId,
@@ -295,31 +297,46 @@ router.post('/generate-credentials', async (req, res) => {
             last_updated: new Date().toISOString()
         };
         
-        // Guardar en base de datos
-        await Credentials.create(externalCredentials);
+        // Guardar credenciales temporales en base de datos
+        await Credentials.create(handshakeCredentials);
         
-        console.log('✅ Credenciales generadas exitosamente');
+        console.log('✅ Token inicial generado exitosamente para handshake');
         
+        // Devolver las credenciales que el operador externo debe usar para iniciar el handshake
         res.status(200).json({
             status_code: 1000,
-            status_message: 'Credentials generated successfully',
+            status_message: 'Initial token generated successfully for handshake',
             data: {
-                url: ourCredentials.url,
-                token: token,
-                party_id: ourCredentials.party_id,
-                country_code: ourCredentials.country_code,
-                business_details: ourCredentials.business_details,
-                last_updated: new Date().toISOString()
+                // Credenciales que el operador externo debe usar para conectarse a nosotros
+                our_credentials: {
+                    url: ourCredentials.url,
+                    token: initialToken,
+                    party_id: ourCredentials.party_id,
+                    country_code: ourCredentials.country_code,
+                    business_details: ourCredentials.business_details,
+                    last_updated: new Date().toISOString()
+                },
+                // Información de la organización externa
+                external_organization: {
+                    party_id: partyId,
+                    country_code: countryCode,
+                    url: url
+                },
+                // Instrucciones para el operador externo
+                instructions: {
+                    message: 'Use the provided token to initiate handshake with the external organization',
+                    next_step: 'Use the "Connect to External Organization" button to complete the handshake'
+                }
             },
             timestamp: new Date().toISOString()
         });
         
     } catch (error) {
-        console.error('❌ Error generando credenciales:', error);
+        console.error('❌ Error generando token inicial:', error);
         
         res.status(500).json({
             status_code: 2000,
-            status_message: 'Error generating credentials',
+            status_message: 'Error generating initial token',
             timestamp: new Date().toISOString()
         });
     }

@@ -23,6 +23,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Solucionado problema de autenticación en endpoint /api/config/ocpi-settings
   - Agregado header de autorización a la petición de configuraciones OCPI
   - Restaurada funcionalidad de carga de configuraciones para inicio de recarga
+- **Corrección del proceso de handshake OCPI 2.2.1**
+  - Corregida función generate-credentials para generar token inicial correcto
+  - Eliminada búsqueda incorrecta de credenciales existentes con party_id específico
+  - Implementado proceso correcto de generación de token inicial para handshake
+  - Mejorada respuesta con instrucciones claras para el operador externo
+  - Corregido token de autenticación en frontend para usar token válido del localStorage
+  - Corregida visualización de credenciales generadas para mostrar datos correctos en lugar de undefined
+  - Corregido formato de instrucciones para mostrar texto legible en lugar de [object Object]
 
 ## [0.10.0] - 2025-09-09
 
