@@ -7698,10 +7698,10 @@ ${JSON.stringify(data, null, 2)}`;
                     </span>
                 </td>
                 <td>
-                    ${session.start_datetime ? new Date(session.start_datetime).toLocaleString('es-ES') : 'N/A'}
+                    ${session.start_date_time ? new Date(session.start_date_time).toLocaleString('es-ES') : 'N/A'}
                 </td>
                 <td>
-                    ${session.end_datetime ? new Date(session.end_datetime).toLocaleString('es-ES') : 'N/A'}
+                    ${session.end_date_time ? new Date(session.end_date_time).toLocaleString('es-ES') : 'N/A'}
                 </td>
                 <td>
                     ${session.kwh ? parseFloat(session.kwh).toFixed(3) : '0.000'} kWh

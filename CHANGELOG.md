@@ -93,6 +93,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Agregado script de migración `migrate_add_external_party_id.sql`
   - Actualizado script de inicialización `init_database.sql` con nuevo campo e índice
   - Solucionado problema de UX: ahora se puede identificar claramente para qué operador es cada token
+- **Corregido bug en pestaña Ext Sessions**
+  - Solucionado problema donde el campo "Fin" mostraba "N/A" en lugar de la fecha de finalización
+  - Corregido uso de campos de fecha: `end_date_time` en lugar de `end_datetime`
+  - Corregido también campo de inicio: `start_date_time` en lugar de `start_datetime`
+  - Ahora las fechas de inicio y fin se muestran correctamente en la tabla de sesiones externas
 
 ## [0.10.0] - 2025-09-09
 
