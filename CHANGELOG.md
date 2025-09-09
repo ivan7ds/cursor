@@ -7,6 +7,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.10.1] - 2025-09-09
+
+### Fixed
+- **Corrección de campos URL y Token en pestaña Ext Actions**
+  - Solucionado problema de IDs duplicados que impedía el llenado automático
+  - Campos ahora se actualizan correctamente al seleccionar conexión CPO
+  - IDs únicos: `cpoUrlExtActions` y `cpoTokenExtActions`
+  - Mejora la experiencia de usuario en operaciones externas
+
 ## [0.10.0] - 2025-09-09
 
 ### Added

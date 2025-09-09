@@ -6298,14 +6298,14 @@ if (filterActiveExtSessions) {
         
         if (selectedOption.value) {
             // Rellenar campos con los datos de la conexión seleccionada
-            document.getElementById('cpoUrl').value = selectedOption.dataset.url || '';
-            document.getElementById('cpoToken').value = selectedOption.dataset.token || '';
+            document.getElementById('cpoUrlExtActions').value = selectedOption.dataset.url || '';
+            document.getElementById('cpoTokenExtActions').value = selectedOption.dataset.token || '';
             
             console.log('✅ Campos URL y Token actualizados con la conexión seleccionada');
         } else {
             // Limpiar campos si no hay selección
-            document.getElementById('cpoUrl').value = '';
-            document.getElementById('cpoToken').value = '';
+            document.getElementById('cpoUrlExtActions').value = '';
+            document.getElementById('cpoTokenExtActions').value = '';
             
             console.log('🧹 Campos URL y Token limpiados');
         }
@@ -6314,8 +6314,8 @@ if (filterActiveExtSessions) {
     // Obtener versión del CPO
     async getCpoVersions() {
         try {
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value;
 
             if (!cpoUrl || !cpoToken) {
@@ -6351,8 +6351,8 @@ if (filterActiveExtSessions) {
     // Obtener locations del CPO
     async getCpoLocations() {
         try {
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value;
 
             if (!cpoUrl || !cpoToken) {
@@ -6546,8 +6546,8 @@ if (filterActiveExtSessions) {
     // Obtener tariffs del CPO y guardarlos en BD
     async getCpoTariffs() {
         try {
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             if (!cpoUrl || !cpoToken) {
@@ -6589,8 +6589,8 @@ if (filterActiveExtSessions) {
     // Obtener tokens del CPO externo usando /ocpi/emsp/2.2/tokens
     async getCpoTokens() {
         try {
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             if (!cpoUrl || !cpoToken) {
@@ -6945,8 +6945,8 @@ if (filterActiveExtSessions) {
             this.logToChargingConsole(`🚀 Iniciando recarga con EVSE: ${evseUid}`, 'system');
             this.logToChargingConsole(`🏷️ EVSE ID: ${evseId}`, 'evse');
             
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             this.logToChargingConsole(`🔗 URL del CPO: ${cpoUrl}`, 'debug');
@@ -7053,8 +7053,8 @@ if (filterActiveExtSessions) {
             this.logToChargingConsole(`   🏷️ EVSE ID: ${this.currentChargingSession.evseId}`, 'evse');
             this.logToChargingConsole(`   🎫 Token: ${this.currentChargingSession.token.uid}`, 'token');
             
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             // Obtener la URL base del servidor
@@ -7483,8 +7483,8 @@ if (filterActiveExtSessions) {
     // Obtener CDRs del CPO
     async getCpoCdrs() {
         try {
-            const cpoUrl = document.getElementById('cpoUrl').value;
-            const cpoToken = document.getElementById('cpoToken').value;
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             if (!cpoUrl || !cpoToken) {
