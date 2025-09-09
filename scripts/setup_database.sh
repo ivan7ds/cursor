@@ -5,6 +5,12 @@
 
 echo "🚀 Starting CPO OCPI 2.2 database setup..."
 
+# Load environment variables from .env file if it exists
+if [ -f .env ]; then
+    echo "📄 Loading environment variables from .env file..."
+    export $(grep -v '^#' .env | xargs)
+fi
+
 # Database connection parameters (with environment variable support)
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
