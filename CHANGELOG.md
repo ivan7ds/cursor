@@ -15,6 +15,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Campos ahora se actualizan correctamente al seleccionar conexión CPO
   - IDs únicos: `cpoUrlExtActions` y `cpoTokenExtActions`
   - Mejora la experiencia de usuario en operaciones externas
+- **Corrección de error EmspSession.upsert is not a function**
+  - Solucionado problema de inicialización del modelo EmspSession
+  - Modelo ahora se inicializa correctamente con la instancia de Sequelize
+  - Restaurada funcionalidad de PUT sessions para eMSPs externos
 
 ## [0.10.0] - 2025-09-09
 
