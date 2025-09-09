@@ -39,7 +39,11 @@ class DashboardApp {
 
     async loadOCPISettings() {
         try {
-            const response = await fetch(`${this.baseUrl}/api/config/ocpi-settings`);
+            const response = await fetch(`${this.baseUrl}/api/config/ocpi-settings`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
             if (response.ok) {
                 const settings = await response.json();
                 window.OCPI_PARTY_ID = settings.partyId;

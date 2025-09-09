@@ -19,6 +19,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Solucionado problema de inicialización del modelo EmspSession
   - Modelo ahora se inicializa correctamente con la instancia de Sequelize
   - Restaurada funcionalidad de PUT sessions para eMSPs externos
+- **Corrección de error "No se pudieron cargar las configuraciones OCPI"**
+  - Solucionado problema de autenticación en endpoint /api/config/ocpi-settings
+  - Agregado header de autorización a la petición de configuraciones OCPI
+  - Restaurada funcionalidad de carga de configuraciones para inicio de recarga
 
 ## [0.10.0] - 2025-09-09
 
