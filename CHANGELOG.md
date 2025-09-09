@@ -7,6 +7,57 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-09-09
+
+### Added
+- **Nueva columna de referencia física en tabla de EVSEs**
+  - Agregada columna "Referencia Física" en la vista de EVSEs del frontend
+  - Muestra la referencia física del EVSE si está disponible, guión (-) si no
+  - Posicionada estratégicamente entre Location y Estado para mejor flujo visual
+  - Mejora la identificación física de puntos de carga para operadores
+
+### Fixed
+- **Reparación completa de filtros de búsqueda para EVSEs**
+  - Agregados event listeners faltantes para `evseStatusFilter` y `evseSearchFilter`
+  - Creada función `applyEvseFilters()` para procesar filtros de EVSEs locales
+  - Filtro por estado ahora funciona correctamente (Disponible, Cargando, Inoperativo, etc.)
+  - Filtro de búsqueda en tiempo real ahora funciona en todo el contenido de la fila
+  - Filtros combinables - permite usar estado + búsqueda simultáneamente
+  - Actualización en tiempo real con contador de resultados visibles
+
+- **Corrección de uso de variables de entorno en lugar de valores hardcodeados**
+  - Modificado `docker-compose.yml` para usar variables de entorno con valores por defecto
+  - Eliminados valores hardcodeados como fallback en `src/public/app.js`
+  - Agregadas validaciones para asegurar que las variables estén configuradas
+  - Corregido `config.example.js` para consistencia en valores por defecto
+  - Los usuarios ahora pueden configurar `OCPI_PARTY_ID` y `OCPI_COUNTRY_CODE` en su `.env`
+
+### Improved
+- **Mejor experiencia de usuario en configuración**
+  - Mensajes de error claros cuando las variables de entorno no están configuradas
+  - Validación previa antes de crear elementos (locations, EVSEs)
+  - Forzar configuración correcta en lugar de usar valores por defecto silenciosamente
+  - Mejor guía para usuarios sobre cómo configurar la aplicación
+
+- **Interfaz de usuario mejorada para gestión de EVSEs**
+  - Información más completa en la tabla de EVSEs con referencia física
+  - Filtros funcionales que mejoran la navegación y búsqueda
+  - Mejor organización visual de la información
+  - Consistencia con el diseño existente
+
+### Technical
+- **Arquitectura de filtros mejorada**
+  - Función `applyEvseFilters()` independiente para EVSEs locales
+  - Manejo correcto de 8 columnas (incluyendo nueva columna de referencia física)
+  - Event listeners específicos para cada tipo de filtro
+  - Logging detallado para debugging de filtros
+
+- **Configuración de entorno más robusta**
+  - Uso de sintaxis `${VARIABLE:-default}` en Docker Compose
+  - Validación de configuración en tiempo de ejecución
+  - Eliminación de dependencias de valores hardcodeados
+  - Mejor separación entre configuración de desarrollo y producción
+
 ## [0.9.6] - 2025-09-09
 
 ### Fixed

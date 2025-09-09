@@ -32,7 +32,7 @@ module.exports = {
   ocpi: {
     version: process.env.OCPI_VERSION || '2.2',
     baseUrl: process.env.OCPI_BASE_URL || 'https://api.cpo-example.com',
-    partyId: process.env.OCPI_PARTY_ID || 'ES-CPO',
+    partyId: process.env.OCPI_PARTY_ID || 'IPD',
     countryCode: process.env.OCPI_COUNTRY_CODE || 'ES'
   },
 

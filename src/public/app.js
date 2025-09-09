@@ -48,10 +48,11 @@ class DashboardApp {
                 console.log('🌐 OCPI Settings loaded:', settings);
             }
         } catch (error) {
-            console.warn('⚠️ Could not load OCPI settings, using defaults:', error);
-            window.OCPI_PARTY_ID = 'IPD';
-            window.OCPI_COUNTRY_CODE = 'ES';
-            window.OCPI_VERSION = '2.2';
+            console.error('❌ Could not load OCPI settings:', error);
+            // No establecer valores por defecto - forzar al usuario a configurar correctamente
+            window.OCPI_PARTY_ID = null;
+            window.OCPI_COUNTRY_CODE = null;
+            window.OCPI_VERSION = null;
         }
     }
 
@@ -488,6 +489,29 @@ if (filterActiveExtSessions) {
                 console.log('✅ Event listener para emspEvseSearchFilter agregado');
             } else {
                 console.warn('⚠️ Elemento emspEvseSearchFilter no encontrado');
+            }
+
+            // Event listeners para filtros de EVSEs locales
+            const evseStatusFilter = document.getElementById('evseStatusFilter');
+            if (evseStatusFilter) {
+                evseStatusFilter.addEventListener('change', () => {
+                    console.log('🔍 Filtro de estado EVSE cambiado:', evseStatusFilter.value);
+                    this.applyEvseFilters();
+                });
+                console.log('✅ Event listener para evseStatusFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento evseStatusFilter no encontrado');
+            }
+
+            const evseSearchFilter = document.getElementById('evseSearchFilter');
+            if (evseSearchFilter) {
+                evseSearchFilter.addEventListener('input', () => {
+                    console.log('🔍 Filtro de búsqueda EVSE cambiado:', evseSearchFilter.value);
+                    this.applyEvseFilters();
+                });
+                console.log('✅ Event listener para evseSearchFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento evseSearchFilter no encontrado');
             }
             
 
@@ -2158,7 +2182,7 @@ if (filterActiveExtSessions) {
         if (evses.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-muted">
+                    <td colspan="8" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay EVSEs disponibles
                     </td>
                 </tr>
@@ -2177,6 +2201,11 @@ if (filterActiveExtSessions) {
                     </td>
                     <td><code>${evse.id}</code></td>
                     <td><code>${evse.location_id}</code></td>
+                    <td>
+                        <span class="text-muted">
+                            ${evse.physical_reference || '<i class="bi bi-dash"></i>'}
+                        </span>
+                    </td>
                     <td><span class="badge status-badge status-${evse.status}">${evse.status}</span></td>
                     <td>
                         <span class="badge bg-info cursor-pointer connectors-tooltip" 
@@ -3627,6 +3656,11 @@ if (filterActiveExtSessions) {
 
     collectLocationFormData() {
         try {
+            // Validar que las variables de entorno estén configuradas
+            if (!window.OCPI_COUNTRY_CODE || !window.OCPI_PARTY_ID) {
+                throw new Error('❌ Variables de entorno OCPI no configuradas. Por favor, reinicia la aplicación y asegúrate de que OCPI_PARTY_ID y OCPI_COUNTRY_CODE estén definidas en tu archivo .env');
+            }
+
             const formData = {
                 id: document.getElementById('locationId').value,
                 name: document.getElementById('locationName').value,
@@ -3646,8 +3680,8 @@ if (filterActiveExtSessions) {
                 operator: document.getElementById('locationOperator').value || null,
                 open_24h: document.getElementById('locationOpen24h').checked,
                 access_public: document.getElementById('locationAccessPublic').checked,
-                country_code: window.OCPI_COUNTRY_CODE || 'ES', // Por defecto España
-                party_id: window.OCPI_PARTY_ID || 'IPD', // Por defecto IPD
+                country_code: window.OCPI_COUNTRY_CODE,
+                party_id: window.OCPI_PARTY_ID,
                 last_updated: new Date().toISOString()
             };
             
@@ -4288,11 +4322,16 @@ if (filterActiveExtSessions) {
                 };
             });
             
+            // Validar que las variables de entorno estén configuradas
+            if (!window.OCPI_COUNTRY_CODE || !window.OCPI_PARTY_ID) {
+                throw new Error('❌ Variables de entorno OCPI no configuradas. Por favor, reinicia la aplicación y asegúrate de que OCPI_PARTY_ID y OCPI_COUNTRY_CODE estén definidas en tu archivo .env');
+            }
+
             const formData = {
                 uid: document.getElementById('evseUid').value,
-                evse_id: `${window.OCPI_COUNTRY_CODE || 'ES'}*${window.OCPI_PARTY_ID || 'IPD'}*E${document.getElementById('evseUid').value.substring(0, 8)}`,
-                country_code: window.OCPI_COUNTRY_CODE || 'ES',
-                party_id: window.OCPI_PARTY_ID || 'IPD',
+                evse_id: `${window.OCPI_COUNTRY_CODE}*${window.OCPI_PARTY_ID}*E${document.getElementById('evseUid').value.substring(0, 8)}`,
+                country_code: window.OCPI_COUNTRY_CODE,
+                party_id: window.OCPI_PARTY_ID,
                 location_id: locationId,
                 status: document.getElementById('evseStatus').value,
                 capabilities: capabilities,
@@ -6180,6 +6219,33 @@ if (filterActiveExtSessions) {
         console.log(`🔍 Filtros EMSP EVSE aplicados: ${visibleCount} filas visibles`);
     }
 
+    applyEvseFilters() {
+        const statusFilter = document.getElementById('evseStatusFilter')?.value || '';
+        const searchFilter = document.getElementById('evseSearchFilter')?.value || '';
+
+        const rows = document.querySelectorAll('#evsesTable tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.cells.length < 8) return; // Skip header rows (ahora son 8 columnas)
+
+            const status = row.cells[4]?.textContent || ''; // Estado está en la columna 4
+            const searchText = row.textContent.toLowerCase();
+
+            const statusMatch = !statusFilter || status.includes(statusFilter);
+            const searchMatch = !searchFilter || searchText.includes(searchFilter.toLowerCase());
+
+            if (statusMatch && searchMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        console.log(`🔍 Filtros EVSE aplicados: ${visibleCount} filas visibles`);
+    }
+
     // ===== FUNCIONES PARA CONSULTAR CPOs (ROL EMSP) =====
     
     // Cargar conexiones disponibles en el selector
@@ -7305,8 +7371,8 @@ if (filterActiveExtSessions) {
                 this.logToChargingConsole(`🎫 Usando token personalizado: ${customToken} (${tokenType})`, 'token');
                 
                 // Crear un token personalizado con la estructura OCPI 2.2
-                const localPartyId = window.OCPI_PARTY_ID || 'IPD';
-                const localCountryCode = window.OCPI_COUNTRY_CODE || 'ES';
+                const localPartyId = window.OCPI_PARTY_ID;
+                const localCountryCode = window.OCPI_COUNTRY_CODE;
                 
                 const customTokenData = {
                     country_code: localCountryCode,
@@ -7337,7 +7403,7 @@ if (filterActiveExtSessions) {
                 const data = await response.json();
                 if (data.data && data.data.length > 0) {
                     // Filtrar tokens con party_id de nuestro CPO local
-                    const localPartyId = window.OCPI_PARTY_ID || 'IPD';
+                    const localPartyId = window.OCPI_PARTY_ID;
                     const ipdTokens = data.data.filter(token => token.party_id === localPartyId);
                     if (ipdTokens.length > 0) {
                         const token = ipdTokens[0];
@@ -7438,7 +7504,7 @@ if (filterActiveExtSessions) {
                 headers: {
                     'Authorization': `Token ${cpoToken}`,
                     'Content-Type': 'application/json',
-                    'User-Agent': `${window.OCPI_PARTY_ID || 'IPD'}-EMSP-OCPI-${window.OCPI_VERSION || '2.2'}`
+                    'User-Agent': `${window.OCPI_PARTY_ID}-EMSP-OCPI-${window.OCPI_VERSION}`
                 }
             });
 
