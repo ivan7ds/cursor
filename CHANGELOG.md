@@ -98,6 +98,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Corregido uso de campos de fecha: `end_date_time` en lugar de `end_datetime`
   - Corregido también campo de inicio: `start_date_time` en lugar de `start_datetime`
   - Ahora las fechas de inicio y fin se muestran correctamente en la tabla de sesiones externas
+- **Corregido error 400 en notificación de fin de sesión a EMSP**
+  - Solucionado problema donde `location_id` era `undefined` en notificaciones PUT a operadores externos
+  - Corregida función `notifyEMSPAboutSessionEnd` para obtener `location_id` del EVSE asociado
+  - Agregada validación para verificar que el EVSE existe antes de enviar la notificación
+  - Ahora las notificaciones de fin de sesión incluyen correctamente el `location_id` requerido por OCPI
 
 ## [0.10.0] - 2025-09-09
 

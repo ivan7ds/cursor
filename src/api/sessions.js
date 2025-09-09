@@ -252,6 +252,16 @@ async function notifyEMSPAboutSessionEnd(session) {
       where: { session_id: session.id }
     });
 
+    // Obtener el EVSE para acceder a su location_id
+    const evse = await EVSE.findByPk(session.evse_uid);
+    if (!evse) {
+      logger.error('❌ EVSE not found for session end notification', { 
+        session_id: session.id, 
+        evse_uid: session.evse_uid 
+      });
+      return;
+    }
+
     // Preparar payload PUT
     const payload = {
       country_code: session.country_code,
@@ -259,7 +269,7 @@ async function notifyEMSPAboutSessionEnd(session) {
       id: session.id,
       start_date_time: session.start_datetime.toISOString(),
       end_date_time: session.end_datetime.toISOString(),
-      location_id: session.location_id,
+      location_id: evse.location_id, // ✅ Obtener location_id del EVSE
       evse_uid: session.evse_uid,
       connector_id: session.connector_id,
       cdr_token: cdr ? {
