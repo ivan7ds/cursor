@@ -16,7 +16,7 @@ DB_PASSWORD="${DB_PASSWORD:-cpo_password}"
 echo "⏳ Waiting for PostgreSQL to be ready..."
 TIMEOUT=60
 ELAPSED=0
-until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME; do
+until psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT 1;" >/dev/null 2>&1; do
     if [ $ELAPSED -ge $TIMEOUT ]; then
         echo "❌ Timeout waiting for PostgreSQL to be ready!"
         echo "   Please check that PostgreSQL is running and accessible."
@@ -43,7 +43,11 @@ if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f "$SCRIPT_DIR/init_d
 fi
 
 echo "🗃️ Populating database with complete dataset..."
-if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f "$SCRIPT_DIR/complete_database_setup.sql"; then
+if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME \
+  -v OCPI_TOKEN="${OCPI_TOKEN:-ocpi_token_ipd_2024_secure_key}" \
+  -v OCPI_PARTY_ID="${OCPI_PARTY_ID:-IPD}" \
+  -v OCPI_COUNTRY_CODE="${OCPI_COUNTRY_CODE:-ES}" \
+  -f "$SCRIPT_DIR/complete_database_setup.sql"; then
     echo "❌ Error populating database!"
     echo "   Please check that the tables were created successfully."
     exit 1

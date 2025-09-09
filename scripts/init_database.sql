@@ -142,6 +142,19 @@ CREATE TABLE IF NOT EXISTS credentials (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+-- Create ocpi_tokens table for OCPI authentication tokens
+CREATE TABLE IF NOT EXISTS ocpi_tokens (
+    id VARCHAR(36) PRIMARY KEY,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    party_id VARCHAR(10) NOT NULL,
+    country_code VARCHAR(2) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    metadata JSON
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_locations_country_party ON locations(country_code, party_id);
 CREATE INDEX IF NOT EXISTS idx_locations_last_updated ON locations(last_updated);
@@ -160,6 +173,9 @@ CREATE INDEX IF NOT EXISTS idx_tokens_country_party ON tokens(country_code, part
 CREATE INDEX IF NOT EXISTS idx_tokens_last_updated ON tokens(last_updated);
 CREATE INDEX IF NOT EXISTS idx_credentials_country_party ON credentials(country_code, party_id);
 CREATE INDEX IF NOT EXISTS idx_credentials_last_updated ON credentials(last_updated);
+CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_token ON ocpi_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_party ON ocpi_tokens(party_id, country_code);
+CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_active ON ocpi_tokens(is_active);
 
 -- Create foreign key constraints
 ALTER TABLE evses ADD CONSTRAINT fk_evses_location_id 

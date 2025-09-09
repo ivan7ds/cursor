@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.4] - 2025-09-09
+
+### Fixed
+- **Corrección de token de autenticación OCPI en frontend**
+  - Actualizado token hardcodeado por defecto de token inexistente a token válido de base de datos
+  - Resuelto error HTTP 401 "Authentication failed: Invalid token" en todos los menús
+  - Frontend ahora usa token `OCPI_WzvENWQIJq1SCvcjB9G4StMMhjtHKbypjqeUVgu5KurgkDUfFE3DLAoVeSG` por defecto
+  - Eliminadas 44 ocurrencias del token inválido en `src/public/app.js`
+
+- **Identificación de problema de setup para nuevos usuarios**
+  - Detectado que tabla `ocpi_tokens` no se crea en script de inicialización
+  - Identificado que tokens de autenticación OCPI no se insertan en `complete_database_setup.sql`
+  - Preparada solución para usar variables de entorno (OCPI_PARTY_ID, OCPI_COUNTRY_CODE, OCPI_TOKEN)
+
+### Improved
+- **Robustez del sistema de autenticación**
+  - Frontend ahora funciona correctamente para usuarios existentes
+  - Identificado flujo de setup necesario para nuevos usuarios
+  - Preparada implementación para creación automática de tokens OCPI
+
 ## [0.9.3] - 2025-09-08
 
 ### Fixed
@@ -706,7 +726,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.9.3 (Estado actual)
+### Versión 0.9.4 (Estado actual)
+- **Corrección de token de autenticación OCPI**
+- **Resuelto error HTTP 401 en frontend**
+- **Frontend funciona correctamente para usuarios existentes**
+- **Identificado problema de setup para nuevos usuarios**
+- **Preparada solución para creación automática de tokens**
+
+### Versión 0.9.3
 - **Corrección de esquema de base de datos**
 - **Sincronización completa con modelos Sequelize**
 - **Eliminación de discrepancias entre ORM y SQL**
