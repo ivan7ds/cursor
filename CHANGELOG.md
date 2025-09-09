@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.9.5] - 2025-09-09
+
+### Fixed
+- **Corrección crítica de esquema de base de datos para tabla sessions**
+  - Agregada columna `kwh DECIMAL(10,3) DEFAULT 0.0` faltante en tabla `sessions`
+  - Agregada columna `kwh DECIMAL(10,3) DEFAULT 0.0` faltante en tabla `emsp_sessions`
+  - Agregada columna `deleted_at TIMESTAMP WITH TIME ZONE` faltante en tabla `evses`
+  - Agregada columna `deleted_at TIMESTAMP WITH TIME ZONE` faltante en tabla `emsp_evses`
+  - Resuelto error "column Session.kwh does not exist" en consultas de sesiones activas
+  - Eliminada inconsistencia entre modelos Sequelize y script de inicialización SQL
+
+### Improved
+- **Sincronización completa entre modelos y esquema de base de datos**
+  - Script `init_database.sql` ahora coincide exactamente con definiciones de modelos
+  - Eliminados errores de mapeo entre ORM y estructura de base de datos
+  - Soporte completo para soft delete en tablas EVSE
+  - Campos de energía (kWh) disponibles en todas las tablas de sesiones
+
 ## [0.9.4] - 2025-09-09
 
 ### Fixed
@@ -726,7 +744,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## Notas de Versión
 
-### Versión 0.9.4 (Estado actual)
+### Versión 0.9.5 (Estado actual)
+- **Corrección crítica de esquema de base de datos para tabla sessions**
+- **Resuelto error "column Session.kwh does not exist" en consultas de sesiones activas**
+- **Sincronización completa entre modelos y esquema de base de datos**
+- **Agregadas columnas faltantes: kwh en sessions y deleted_at en evses**
+
+### Versión 0.9.4
 - **Corrección de token de autenticación OCPI**
 - **Resuelto error HTTP 401 en frontend**
 - **Frontend funciona correctamente para usuarios existentes**

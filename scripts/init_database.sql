@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS evses (
     parking_restrictions JSON,
     group_id VARCHAR(36),
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     start_datetime TIMESTAMP WITH TIME ZONE NOT NULL,
     end_datetime TIMESTAMP WITH TIME ZONE,
     total_cost DECIMAL(10,2),
+    kwh DECIMAL(10,3) DEFAULT 0.0,
     status VARCHAR(50) NOT NULL,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -262,6 +264,7 @@ CREATE TABLE IF NOT EXISTS emsp_evses (
     parking_restrictions JSON,
     group_id VARCHAR(36),
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -294,6 +297,7 @@ CREATE TABLE IF NOT EXISTS emsp_sessions (
     start_datetime TIMESTAMP WITH TIME ZONE NOT NULL,
     end_datetime TIMESTAMP WITH TIME ZONE,
     total_cost DECIMAL(10,2),
+    kwh DECIMAL(10,3) DEFAULT 0.0,
     status VARCHAR(50) NOT NULL,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
