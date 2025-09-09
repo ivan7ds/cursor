@@ -2497,7 +2497,7 @@ if (filterActiveExtSessions) {
         try {
             console.log('🔄 Cargando conexiones...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/credentials`, {
+            const response = await fetch(`${this.baseUrl}/api/connections`, {
                 headers: { 
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
                 }
@@ -6275,7 +6275,7 @@ if (filterActiveExtSessions) {
         try {
             console.log('🔄 Cargando conexiones CPO...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/credentials`, {
+            const response = await fetch(`${this.baseUrl}/api/connections`, {
                 headers: { 
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
                 }
@@ -7878,7 +7878,7 @@ ${JSON.stringify(data, null, 2)}`;
             console.log('ℹ️ Nota: Las sesiones externas son de nuestro CPO, necesitamos encontrar el CPO externo que las originó');
 
             // Buscar directamente en la tabla de credenciales
-            const credentialsResponse = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/credentials`, {
+            const credentialsResponse = await fetch(`${this.baseUrl}/api/connections`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`

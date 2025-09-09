@@ -55,6 +55,21 @@ const authMiddleware = async (req, res, next) => {
           timestamp: new Date().toISOString()
         });
       }
+    } else {
+      // Si el token es temporal, rechazarlo en el middleware normal
+      if (tokenInfo.temp === true) {
+        logger.warn('Authentication failed: Temporary token not allowed for this endpoint', { 
+          ip: req.ip, 
+          path: req.path,
+          providedToken: providedToken ? providedToken.substring(0, 10) + '...' : 'none'
+        });
+        
+        return res.status(403).json({
+          status_code: 2002,
+          status_message: 'Forbidden: This endpoint requires a permanent token',
+          timestamp: new Date().toISOString()
+        });
+      }
     }
 
     // Token válido, agregar información del token a la request

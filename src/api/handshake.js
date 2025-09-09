@@ -294,6 +294,8 @@ router.post('/generate-credentials', async (req, res) => {
             business_details: ourCredentials.business_details,
             party_id: partyId,
             country_code: countryCode,
+            valid: true,
+            temp: true,
             last_updated: new Date().toISOString()
         };
         

@@ -82,9 +82,9 @@ class OCPITokenService {
       if (!tokenRecord) {
         const { sequelize } = require('../database/connection');
         const [credentialsResult] = await sequelize.query(`
-          SELECT token, party_id, country_code, created_at, updated_at 
+          SELECT token, party_id, country_code, valid, temp, created_at, updated_at 
           FROM credentials 
-          WHERE token = ?
+          WHERE token = ? AND valid = true
         `, {
           replacements: [token]
         });
@@ -95,6 +95,8 @@ class OCPITokenService {
             id: cred.token, // Usar el token como ID
             party_id: cred.party_id,
             country_code: cred.country_code,
+            valid: cred.valid,
+            temp: cred.temp,
             created_at: cred.created_at,
             expires_at: null, // Los tokens de credentials no expiran
             type: 'credentials'

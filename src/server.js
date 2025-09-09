@@ -11,6 +11,7 @@ const { sequelize } = require('./database/connection');
 const { redisClient } = require('./database/redis');
 const rateLimiter = require('./middleware/rateLimiter');
 const { authMiddleware, optionalAuthMiddleware } = require('./middleware/auth');
+const tempTokenAuth = require('./middleware/tempTokenAuth');
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const logger = require('./utils/logger');
@@ -129,9 +130,9 @@ app.get('/test-emsp-locations', (req, res) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // OCPI 2.2 Routes
-app.use('/ocpi/versions', versionsRoutes);
-app.use('/ocpi/cpo/2.2/details', authMiddleware, detailsRoutes);
-app.use('/ocpi/cpo/2.2/credentials', authMiddleware, credentialsRoutes);
+app.use('/ocpi/versions', tempTokenAuth, versionsRoutes);
+app.use('/ocpi/cpo/2.2/details', tempTokenAuth, detailsRoutes);
+app.use('/ocpi/cpo/2.2/credentials', tempTokenAuth, credentialsRoutes);
 app.use('/ocpi/cpo/2.2/locations', authMiddleware, locationsRoutes);
 app.use('/ocpi/cpo/2.2/evses', authMiddleware, evsesRoutes);
 app.use('/ocpi/cpo/2.2/sessions', authMiddleware, sessionsRoutes);
@@ -149,6 +150,7 @@ app.use('/api/charging-logs', require('./api/chargingLogs'));
 app.use('/api/handshake', authMiddleware, require('./api/handshake'));
 app.use('/api', authMiddleware, require('./api/deleteConnection'));
 app.use('/api/config', authMiddleware, configRoutes);
+app.use('/api/connections', authMiddleware, require('./api/connections'));
 
   // ===== RUTAS EMSP =====
   // Estas rutas permiten consultar información de eMSPs cuando actuamos como CPO

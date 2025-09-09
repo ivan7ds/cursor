@@ -31,6 +31,16 @@ const Credentials = sequelize.define('Credentials', {
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false
+  },
+  valid: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  },
+  temp: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   tableName: 'credentials',

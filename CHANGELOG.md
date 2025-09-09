@@ -37,6 +37,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Eliminada URL de ngrok hardcodeada en frontend
   - Implementada obtención dinámica de URL base desde configuración del servidor
   - Endpoints /versions y /details ahora usan correctamente la variable de entorno OCPI_BASE_URL del archivo .env
+- **Implementación de autenticación con tokens temporales para handshake OCPI 2.2.1**
+  - Agregados campos `valid` y `temp` a tabla `credentials` para manejo de tokens temporales
+  - Creado middleware `tempTokenAuth` para autenticación de tokens temporales
+  - Tokens temporales solo válidos para endpoints: `/versions`, `/credentials`, `/details`
+  - Endpoints `/versions`, `/credentials` y `/details` ahora requieren autenticación
+  - Implementado proceso de generación de tokens temporales en "Generar Credenciales"
+  - Agregados scripts de migración para actualizar base de datos existente
+  - Corregido `OCPITokenService.validateToken()` para validar campos `valid` y `temp`
+  - Modificado `authMiddleware` para rechazar tokens temporales en endpoints que requieren tokens permanentes
+  - Tokens temporales rechazados con HTTP 403 en endpoints que requieren tokens permanentes
+- **Corrección de error 401 en pestaña de conexiones del frontend**
+  - Creado endpoint interno `/api/connections` para gestión de conexiones del frontend
+  - Separado endpoint OCPI `/ocpi/cpo/2.2/credentials` (para protocolo OCPI) del endpoint interno
+  - Frontend ahora usa `/api/connections` en lugar del endpoint OCPI para cargar conexiones
+  - Solucionado error 401 al acceder a la pestaña de conexiones después de generar credenciales
+  - Corregidas todas las referencias al endpoint OCPI en funciones `loadCpoConnections()` y búsqueda de credenciales
+  - Eliminados todos los errores de "Temp token auth failed" en el frontend
+  - Corregido formato de respuesta del endpoint `/api/connections` para incluir campos `token` y `last_updated`
+  - Solucionado problema de campos "N/A" y "Invalid Date" en la pestaña de conexiones del frontend
 
 ## [0.10.0] - 2025-09-09
 
