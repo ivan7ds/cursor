@@ -17,6 +17,23 @@ class DashboardApp {
         console.log('✅ Constructor completado');
     }
 
+    // Función auxiliar para detectar si una URL es de ngrok y agregar headers necesarios
+    isNgrokUrl(url) {
+        return url && (url.includes('ngrok.io') || url.includes('ngrok-free.app') || url.includes('ngrok.app'));
+    }
+
+    // Función auxiliar para crear headers con soporte para ngrok
+    createCpoHeaders(authToken, contentType = 'application/json') {
+        const headers = {
+            'Authorization': `Token ${authToken}`,
+            'Content-Type': contentType
+        };
+        
+        // Agregar header para saltar advertencia de ngrok si es necesario
+        // Este header se agregará dinámicamente en cada petición según la URL
+        return headers;
+    }
+
     async init() {
         console.log('🚀 Inicializando Dashboard...');
         
@@ -800,7 +817,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${window.OCPI_TOKEN || 'test-token'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -6347,11 +6364,14 @@ if (filterActiveExtSessions) {
 
             console.log('🌐 Consultando versiones del CPO:', cpoUrl);
             
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
             const response = await fetch(`${cpoUrl}/ocpi/versions`, {
-                headers: { 
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
             
             if (!response.ok) {
@@ -6384,11 +6404,14 @@ if (filterActiveExtSessions) {
 
             console.log('🌐 Consultando locations del CPO:', cpoUrl);
             
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
             const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/locations`, {
-                headers: { 
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
             
             if (!response.ok) {
@@ -6579,11 +6602,14 @@ if (filterActiveExtSessions) {
 
             console.log('🌐 Consultando tariffs del CPO:', cpoUrl);
             
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
             const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/tariffs`, {
-                headers: { 
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
             
             if (!response.ok) {
@@ -6622,11 +6648,14 @@ if (filterActiveExtSessions) {
 
             console.log('🔑 Consultando tokens del CPO usando endpoint /emsp/2.2/tokens:', cpoUrl);
 
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
             const response = await fetch(`${cpoUrl}/ocpi/emsp/${cpoVersion}/tokens`, {
-                headers: {
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             });
 
             if (!response.ok) {
@@ -7005,13 +7034,16 @@ if (filterActiveExtSessions) {
             this.logToChargingConsole(`   URL: ${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/START_SESSION`, 'request');
             this.logToChargingConsole(`   Payload: ${JSON.stringify(startSessionPayload, null, 2)}`, 'request');
             
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
             // Enviar comando START_SESSION al CPO externo
             const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/START_SESSION`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(startSessionPayload)
             });
 
@@ -7105,13 +7137,16 @@ if (filterActiveExtSessions) {
             this.logToChargingConsole(`   URL: ${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/STOP_SESSION`, 'request');
             this.logToChargingConsole(`   Payload: ${JSON.stringify(stopSessionPayload, null, 2)}`, 'request');
             
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
             // Enviar comando STOP_SESSION al CPO externo
             const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/STOP_SESSION`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify(stopSessionPayload)
             });
 

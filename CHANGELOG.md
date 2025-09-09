@@ -117,6 +117,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Eliminados estilos CSS personalizados del gradiente
   - Mantenido el icono sparkle de 50x50 píxeles y la versión v0.10.4
   - Restaurada la apariencia clásica y profesional del banner
+- **Corregido error 401 en conexión a organización externa**
+  - Solucionado problema donde endpoint `connect-to-organization` usaba token incorrecto
+  - Cambiado de `window.OCPI_TOKEN || 'test-token'` a token interno de la API
+  - Ahora usa `localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'`
+  - Solucionado error 401 "Authentication failed: Invalid token" en ventana de Nueva Conexión OCPI
 
 ## [0.10.0] - 2025-09-09
 
