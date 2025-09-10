@@ -7,6 +7,73 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.6] - 2025-09-10
+
+### Fixed
+- **Corrección crítica en almacenamiento de credentials**
+  - Corregido error de validación de Sequelize: `Credentials.token cannot be null`
+  - Ahora se genera un token temporal (`temp_${uuid}`) en lugar de null
+  - Los datos de organizaciones externas se guardan correctamente en la base de datos
+  - Mejorado el manejo de errores de validación de base de datos
+
+### Technical
+- **Mejoras en `src/api/handshake.js`**
+  - Corregido campo `token` para usar valor temporal en lugar de null
+  - Implementado generación de token temporal con formato `temp_${uuid}`
+  - Mejorado manejo de errores de validación de Sequelize
+  - Los datos se guardan correctamente incluso cuando el POST /credentials es rechazado
+
+## [0.11.5] - 2025-09-10
+
+### Fixed
+- **Corrección en almacenamiento de datos de handshake**
+  - Corregido problema donde no se guardaban datos en la tabla de credentials cuando el POST /credentials era rechazado
+  - Ahora se guarda información de la organización externa incluso cuando rechaza nuestras credenciales
+  - Los datos se marcan como temporales (`temp: true`) y no válidos (`valid: false`) hasta recibir el handshake externo
+  - Mejorado el flujo para manejar correctamente el handshake bidireccional
+
+### Technical
+- **Mejoras en `src/api/handshake.js`**
+  - Agregado almacenamiento de credenciales externas cuando el POST /credentials es rechazado
+  - Implementado manejo de errores de base de datos al guardar información externa
+  - Mejorado logging para facilitar debug del flujo de handshake
+  - Los datos se guardan con `external_party_id` para identificación única
+
+## [0.11.4] - 2025-09-10
+
+### Fixed
+- **Corrección crítica en lógica de handshake OCPI**
+  - Corregido payload de credentials para enviar nuestro endpoint de versions en el campo `url`
+  - Agregado campo `website` con nuestro hostname en el payload de credentials
+  - Implementado manejo del caso cuando el POST /credentials es rechazado por el operador externo
+  - El handshake ahora maneja correctamente el flujo bidireccional donde el operador externo puede iniciar el handshake
+  - Mejorada la respuesta cuando nuestras credenciales son rechazadas, indicando que esperamos el handshake externo
+
+### Technical
+- **Mejoras en `src/api/handshake.js`**
+  - Corregido payload de credentials: `url` ahora apunta a `/ocpi/versions` de nuestra aplicación
+  - Agregado campo `website` en `business_details` con nuestro hostname
+  - Implementado try-catch específico para manejo de rechazo de credentials
+  - Agregada respuesta informativa cuando el operador externo debe iniciar el handshake
+  - Mejorado logging para facilitar debug del flujo de handshake bidireccional
+
+## [0.11.3] - 2025-09-10
+
+### Fixed
+- **Corrección crítica en handshake OCPI**
+  - Corregido problema de URL duplicada en handshake que causaba errores 404
+  - Mejorada lógica de construcción de URLs para usar endpoints reales de la respuesta de details
+  - Agregado fallback robusto para diferentes formatos de endpoints de servidores externos
+  - El handshake ahora usa el endpoint de credentials real devuelto por el servidor externo
+  - Corregido problema donde se construía `/ocpi/cpo/2.2/credentials` cuando el servidor externo esperaba `/ocpi/2.2/credentials/`
+
+### Technical
+- **Mejoras en `src/api/handshake.js`**
+  - Implementada extracción del endpoint de credentials de la respuesta de details
+  - Agregado logging detallado para facilitar debug de problemas de handshake
+  - Mejorada lógica de fallback para manejar diferentes formatos de endpoints
+  - Corregida construcción de URLs para evitar duplicación de rutas
+
 ## [0.11.2] - 2025-09-10
 
 ### Fixed

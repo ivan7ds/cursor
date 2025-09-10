@@ -156,6 +156,9 @@ router.post('/connect-to-organization', async (req, res) => {
         const versionData = versionsResponse.data.data || versionsResponse.data;
         const detailsEndpoint = versionData.find(v => v.version === '2.2')?.url;
         
+        console.log('🔍 Respuesta completa de versions:', JSON.stringify(versionData, null, 2));
+        console.log('🔍 Details endpoint extraído:', detailsEndpoint);
+        
         if (!detailsEndpoint) {
             return res.status(400).json({
                 status_code: 2001,
@@ -169,7 +172,9 @@ router.post('/connect-to-organization', async (req, res) => {
         
         // Detectar si el endpoint ya incluye la ruta completa
         let detailsUrl;
-        if (detailsEndpoint.includes('/ocpi/cpo/2.2/details')) {
+        console.log('🔍 Endpoint recibido:', detailsEndpoint);
+        
+        if (detailsEndpoint.includes('/ocpi/cpo/2.2/details') || detailsEndpoint.includes('/ocpi/2.2/details')) {
             // El endpoint ya incluye la ruta completa, usarlo directamente
             detailsUrl = detailsEndpoint;
             console.log('🔗 Endpoint ya incluye ruta completa:', detailsUrl);
@@ -199,32 +204,51 @@ router.post('/connect-to-organization', async (req, res) => {
         // Extraer endpoints del operador
         const operatorEndpoints = detailsResponse.data.endpoints || [];
         
-        // PASO 3: POST /ocpi/cpo/2.2/credentials - Enviar nuestro token y recibir el suyo
+        // PASO 3: POST /ocpi/2.2/credentials - Enviar nuestro token y recibir el suyo
         console.log('📡 Paso 3: Enviando credenciales...');
         
         const credentialsPayload = {
             token: ourCredentials.token,
-            url: ourCredentials.url,
+            url: `${ourCredentials.url}/ocpi/versions`, // Nuestro endpoint de versions
             roles: [{
                 role: 'CPO',
                 party_id: ourCredentials.party_id,
                 country_code: ourCredentials.country_code,
-                business_details: ourCredentials.business_details
+                business_details: {
+                    name: ourCredentials.business_details.name,
+                    website: ourCredentials.url // Nuestro hostname en website
+                }
             }]
         };
         
         console.log('📤 Enviando credenciales a organización externa:', credentialsPayload);
         
-        // Detectar si el endpoint ya incluye la ruta completa para credentials
+        // Obtener el endpoint de credentials de la respuesta de details
         let credentialsUrl;
-        if (detailsEndpoint.includes('/ocpi/cpo/2.2/details')) {
-            // El endpoint ya incluye la ruta completa, reemplazar 'details' por 'credentials'
-            credentialsUrl = detailsEndpoint.replace('/ocpi/cpo/2.2/details', '/ocpi/cpo/2.2/credentials');
-            console.log('🔗 Construyendo URL de credentials desde endpoint completo:', credentialsUrl);
+        const detailsData = detailsResponse.data.data || detailsResponse.data;
+        const credentialsEndpoint = detailsData.endpoints?.find(ep => ep.identifier === 'credentials' && ep.role === 'SENDER');
+        
+        if (credentialsEndpoint && credentialsEndpoint.url) {
+            credentialsUrl = credentialsEndpoint.url;
+            console.log('🔗 Usando endpoint de credentials de la respuesta de details:', credentialsUrl);
         } else {
-            // El endpoint es solo la URL base, concatenar la ruta
-            credentialsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/credentials`;
-            console.log('🔗 Construyendo URL de credentials desde endpoint base:', credentialsUrl);
+            // Fallback: construir la URL como antes
+            console.log('🔍 Endpoint para credentials (fallback):', detailsEndpoint);
+            
+            if (detailsEndpoint.includes('/ocpi/cpo/2.2/details') || detailsEndpoint.includes('/ocpi/2.2/details')) {
+                // El endpoint ya incluye la ruta completa, reemplazar 'details' por 'credentials'
+                if (detailsEndpoint.includes('/ocpi/cpo/2.2/details')) {
+                    credentialsUrl = detailsEndpoint.replace('/ocpi/cpo/2.2/details', '/ocpi/cpo/2.2/credentials');
+                } else if (detailsEndpoint.includes('/ocpi/2.2/details')) {
+                    // Si el endpoint no incluye 'cpo', usar el formato sin cpo para credentials
+                    credentialsUrl = detailsEndpoint.replace('/ocpi/2.2/details', '/ocpi/2.2/credentials');
+                }
+                console.log('🔗 Construyendo URL de credentials desde endpoint completo:', credentialsUrl);
+            } else {
+                // El endpoint es solo la URL base, concatenar la ruta
+                credentialsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/2.2/credentials`;
+                console.log('🔗 Construyendo URL de credentials desde endpoint base:', credentialsUrl);
+            }
         }
         
         // Reemplazar localhost por la IP del host si es necesario (para Docker)
@@ -235,15 +259,68 @@ router.post('/connect-to-organization', async (req, res) => {
             console.log('🔧 Reemplazando localhost por IP del host en credentials:', credentialsUrl);
         }
         
-        const credentialsResponse = await axios.post(credentialsUrl, credentialsPayload, {
-            headers: {
-                'Authorization': `Token ${token}`,
-                'Content-Type': 'application/json'
+        let credentialsResponse;
+        try {
+            credentialsResponse = await axios.post(credentialsUrl, credentialsPayload, {
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('✅ Respuesta de credenciales:', credentialsResponse.data);
+            console.log('🔍 Estructura de datos:', JSON.stringify(credentialsResponse.data, null, 2));
+        } catch (credentialsError) {
+            console.log('⚠️ POST /credentials rechazado, el operador externo iniciará el handshake');
+            console.log('📋 Error details:', credentialsError.response?.data || credentialsError.message);
+            
+            // El operador externo rechazó nuestras credenciales, pero ahora él iniciará el handshake
+            // hacia nosotros. Guardamos la información de la organización externa para poder recibir su handshake.
+            
+            // Crear credenciales temporales para la organización externa (sin token válido aún)
+            const externalCredentials = {
+                id: uuidv4(),
+                token: `temp_${uuidv4().replace(/-/g, '')}`, // Token temporal hasta recibir handshake
+                url: sanitizedUrl,
+                business_details: {
+                    name: `External Organization ${partyId}`,
+                    website: sanitizedUrl
+                },
+                party_id: partyId,
+                country_code: countryCode,
+                external_party_id: `${countryCode}-${partyId}`,
+                valid: false, // No válido hasta que recibamos su handshake
+                temp: true,
+                last_updated: new Date().toISOString()
+            };
+            
+            // Guardar en la base de datos
+            try {
+                await Credentials.create(externalCredentials);
+                console.log('✅ Información de organización externa guardada (pendiente de handshake)');
+            } catch (dbError) {
+                console.error('❌ Error guardando información de organización externa:', dbError);
             }
-        });
-        
-        console.log('✅ Respuesta de credenciales:', credentialsResponse.data);
-        console.log('🔍 Estructura de datos:', JSON.stringify(credentialsResponse.data, null, 2));
+            
+            return res.status(200).json({
+                status_code: 1000,
+                status_message: 'Credentials rejected by external organization. Waiting for external handshake initiation.',
+                data: {
+                    message: 'El operador externo rechazó nuestras credenciales. Ahora él iniciará el handshake hacia nuestra aplicación.',
+                    our_endpoints: {
+                        versions: `${ourCredentials.url}/ocpi/versions`,
+                        details: `${ourCredentials.url}/ocpi/cpo/2.2/details`,
+                        credentials: `${ourCredentials.url}/ocpi/cpo/2.2/credentials`
+                    },
+                    external_organization: {
+                        party_id: partyId,
+                        country_code: countryCode,
+                        url: sanitizedUrl
+                    }
+                },
+                timestamp: new Date().toISOString()
+            });
+        }
         
         // Almacenar credenciales de la organización externa con endpoints
         // Extraer solo el host de la URL (sin rutas)
