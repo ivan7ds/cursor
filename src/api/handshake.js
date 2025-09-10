@@ -210,15 +210,26 @@ router.post('/connect-to-organization', async (req, res) => {
         const credentialsPayload = {
             token: ourCredentials.token,
             url: `${ourCredentials.url}/ocpi/versions`, // Nuestro endpoint de versions
-            roles: [{
-                role: 'CPO',
-                party_id: ourCredentials.party_id,
-                country_code: ourCredentials.country_code,
-                business_details: {
-                    name: ourCredentials.business_details.name,
-                    website: ourCredentials.url // Nuestro hostname en website
+            roles: [
+                {
+                    role: 'CPO',
+                    party_id: ourCredentials.party_id,
+                    country_code: ourCredentials.country_code,
+                    business_details: {
+                        name: ourCredentials.business_details.name,
+                        website: ourCredentials.url // Nuestro hostname en website
+                    }
+                },
+                {
+                    role: 'EMSP',
+                    party_id: ourCredentials.party_id,
+                    country_code: ourCredentials.country_code,
+                    business_details: {
+                        name: ourCredentials.business_details.name,
+                        website: ourCredentials.url // Nuestro hostname en website
+                    }
                 }
-            }]
+            ]
         };
         
         console.log('📤 Enviando credenciales a organización externa:', credentialsPayload);
@@ -327,11 +338,18 @@ router.post('/connect-to-organization', async (req, res) => {
         const externalUrl = new URL(credentialsResponse.data.data.url);
         const baseUrl = `${externalUrl.protocol}//${externalUrl.host}`;
         
+        // Extraer business_details del primer rol (CPO)
+        const cpoRole = credentialsResponse.data.data.roles?.find(role => role.role === 'CPO');
+        const businessDetails = cpoRole?.business_details || {
+            name: `External Organization ${partyId}`,
+            website: baseUrl
+        };
+
         const externalCredentials = {
             id: uuidv4(),
             token: credentialsResponse.data.data.token,
             url: baseUrl, // Solo el host, sin rutas
-            business_details: credentialsResponse.data.data.business_details,
+            business_details: businessDetails,
             party_id: partyId,
             country_code: countryCode,
             valid: true,

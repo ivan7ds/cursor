@@ -3,6 +3,15 @@ const axios = require('axios');
 const logger = require('../utils/logger');
 
 class ChargingNotificationService {
+  /**
+   * Sanitiza una URL eliminando barras finales para evitar dobles barras al concatenar
+   * @param {string} url - URL a sanitizar
+   * @returns {string} URL sin barras finales
+   */
+  sanitizeUrl(url) {
+    if (!url) return url;
+    return url.replace(/\/$/, '');
+  }
   constructor() {
     this.interval = null;
     this.isRunning = false;
@@ -191,7 +200,7 @@ class ChargingNotificationService {
       }
 
       // Construir URL del endpoint del EMSP
-      const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+      const baseUrl = this.sanitizeUrl(emspCredentials.url.replace('/ocpi/versions', ''));
       const partyId = process.env.OCPI_PARTY_ID || 'IPD';
       const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
       const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/${countryCode}/${partyId}/${session.id}`;

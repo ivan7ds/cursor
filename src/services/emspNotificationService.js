@@ -3,6 +3,15 @@ const logger = require('../utils/logger');
 
 class EMSPNotificationService {
     /**
+     * Sanitiza una URL eliminando barras finales para evitar dobles barras al concatenar
+     * @param {string} url - URL a sanitizar
+     * @returns {string} URL sin barras finales
+     */
+    sanitizeUrl(url) {
+        if (!url) return url;
+        return url.replace(/\/$/, '');
+    }
+    /**
      * Notificar a todos los EMSPs sobre una nueva location
      * @param {Object} locationData - Datos de la location creada
      */
@@ -171,7 +180,8 @@ class EMSPNotificationService {
             // Usamos /ocpi/emsp/ para consistencia con los PATCH requests
             const partyId = process.env.OCPI_PARTY_ID || 'IPD';
             const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
-            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${locationData.id}`;
+            const sanitizedUrl = this.sanitizeUrl(organization.url);
+            const endpoint = `${sanitizedUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${locationData.id}`;
             
             logger.info(`📤 Notificando location ${locationData.id} a organización ${organization.party_id} en ${endpoint}`);
             
@@ -211,7 +221,8 @@ class EMSPNotificationService {
             // Construir la URL correcta según OCPI 2.2: /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
             const partyId = process.env.OCPI_PARTY_ID || 'IPD';
             const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
-            const endpoint = `${organization.url}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evseData.location_id}/${evseData.id}`;
+            const sanitizedUrl = this.sanitizeUrl(organization.url);
+            const endpoint = `${sanitizedUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evseData.location_id}/${evseData.id}`;
             
             logger.info(`📤 Notificando EVSE ${evseData.id} a organización ${organization.party_id} en ${endpoint} con método ${method}`);
             
@@ -465,7 +476,8 @@ class EMSPNotificationService {
      */
     async notifyOrganizationAboutToken(organization, tokenData, method = 'PUT') {
         try {
-            const url = `${organization.url}/ocpi/emsp/2.2/tokens/${tokenData.country_code}/${tokenData.party_id}/${tokenData.uid}`;
+            const sanitizedUrl = this.sanitizeUrl(organization.url);
+            const url = `${sanitizedUrl}/ocpi/emsp/2.2/tokens/${tokenData.country_code}/${tokenData.party_id}/${tokenData.uid}`;
             
             logger.info(`📤 Enviando ${method} de token a ${organization.party_id} (${organization.url})`);
             
@@ -501,7 +513,8 @@ class EMSPNotificationService {
      */
     async notifyOrganizationAboutTariff(organization, tariffData, method = 'PUT') {
         try {
-            const url = `${organization.url}/ocpi/emsp/2.2/tariffs/${tariffData.country_code}/${tariffData.party_id}/${tariffData.id}`;
+            const sanitizedUrl = this.sanitizeUrl(organization.url);
+            const url = `${sanitizedUrl}/ocpi/emsp/2.2/tariffs/${tariffData.country_code}/${tariffData.party_id}/${tariffData.id}`;
             
             logger.info(`📤 Enviando ${method} de tarifa a ${organization.party_id} (${organization.url})`);
             

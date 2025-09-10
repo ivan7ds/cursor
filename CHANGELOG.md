@@ -7,6 +7,48 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.8] - 2025-09-10
+
+### Fixed
+- **Corrección de error en handshake OCPI - campo business_details faltante**
+  - Solucionado error `ValidationError: Credentials.business_details cannot be null` durante el handshake
+  - Corregida extracción de `business_details` de la respuesta de credenciales de organizaciones externas
+  - Implementada lógica para extraer `business_details` del rol CPO en la respuesta de roles múltiples
+  - Agregado fallback para `business_details` cuando no está disponible en la respuesta
+  - Handshake ahora completa exitosamente sin errores de validación de base de datos
+
+### Technical
+- **Mejoras en `src/api/handshake.js`**
+  - Corregida extracción de `business_details` de respuesta de credenciales con roles múltiples
+  - Implementada búsqueda del rol CPO para obtener información de negocio
+  - Agregado manejo robusto de respuestas de organizaciones externas
+
+## [0.11.7] - 2025-09-10
+
+### Fixed
+- **Corrección de URLs con dobles barras (//) en peticiones PATCH**
+  - Solucionado problema donde las URLs de notificaciones EMSP contenían dobles barras al concatenar rutas
+  - Implementada función `sanitizeUrl()` para eliminar barras finales antes de concatenar rutas OCPI
+  - Aplicada sanitización en todos los métodos de notificación: locations, EVSEs, tokens y tarifas
+  - URLs ahora se construyen correctamente: `https://example.com/ocpi/emsp/2.2/...` en lugar de `https://example.com//ocpi/emsp/2.2/...`
+  - Eliminado error de URLs malformadas que causaba problemas en las peticiones PATCH a organizaciones externas
+
+- **Corrección de error en handshake OCPI - campo business_details faltante**
+  - Solucionado error `ValidationError: Credentials.business_details cannot be null` durante el handshake
+  - Corregida extracción de `business_details` de la respuesta de credenciales de organizaciones externas
+  - Implementada lógica para extraer `business_details` del rol CPO en la respuesta de roles múltiples
+  - Agregado fallback para `business_details` cuando no está disponible en la respuesta
+  - Handshake ahora completa exitosamente sin errores de validación de base de datos
+
+### Technical
+- **Mejoras en todos los servicios de notificación**
+  - Agregada función `sanitizeUrl()` en `emspNotificationService.js` para limpieza de URLs base
+  - Agregada función `sanitizeUrl()` en `chargingNotificationService.js` para notificaciones de recarga
+  - Agregada función `sanitizeUrl()` en `evseNotificationService.js` para notificaciones de EVSEs
+  - Actualizados todos los métodos de notificación para usar URLs sanitizadas
+  - Aplicada misma lógica de sanitización que se usa en `handshake.js`
+  - Eliminadas dobles barras en todas las peticiones PATCH del sistema
+
 ## [0.11.6] - 2025-09-10
 
 ### Fixed

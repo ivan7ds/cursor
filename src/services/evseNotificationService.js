@@ -3,6 +3,15 @@ const { Credentials, EVSE, Session } = require('../models');
 const logger = require('../utils/logger');
 
 class EVSENotificationService {
+  /**
+   * Sanitiza una URL eliminando barras finales para evitar dobles barras al concatenar
+   * @param {string} url - URL a sanitizar
+   * @returns {string} URL sin barras finales
+   */
+  sanitizeUrl(url) {
+    if (!url) return url;
+    return url.replace(/\/$/, '');
+  }
   constructor() {
     this.notificationInterval = null;
     this.isRunning = false;
@@ -216,7 +225,7 @@ class EVSENotificationService {
    */
   buildEMSPEndpointURL(emsp, evseChange) {
     // Extraer la URL base del eMSP
-    const baseUrl = emsp.url.replace('/ocpi/versions', '');
+    const baseUrl = this.sanitizeUrl(emsp.url.replace('/ocpi/versions', ''));
     
     // Construir la URL del endpoint de locations según OCPI 2.2
     // Formato: {base_url}/ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
