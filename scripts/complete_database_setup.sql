@@ -101,7 +101,7 @@ INSERT INTO tokens (id, country_code, party_id, uid, type, auth_method, contract
 
 -- Insert OCPI authentication token using environment variables
 INSERT INTO ocpi_tokens (id, token, party_id, country_code, is_active, metadata) VALUES
-(gen_random_uuid(), :'OCPI_TOKEN', :'OCPI_PARTY_ID', :'OCPI_COUNTRY_CODE', true, 
+(gen_random_uuid(), :OCPI_TOKEN, :OCPI_PARTY_ID, :OCPI_COUNTRY_CODE, true, 
  '{"description": "Default OCPI authentication token", "created_by": "setup_script"}'::json);
 
 -- Verify data insertion

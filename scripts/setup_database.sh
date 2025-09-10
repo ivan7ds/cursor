@@ -8,7 +8,9 @@ echo "🚀 Starting CPO OCPI 2.2 database setup..."
 # Load environment variables from .env file if it exists
 if [ -f .env ]; then
     echo "📄 Loading environment variables from .env file..."
-    export $(grep -v '^#' .env | xargs)
+    set -a  # automatically export all variables
+    source .env
+    set +a  # stop automatically exporting
 fi
 
 # Database connection parameters (with environment variable support)
@@ -17,6 +19,9 @@ DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-cpo_ocpi}"
 DB_USER="${DB_USER:-cpo_user}"
 DB_PASSWORD="${DB_PASSWORD:-cpo_password}"
+
+# Set PGPASSWORD to avoid interactive password prompt
+export PGPASSWORD="$DB_PASSWORD"
 
 # Wait for PostgreSQL to be ready (with timeout)
 echo "⏳ Waiting for PostgreSQL to be ready..."
@@ -50,9 +55,9 @@ fi
 
 echo "🗃️ Populating database with complete dataset..."
 if ! psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME \
-  -v OCPI_TOKEN="${OCPI_TOKEN:-ocpi_token_ipd_2024_secure_key}" \
-  -v OCPI_PARTY_ID="${OCPI_PARTY_ID:-IPD}" \
-  -v OCPI_COUNTRY_CODE="${OCPI_COUNTRY_CODE:-ES}" \
+  -v OCPI_TOKEN="'${OCPI_TOKEN:-ocpi_token_ipd_2024_secure_key}'" \
+  -v OCPI_PARTY_ID="'${OCPI_PARTY_ID:-IPD}'" \
+  -v OCPI_COUNTRY_CODE="'${OCPI_COUNTRY_CODE:-ES}'" \
   -f "$SCRIPT_DIR/complete_database_setup.sql"; then
     echo "❌ Error populating database!"
     echo "   Please check that the tables were created successfully."

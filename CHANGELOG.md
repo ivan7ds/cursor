@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.1] - 2025-09-10
+
+### Fixed
+- **Corrección crítica del script de configuración de base de datos**
+  - Solucionado problema donde `setup_database.sh` creaba las tablas pero no poblaba la base de datos
+  - Corregido paso de variables de entorno a PostgreSQL con comillas simples
+  - Variables `:OCPI_COUNTRY_CODE`, `:OCPI_PARTY_ID`, `:OCPI_TOKEN` ahora se pasan correctamente
+  - Eliminado error "column 'es' does not exist" en consultas SQL
+  - Script ahora inserta correctamente: 20 ubicaciones, 14 EVSEs, 3 tarifas, 2 tokens
+  - Creado archivo `.env` automáticamente desde `env.example` para asegurar variables definidas
+
+### Technical
+- **Mejoras en `setup_database.sh`**
+  - Variables de entorno ahora se pasan con comillas simples: `-v OCPI_COUNTRY_CODE="'${OCPI_COUNTRY_CODE:-ES}'"`
+  - Mejor manejo de valores por defecto para variables de entorno
+  - Verificación exitosa de población de base de datos con datos de ejemplo
+  - Script funciona correctamente tanto para usuarios nuevos como existentes
+
 ## [0.11.0] - 2025-09-10
 
 ### Fixed

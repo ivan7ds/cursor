@@ -4,22 +4,30 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
       - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=cpo_ocpi
-      - DB_USER=cpo_user
-      - DB_PASSWORD=cpo_password
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DIALECT=${DB_DIALECT}
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PORT=${PORT}
+      - OCPI_VERSION=${OCPI_VERSION}
+      - OCPI_BASE_URL=${OCPI_BASE_URL}
+      - OCPI_PARTY_ID=${OCPI_PARTY_ID}
+      - OCPI_COUNTRY_CODE=${OCPI_COUNTRY_CODE}
+      - OCPI_TOKEN=${OCPI_TOKEN}
       - EVSE_NOTIFICATION_INTERVAL_MS=${EVSE_NOTIFICATION_INTERVAL_MS}
-      - RATE_LIMIT_MAX_REQUESTS=10000
-      - RATE_LIMIT_WINDOW_MS=900000
-      - DISABLE_RATE_LIMIT=false
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS}
+      - DISABLE_RATE_LIMIT=${DISABLE_RATE_LIMIT}
     depends_on:
       - postgres
       - redis
@@ -33,11 +41,11 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=cpo_ocpi
-      - POSTGRES_USER=cpo_user
-      - POSTGRES_PASSWORD=cpo_password
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -46,8 +54,10 @@ services:
 
   redis:
     image: redis:7-alpine
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
     volumes:
       - redis_data:/data
     networks:
