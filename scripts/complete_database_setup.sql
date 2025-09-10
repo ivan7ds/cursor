@@ -19,40 +19,40 @@ END $$;
 -- Insert Locations (distributed across Spain and Portugal)
 INSERT INTO locations (id, country_code, party_id, name, address, city, country, coordinates, parking_type, time_zone, created_at, updated_at, last_updated) VALUES
 -- Madrid Metropolitan Area (15 locations)
-('550e8400-e29b-41d4-a716-446655440001', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Plaza Norte 2', 'Plaza Norte 2, 28760 Tres Cantos', 'Tres Cantos', 'Spain', '{"latitude": 40.6011, "longitude": -3.7083}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440002', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial La Gavia', 'Av. de las Suertes, 28047', 'Madrid', 'Spain', '{"latitude": 40.3897, "longitude": -3.6289}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440003', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Isla Azul', 'Calle de la Isla Azul, 28042', 'Madrid', 'Spain', '{"latitude": 40.4567, "longitude": -3.6123}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440004', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Plaza de Castilla', 'Plaza de Castilla, 28046', 'Madrid', 'Spain', '{"latitude": 40.4667, "longitude": -3.6897}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440005', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Príncipe Pío', 'Paseo de la Florida, 28008', 'Madrid', 'Spain', '{"latitude": 40.4233, "longitude": -3.7189}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440001', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Plaza Norte 2', 'Plaza Norte 2, 28760 Tres Cantos', 'Tres Cantos', 'ESP', '{"latitude": 40.6011, "longitude": -3.7083}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440002', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial La Gavia', 'Av. de las Suertes, 28047', 'Madrid', 'ESP', '{"latitude": 40.3897, "longitude": -3.6289}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440003', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Isla Azul', 'Calle de la Isla Azul, 28042', 'Madrid', 'ESP', '{"latitude": 40.4567, "longitude": -3.6123}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440004', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Plaza de Castilla', 'Plaza de Castilla, 28046', 'Madrid', 'ESP', '{"latitude": 40.4667, "longitude": -3.6897}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440005', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Príncipe Pío', 'Paseo de la Florida, 28008', 'Madrid', 'ESP', '{"latitude": 40.4233, "longitude": -3.7189}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
 
 -- Barcelona Metropolitan Area (10 locations)
-('550e8400-e29b-41d4-a716-446655440006', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Diagonal Mar', 'Passeig del Taulat, 08019', 'Barcelona', 'Spain', '{"latitude": 41.4089, "longitude": 2.2197}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440007', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial La Maquinista', 'Carrer de Josep Estivill, 08030', 'Barcelona', 'Spain', '{"latitude": 41.4456, "longitude": 2.1898}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440008', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Glòries', 'Av. Diagonal, 208, 08013', 'Barcelona', 'Spain', '{"latitude": 41.4036, "longitude": 2.1897}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440006', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Diagonal Mar', 'Passeig del Taulat, 08019', 'Barcelona', 'ESP', '{"latitude": 41.4089, "longitude": 2.2197}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440007', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial La Maquinista', 'Carrer de Josep Estivill, 08030', 'Barcelona', 'ESP', '{"latitude": 41.4456, "longitude": 2.1898}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440008', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Glòries', 'Av. Diagonal, 208, 08013', 'Barcelona', 'ESP', '{"latitude": 41.4036, "longitude": 2.1897}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
 
 -- Valencia (5 locations)
-('550e8400-e29b-41d4-a716-446655440009', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Aqua Multiespacio', 'Carrer de Menorca, 19, 46023', 'València', 'Spain', '{"latitude": 39.4699, "longitude": -0.3763}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440010', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Nuevo Centro', 'Carrer de Menorca, 19, 46023', 'València', 'Spain', '{"latitude": 39.4699, "longitude": -0.3763}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440009', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Aqua Multiespacio', 'Carrer de Menorca, 19, 46023', 'València', 'ESP', '{"latitude": 39.4699, "longitude": -0.3763}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440010', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Nuevo Centro', 'Carrer de Menorca, 19, 46023', 'València', 'ESP', '{"latitude": 39.4699, "longitude": -0.3763}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
 
 -- Sevilla (5 locations)
-('550e8400-e29b-41d4-a716-446655440011', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Los Arcos', 'Av. de Andalucía, 1, 41007', 'Sevilla', 'Spain', '{"latitude": 37.3891, "longitude": -5.9845}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440012', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Nervión Plaza', 'Calle Luis Montoto, 41005', 'Sevilla', 'Spain', '{"latitude": 37.3898, "longitude": -5.9767}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440011', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Los Arcos', 'Av. de Andalucía, 1, 41007', 'Sevilla', 'ESP', '{"latitude": 37.3891, "longitude": -5.9845}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440012', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Nervión Plaza', 'Calle Luis Montoto, 41005', 'Sevilla', 'ESP', '{"latitude": 37.3898, "longitude": -5.9767}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
 
 -- Bilbao (5 locations)
-('550e8400-e29b-41d4-a716-446655440013', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Zubiarte', 'Paseo de Uribitarte, 48001', 'Bilbao', 'Spain', '{"latitude": 43.2627, "longitude": -2.9253}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440014', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Max Center', 'Calle Max, 1, 48950 Erandio', 'Erandio', 'Spain', '{"latitude": 43.3123, "longitude": -2.9567}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440013', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Zubiarte', 'Paseo de Uribitarte, 48001', 'Bilbao', 'ESP', '{"latitude": 43.2627, "longitude": -2.9253}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440014', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Max Center', 'Calle Max, 1, 48950 Erandio', 'Erandio', 'ESP', '{"latitude": 43.3123, "longitude": -2.9567}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
 
 -- Málaga (5 locations)
-('550e8400-e29b-41d4-a716-446655440015', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Larios', 'Calle Larios, 29005', 'Málaga', 'Spain', '{"latitude": 36.7213, "longitude": -4.4217}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440016', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Vialia', 'Estación de Málaga-María Zambrano, 29002', 'Málaga', 'Spain', '{"latitude": 36.7456, "longitude": -4.4567}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440015', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Larios', 'Calle Larios, 29005', 'Málaga', 'ESP', '{"latitude": 36.7213, "longitude": -4.4217}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440016', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Vialia', 'Estación de Málaga-María Zambrano, 29002', 'Málaga', 'ESP', '{"latitude": 36.7456, "longitude": -4.4567}', 'ON_STREET', 'Europe/Madrid', NOW(), NOW(), NOW()),
 
 -- Lisboa (5 locations)
-('550e8400-e29b-41d4-a716-446655440017', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Colombo', 'Av. Lusíada, 1500-392', 'Lisboa', 'Portugal', '{"latitude": 38.7223, "longitude": -9.1393}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440018', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Vasco da Gama', 'Av. D. João II, 1990-094', 'Lisboa', 'Portugal', '{"latitude": 38.7567, "longitude": -9.0945}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440017', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Colombo', 'Av. Lusíada, 1500-392', 'Lisboa', 'PRT', '{"latitude": 38.7223, "longitude": -9.1393}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440018', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Vasco da Gama', 'Av. D. João II, 1990-094', 'Lisboa', 'PRT', '{"latitude": 38.7567, "longitude": -9.0945}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW()),
 
 -- Porto (5 locations)
-('550e8400-e29b-41d4-a716-446655440019', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial NorteShopping', 'Rua Sara Martins de Almeida, 4460-841 Senhora da Hora', 'Senhora da Hora', 'Portugal', '{"latitude": 41.1897, "longitude": -8.6567}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW()),
-('550e8400-e29b-41d4-a716-446655440020', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Mar Shopping', 'Rua do Mar, 4150-518', 'Porto', 'Portugal', '{"latitude": 41.1567, "longitude": -8.6234}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW());
+('550e8400-e29b-41d4-a716-446655440019', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial NorteShopping', 'Rua Sara Martins de Almeida, 4460-841 Senhora da Hora', 'Senhora da Hora', 'PRT', '{"latitude": 41.1897, "longitude": -8.6567}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW()),
+('550e8400-e29b-41d4-a716-446655440020', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'Centro Comercial Mar Shopping', 'Rua do Mar, 4150-518', 'Porto', 'PRT', '{"latitude": 41.1567, "longitude": -8.6234}', 'ON_STREET', 'Europe/Lisbon', NOW(), NOW(), NOW());
 
 -- Insert EVSEs (distributed across locations, max 50 per location)
 INSERT INTO evses (id, location_id, country_code, party_id, evse_id, status, capabilities, connectors, floor_level, coordinates, physical_reference, directions, parking_restrictions, group_id, last_updated, created_at, updated_at) VALUES

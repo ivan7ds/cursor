@@ -8,3 +8,23 @@
 [2025-09-05T09:51:21.805Z] [WARN] Authentication failed: Invalid token | {"ip":"::ffff:127.0.0.1","path":"/get-external-sessions","providedToken":"OCPI_Ni4T4..."}
 [2025-09-05T10:02:33.118Z] [INFO] 📋 Preparando payload PATCH para EVSE fc090a11-ec76-4bcd-8699-0f4a1bb92b7b: | {"last_updated":"2025-09-05T10:02:33.116Z","tariff_ids":["nueva-tarifa-id-1","nueva-tarifa-id-2"],"status":"AVAILABLE"}
 [2025-09-05T10:02:45.981Z] [INFO] 📋 Preparando payload PATCH para EVSE fc090a11-ec76-4bcd-8699-0f4a1bb92b7b: | {"last_updated":"2025-09-05T10:02:45.979Z","tariff_ids":["nueva-tarifa-id-1","nueva-tarifa-id-2"],"status":"AVAILABLE"}
+[2025-09-10T11:34:31.634Z] [INFO] Redis client connected
+[2025-09-10T11:34:31.642Z] [INFO] Redis client ready
+[2025-09-10T11:34:31.801Z] [INFO] Database connection established successfully
+[2025-09-10T11:34:31.802Z] [INFO] Database models synchronized (skipping sync)
+[2025-09-10T11:34:31.806Z] [INFO] Redis connection established successfully
+[2025-09-10T11:34:31.814Z] [INFO] Starting EVSE Notification Service with interval: 30000ms
+[2025-09-10T11:34:31.815Z] [INFO] EVSE Notification Service started
+[2025-09-10T11:34:31.816Z] [INFO] 🔄 Starting Charging Notification Service with interval: 20000ms
+[2025-09-10T11:34:31.816Z] [INFO] ✅ Charging Notification Service started
+[2025-09-10T11:34:31.816Z] [INFO] Charging Notification Service started
+[2025-09-10T11:37:26.559Z] [INFO] Redis client connected
+[2025-09-10T11:37:26.577Z] [INFO] Redis client ready
+[2025-09-10T11:37:26.733Z] [INFO] Database connection established successfully
+[2025-09-10T11:37:26.734Z] [INFO] Database models synchronized (skipping sync)
+[2025-09-10T11:37:26.738Z] [INFO] Redis connection established successfully
+[2025-09-10T11:37:26.746Z] [INFO] Starting EVSE Notification Service with interval: 30000ms
+[2025-09-10T11:37:26.747Z] [INFO] EVSE Notification Service started
+[2025-09-10T11:37:26.748Z] [INFO] 🔄 Starting Charging Notification Service with interval: 20000ms
+[2025-09-10T11:37:26.749Z] [INFO] ✅ Charging Notification Service started
+[2025-09-10T11:37:26.750Z] [INFO] Charging Notification Service started

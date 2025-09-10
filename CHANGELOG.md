@@ -7,6 +7,35 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.2] - 2025-09-10
+
+### Fixed
+- **Corrección de formatos de datos de prueba en base de datos**
+  - Corregido formato de `evse_id` para usar estándar OCPI: `Country_code*Party_id*Exxxx` (ej: `ES*IPD*E5bcc4cee`)
+  - Cambiado `id` de conectores de números simples a UIDs válidos (ej: `550e8400-e29b-41d4-a716-446655440101-conn-1`)
+  - Corregido campo `country` para usar códigos ISO 3166-1 alpha-3: `ESP`, `PRT` en lugar de `Spain`, `Portugal`
+  - Actualizado `complete_database_setup.sql` con formatos correctos para todas las ubicaciones y EVSEs
+
+### Fixed
+- **Mejoras en la interfaz de usuario del frontend**
+  - Corregida columna "País" en pestaña Locations para mostrar nombres de países en lugar de códigos
+  - Corregida columna "Location" en pestaña EVSEs para mostrar nombres de ubicaciones en lugar de UIDs
+  - Mejorados tooltips de Locations y EVSEs para mostrar información más legible
+  - Frontend ahora es más user-friendly con información descriptiva en lugar de identificadores técnicos
+
+### Technical
+- **Mejoras en `complete_database_setup.sql`**
+  - Formato de `evse_id` ahora usa concatenación dinámica: `:OCPI_COUNTRY_CODE || '*' || :OCPI_PARTY_ID || '*E5bcc4cee'`
+  - IDs de conectores ahora usan UIDs únicos basados en el ID del EVSE
+  - Códigos de país actualizados a formato estándar de 3 letras
+  - Mantenida integridad referencial entre todas las tablas
+
+- **Mejoras en `src/public/app.js`**
+  - Corregidas referencias a `country_code` por `country` en visualización de Locations
+  - Corregidas referencias a `location_id` por `location?.name` en visualización de EVSEs
+  - Mejorado manejo de datos faltantes con fallbacks apropiados
+  - Tooltips actualizados para mostrar información más descriptiva
+
 ## [0.11.1] - 2025-09-10
 
 ### Fixed

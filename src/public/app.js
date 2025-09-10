@@ -1770,7 +1770,7 @@ if (filterActiveExtSessions) {
                         ${location.name || 'N/A'}
                     </span>
                 </td>
-                <td>${location.country_code}</td>
+                <td>${location.country || 'N/A'}</td>
                 <td>${location.city || 'N/A'}</td>
                 <td>${location.address || 'N/A'}</td>
                 <td>
@@ -2083,7 +2083,7 @@ if (filterActiveExtSessions) {
                     const tooltipContent = `
                         <strong>Location ID:</strong> ${location.id}<br>
                         <strong>Nombre:</strong> ${location.name || 'N/A'}<br>
-                        <strong>País:</strong> ${location.country_code}<br>
+                        <strong>País:</strong> ${location.country || 'N/A'}<br>
                         <strong>Ciudad:</strong> ${location.city || 'N/A'}<br>
                         <strong>Dirección:</strong> ${location.address || 'N/A'}<br>
                         <strong>Coordenadas:</strong> ${location.coordinates ? `${location.coordinates.latitude}, ${location.coordinates.longitude}` : 'N/A'}<br>
@@ -2239,7 +2239,7 @@ if (filterActiveExtSessions) {
                         </code>
                     </td>
                     <td><code>${evse.id}</code></td>
-                    <td><code>${evse.location_id}</code></td>
+                    <td>${evse.location?.name || evse.location_id || 'N/A'}</td>
                     <td>
                         <span class="text-muted">
                             ${evse.physical_reference || '<i class="bi bi-dash"></i>'}
@@ -2300,7 +2300,7 @@ if (filterActiveExtSessions) {
                         <strong>EVSE ID:</strong> ${evse.evse_id || 'N/A'}<br>
                         <strong>UID:</strong> ${evse.id}<br>
                         <strong>Estado:</strong> ${evse.status}<br>
-                        <strong>Location:</strong> ${evse.location_id}<br>
+                        <strong>Location:</strong> ${evse.location?.name || evse.location_id || 'N/A'}<br>
                         <strong>Conectores:</strong> ${evse.connectors?.length || 0}<br>
                         <strong>Capabilities:</strong> ${evse.capabilities?.join(', ') || 'Ninguna'}<br>
                         <strong>Última actualización:</strong> ${new Date(evse.last_updated).toLocaleString()}
