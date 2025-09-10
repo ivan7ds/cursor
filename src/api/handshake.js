@@ -166,7 +166,27 @@ router.post('/connect-to-organization', async (req, res) => {
         
         // PASO 2: GET /ocpi/cpo/2.2/details - Obtener endpoints del operador
         console.log('📡 Paso 2: Obteniendo detalles del operador...');
-        const detailsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/details`;
+        
+        // Detectar si el endpoint ya incluye la ruta completa
+        let detailsUrl;
+        if (detailsEndpoint.includes('/ocpi/cpo/2.2/details')) {
+            // El endpoint ya incluye la ruta completa, usarlo directamente
+            detailsUrl = detailsEndpoint;
+            console.log('🔗 Endpoint ya incluye ruta completa:', detailsUrl);
+        } else {
+            // El endpoint es solo la URL base, concatenar la ruta
+            detailsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/details`;
+            console.log('🔗 Construyendo URL desde endpoint base:', detailsUrl);
+        }
+        
+        // Reemplazar localhost por la IP del host si es necesario (para Docker)
+        if (detailsUrl.includes('localhost')) {
+            const originalUrl = new URL(sanitizedUrl);
+            const hostname = originalUrl.hostname;
+            detailsUrl = detailsUrl.replace('localhost', hostname);
+            console.log('🔧 Reemplazando localhost por IP del host:', detailsUrl);
+        }
+        
         const detailsResponse = await axios.get(detailsUrl, {
             headers: {
                 'Authorization': `Token ${token}`,
@@ -195,7 +215,26 @@ router.post('/connect-to-organization', async (req, res) => {
         
         console.log('📤 Enviando credenciales a organización externa:', credentialsPayload);
         
-        const credentialsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/credentials`;
+        // Detectar si el endpoint ya incluye la ruta completa para credentials
+        let credentialsUrl;
+        if (detailsEndpoint.includes('/ocpi/cpo/2.2/details')) {
+            // El endpoint ya incluye la ruta completa, reemplazar 'details' por 'credentials'
+            credentialsUrl = detailsEndpoint.replace('/ocpi/cpo/2.2/details', '/ocpi/cpo/2.2/credentials');
+            console.log('🔗 Construyendo URL de credentials desde endpoint completo:', credentialsUrl);
+        } else {
+            // El endpoint es solo la URL base, concatenar la ruta
+            credentialsUrl = `${detailsEndpoint.replace(/\/$/, '')}/ocpi/cpo/2.2/credentials`;
+            console.log('🔗 Construyendo URL de credentials desde endpoint base:', credentialsUrl);
+        }
+        
+        // Reemplazar localhost por la IP del host si es necesario (para Docker)
+        if (credentialsUrl.includes('localhost')) {
+            const originalUrl = new URL(sanitizedUrl);
+            const hostname = originalUrl.hostname;
+            credentialsUrl = credentialsUrl.replace('localhost', hostname);
+            console.log('🔧 Reemplazando localhost por IP del host en credentials:', credentialsUrl);
+        }
+        
         const credentialsResponse = await axios.post(credentialsUrl, credentialsPayload, {
             headers: {
                 'Authorization': `Token ${token}`,
@@ -204,13 +243,18 @@ router.post('/connect-to-organization', async (req, res) => {
         });
         
         console.log('✅ Respuesta de credenciales:', credentialsResponse.data);
+        console.log('🔍 Estructura de datos:', JSON.stringify(credentialsResponse.data, null, 2));
         
         // Almacenar credenciales de la organización externa con endpoints
+        // Extraer solo el host de la URL (sin rutas)
+        const externalUrl = new URL(credentialsResponse.data.data.url);
+        const baseUrl = `${externalUrl.protocol}//${externalUrl.host}`;
+        
         const externalCredentials = {
             id: uuidv4(),
-            token: credentialsResponse.data.token,
-            url: credentialsResponse.data.url,
-            business_details: credentialsResponse.data.business_details,
+            token: credentialsResponse.data.data.token,
+            url: baseUrl, // Solo el host, sin rutas
+            business_details: credentialsResponse.data.data.business_details,
             party_id: partyId,
             country_code: countryCode,
             valid: true,
@@ -218,6 +262,8 @@ router.post('/connect-to-organization', async (req, res) => {
             external_party_id: partyId,
             last_updated: new Date().toISOString()
         };
+        
+        console.log('🔍 Objeto externalCredentials construido:', JSON.stringify(externalCredentials, null, 2));
         
         // Almacenar endpoints del operador externo
         if (operatorEndpoints.length > 0) {

@@ -7,6 +7,39 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-09-10
+
+### Fixed
+- **Corrección crítica del handshake OCPI 2.2.1**
+  - Solucionado problema de URL duplicada en handshake con organizaciones externas
+  - Implementada detección automática de endpoints completos vs endpoints base
+  - Endpoints que ya incluyen ruta completa (`/ocpi/cpo/2.2/details`) no se concatenan
+  - Endpoints base se concatenan correctamente con rutas OCPI
+  - Eliminado error de URL duplicada: `http://host:port/ocpi/cpo/2.2/details/ocpi/cpo/2.2/details`
+- **Corrección de compatibilidad con Docker en handshake**
+  - Implementado reemplazo automático de `localhost` por IP del host Docker
+  - URLs `localhost:3001` se convierten automáticamente a `172.17.0.1:3001`
+  - Solucionado error `ECONNREFUSED` al conectar desde contenedor Docker a servicios externos
+  - Compatibilidad completa con entornos Docker y no-Docker
+- **Corrección de almacenamiento de URLs en tabla credentials**
+  - URLs de organizaciones externas ahora se almacenan solo con host (sin rutas)
+  - Implementada extracción de host usando `new URL()` para URLs completas
+  - Antes: `http://172.17.0.1:3001/ocpi/cpo/versions` → Ahora: `http://172.17.0.1:3001`
+  - Mejorada consistencia de datos en tabla `credentials`
+- **Corrección de estructura de datos en handshake**
+  - Solucionado acceso incorrecto a datos anidados en respuesta de credenciales
+  - Cambiado de `credentialsResponse.data.token` a `credentialsResponse.data.data.token`
+  - Eliminado error de validación "Credentials.token cannot be null"
+  - Handshake ahora procesa correctamente la estructura de respuesta OCPI 2.2.1
+
+### Technical
+- **Mejoras en endpoint `connect-to-organization`**
+  - Lógica inteligente para detectar tipo de endpoint (completo vs base)
+  - Reemplazo automático de localhost por IP del host en entornos Docker
+  - Extracción correcta de host de URLs para almacenamiento en base de datos
+  - Mejor logging para debugging de handshake
+  - Manejo robusto de diferentes formatos de respuesta de organizaciones externas
+
 ## [0.10.5] - 2025-09-09
 
 ### Fixed
