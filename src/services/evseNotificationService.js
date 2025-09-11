@@ -120,26 +120,44 @@ class EVSENotificationService {
    */
   async getEVSEStatusChanges() {
     try {
-      // Buscar EVSEs que han cambiado de estado recientemente
-      // Excluir EVSEs con sesiones activas para evitar conflictos
-      const evses = await EVSE.findAll({
-        limit: 1, // Solo 1 EVSE por iteración
-        order: [['last_updated', 'DESC']],
+      // Obtener EVSEs disponibles (no soft-deleted y sin sesiones activas)
+      const availableEvses = await EVSE.findAll({
         where: {
-          // Excluir EVSEs que tienen sesiones activas
+          deleted_at: null, // No soft-deleted
           id: {
             [require('sequelize').Op.notIn]: await this.getEVSEsWithActiveSessions()
           }
         }
       });
 
-      return evses.map(evse => ({
-        evse_uid: evse.id, // Usar el UID único del EVSE
-        evse_id: evse.evse_id, // Mantener para logging
-        location_id: evse.location_id,
-        status: evse.status,
-        last_updated: evse.last_updated
-      }));
+      if (availableEvses.length === 0) {
+        logger.debug('No available EVSEs found for status changes');
+        return [];
+      }
+
+      // Seleccionar un EVSE aleatorio
+      const randomIndex = Math.floor(Math.random() * availableEvses.length);
+      const selectedEvse = availableEvses[randomIndex];
+
+      // Generar un nuevo estado operacional válido aleatorio
+      const operationalStatuses = ['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'RESERVED', 'UNKNOWN'];
+      const currentStatus = selectedEvse.status;
+      
+      // Asegurar que el nuevo estado sea diferente al actual
+      let newStatus;
+      do {
+        newStatus = operationalStatuses[Math.floor(Math.random() * operationalStatuses.length)];
+      } while (newStatus === currentStatus);
+
+      logger.info(`Selected EVSE ${selectedEvse.evse_id} (UID: ${selectedEvse.id}) for status change: ${currentStatus} -> ${newStatus}`);
+
+      return [{
+        evse_uid: selectedEvse.id,
+        evse_id: selectedEvse.evse_id,
+        location_id: selectedEvse.location_id,
+        status: newStatus, // Nuevo estado aleatorio
+        last_updated: new Date()
+      }];
     } catch (error) {
       logger.error('Error getting EVSE status changes:', error);
       return [];

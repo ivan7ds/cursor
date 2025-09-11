@@ -100,6 +100,13 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Mejorada gestión de espacio en disco para logs
   - Sincronización completa entre logs del contenedor y carpeta local
 
+- **Mejora del job de notificaciones de EVSEs**
+  - Implementada selección aleatoria de EVSEs en lugar de siempre el más reciente
+  - Agregada generación de estados operacionales aleatorios (AVAILABLE, OCCUPIED, OUT_OF_ORDER, MAINTENANCE)
+  - Asegurado que el nuevo estado sea diferente al actual
+  - Mejorada lógica para excluir EVSEs soft-deleted y con sesiones activas
+  - Agregado logging detallado de cambios de estado seleccionados
+
 - **Corrección de error de columna en tabla emsp_locations**
   - Solucionado error PostgreSQL 42703 al guardar locations de eMSPs
   - Corregido nombre de columna de `evse_list` a `evses` en consultas SQL

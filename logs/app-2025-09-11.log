@@ -38,3 +38,2527 @@
 [2025-09-11T10:31:20.562+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:30:21.126Z"}
 [2025-09-11T10:31:20.831+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
 [2025-09-11T10:31:20.837+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:32:18.119+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.193+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /styles.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.203+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /sparkle.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.210+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /bootstrap.bundle.min.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.212+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /app.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.275+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /easter-egg.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.306+00:00] [info] 🌐 Serving OCPI settings: | {"partyId":"IPD","countryCode":"ES","version":"2.2","baseUrl":"https://51aa1c8286a6.ngrok-free.app"}
+[2025-09-11T10:32:18.309+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /api/config/ocpi-settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.447+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /health HTTP/1.1" 200 123 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:18.477+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:32:18.485+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:32:18.486+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:32:18.501+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:32:18 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:32:20.558+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:32:20.559+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:32:20.560+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:31:20.831Z"}
+[2025-09-11T10:32:20.884+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:32:20.898+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:32:41.763+00:00] [info] ::1 - - [11/Sep/2025:10:32:41 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:33:14.632+00:00] [info] ::1 - - [11/Sep/2025:10:33:14 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:33:20.566+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:33:20.567+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:33:20.568+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:32:20.885Z"}
+[2025-09-11T10:33:20.893+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:33:20.909+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:33:47.692+00:00] [info] ::1 - - [11/Sep/2025:10:33:47 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:34:20.559+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:34:20.560+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:34:20.561+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:33:20.894Z"}
+[2025-09-11T10:34:20.838+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:34:20.843+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:34:53.725+00:00] [info] ::1 - - [11/Sep/2025:10:34:53 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:35:20.561+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:35:20.562+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:35:20.563+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:34:20.838Z"}
+[2025-09-11T10:35:20.835+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:35:20.844+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:35:26.473+00:00] [info] ::1 - - [11/Sep/2025:10:35:26 +0000] "GET /health HTTP/1.1" 200 122 "-" "-"
+[2025-09-11T10:35:59.117+00:00] [info] ::1 - - [11/Sep/2025:10:35:59 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:36:20.559+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:36:20.560+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:36:20.560+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:35:20.836Z"}
+[2025-09-11T10:36:20.835+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:36:20.844+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:36:59.397+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:36:59.411+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:36:59.413+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:36:59.425+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:36:59 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.426+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.582+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET /styles.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.593+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET /sparkle.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.601+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET /bootstrap.bundle.min.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.607+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET /app.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.812+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET /easter-egg.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:00.883+00:00] [info] 🌐 Serving OCPI settings: | {"partyId":"IPD","countryCode":"ES","version":"2.2","baseUrl":"https://51aa1c8286a6.ngrok-free.app"}
+[2025-09-11T10:37:00.886+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:00 +0000] "GET /api/config/ocpi-settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:01.337+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:01 +0000] "GET /health HTTP/1.1" 200 123 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:01.356+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:01.371+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:01.373+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:37:01.388+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:01 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:04.834+00:00] [info] ::1 - - [11/Sep/2025:10:37:04 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:37:05.000+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:05.013+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:05.014+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:37:05.021+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:05 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:17.602+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:17.604+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:37:17.640+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:17 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:20.554+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:37:20.555+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:37:20.555+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:36:20.836Z"}
+[2025-09-11T10:37:20.840+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:37:20.848+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:37:25.114+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:25.117+00:00] [info] OCPI Operation | {"endpoint":"/locations","operation":"GET","query":{}}
+[2025-09-11T10:37:25.122+00:00] [info] Querying locations with EVSEs...
+[2025-09-11T10:37:25.147+00:00] [info] Found 20 locations
+[2025-09-11T10:37:25.148+00:00] [info] Location 1: 540c1583-5d8a-4c32-a807-a086412430c3 has 1 EVSEs
+[2025-09-11T10:37:25.148+00:00] [info] Location 2: 550e8400-e29b-41d4-a716-446655440002 has 2 EVSEs
+[2025-09-11T10:37:25.149+00:00] [info] Location 3: 550e8400-e29b-41d4-a716-446655440003 has 0 EVSEs
+[2025-09-11T10:37:25.149+00:00] [info] Location 4: 550e8400-e29b-41d4-a716-446655440004 has 0 EVSEs
+[2025-09-11T10:37:25.150+00:00] [info] Location 5: 550e8400-e29b-41d4-a716-446655440005 has 0 EVSEs
+[2025-09-11T10:37:25.150+00:00] [info] Location 6: 550e8400-e29b-41d4-a716-446655440006 has 2 EVSEs
+[2025-09-11T10:37:25.150+00:00] [info] Location 7: 550e8400-e29b-41d4-a716-446655440007 has 0 EVSEs
+[2025-09-11T10:37:25.151+00:00] [info] Location 8: 550e8400-e29b-41d4-a716-446655440008 has 0 EVSEs
+[2025-09-11T10:37:25.151+00:00] [info] Location 9: 550e8400-e29b-41d4-a716-446655440009 has 1 EVSEs
+[2025-09-11T10:37:25.152+00:00] [info] Location 10: 550e8400-e29b-41d4-a716-446655440010 has 0 EVSEs
+[2025-09-11T10:37:25.153+00:00] [info] Location 11: 550e8400-e29b-41d4-a716-446655440001 has 3 EVSEs
+[2025-09-11T10:37:25.153+00:00] [info] Location 12: 550e8400-e29b-41d4-a716-446655440012 has 0 EVSEs
+[2025-09-11T10:37:25.153+00:00] [info] Location 13: 550e8400-e29b-41d4-a716-446655440013 has 1 EVSEs
+[2025-09-11T10:37:25.154+00:00] [info] Location 14: 550e8400-e29b-41d4-a716-446655440014 has 0 EVSEs
+[2025-09-11T10:37:25.154+00:00] [info] Location 15: 550e8400-e29b-41d4-a716-446655440015 has 1 EVSEs
+[2025-09-11T10:37:25.154+00:00] [info] Location 16: 550e8400-e29b-41d4-a716-446655440016 has 0 EVSEs
+[2025-09-11T10:37:25.155+00:00] [info] Location 17: 550e8400-e29b-41d4-a716-446655440017 has 2 EVSEs
+[2025-09-11T10:37:25.155+00:00] [info] Location 18: 550e8400-e29b-41d4-a716-446655440018 has 0 EVSEs
+[2025-09-11T10:37:25.155+00:00] [info] Location 19: 550e8400-e29b-41d4-a716-446655440020 has 0 EVSEs
+[2025-09-11T10:37:25.156+00:00] [info] Location 20: 550e8400-e29b-41d4-a716-446655440011 has 1 EVSEs
+[2025-09-11T10:37:25.156+00:00] [info] Pagination debug: total=20, limit=100, offset=0
+[2025-09-11T10:37:25.156+00:00] [info] Calculated: totalPages=1, currentPage=1, hasNext=false, hasPrev=false
+[2025-09-11T10:37:25.158+00:00] [info] Processing location 540c1583-5d8a-4c32-a807-a086412430c3: evseList length=1
+[2025-09-11T10:37:25.158+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.158+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.159+00:00] [info] Location raw data: {
+  "id": "540c1583-5d8a-4c32-a807-a086412430c3",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "release",
+  "address": "release 4",
+  "city": "release",
+  "postal_code": "15140",
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 0.000001,
+    "longitude": -0.000001
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:30:46.379Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "bbd29147-ccae-4d6e-b1d0-44c4511168d7",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*Ebbd29147",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "CHARGING_PROFILE_CAPABLE"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "CHADEMO",
+          "format": "SOCKET",
+          "power_type": "AC_1_PHASE",
+          "max_voltage": 230,
+          "max_amperage": 32,
+          "max_electric_power": 7360,
+          "tariff_ids": [
+            "f461eb81-ed27-4201-bd5b-3bd0dc96742f"
+          ],
+          "last_updated": "2025-09-11T07:31:42.283Z"
+        }
+      ],
+      "physical_reference": "rel",
+      "last_updated": "2025-09-11T10:37:20.843Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.159+00:00] [info] Location 540c1583-5d8a-4c32-a807-a086412430c3: Found 1 EVSEs to process
+[2025-09-11T10:37:25.159+00:00] [info] EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7: evse_id=ES*IPD*Ebbd29147, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.161+00:00] [info] Location 540c1583-5d8a-4c32-a807-a086412430c3: Processed 1 EVSEs
+[2025-09-11T10:37:25.161+00:00] [info] Location 540c1583-5d8a-4c32-a807-a086412430c3: Coordinates converted to strings - lat: 0.000001, lon: -0.000001
+[2025-09-11T10:37:25.162+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440002: evseList length=2
+[2025-09-11T10:37:25.162+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.162+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.162+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial La Gavia",
+  "address": "Av. de las Suertes, 28047",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.3897,
+    "longitude": -3.6289
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440201",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf1",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "B1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440202",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf2",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "B2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.163+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440002: Found 2 EVSEs to process
+[2025-09-11T10:37:25.163+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440201: evse_id=ES*IPD*E5bcc4cf1, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.163+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440202: evse_id=ES*IPD*E5bcc4cf2, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.163+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440002: Processed 2 EVSEs
+[2025-09-11T10:37:25.163+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440002: Coordinates converted to strings - lat: 40.3897, lon: -3.6289
+[2025-09-11T10:37:25.164+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440003: evseList length=0
+[2025-09-11T10:37:25.164+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.164+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.164+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440003",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Isla Azul",
+  "address": "Calle de la Isla Azul, 28042",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.4567,
+    "longitude": -3.6123
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.165+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440003: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.165+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440003: Coordinates converted to strings - lat: 40.4567, lon: -3.6123
+[2025-09-11T10:37:25.165+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440004: evseList length=0
+[2025-09-11T10:37:25.165+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.165+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.166+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440004",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Plaza de Castilla",
+  "address": "Plaza de Castilla, 28046",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.4667,
+    "longitude": -3.6897
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.166+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440004: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.166+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440004: Coordinates converted to strings - lat: 40.4667, lon: -3.6897
+[2025-09-11T10:37:25.167+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440005: evseList length=0
+[2025-09-11T10:37:25.167+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.167+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.167+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440005",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Príncipe Pío",
+  "address": "Paseo de la Florida, 28008",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.4233,
+    "longitude": -3.7189
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.168+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440005: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.168+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440005: Coordinates converted to strings - lat: 40.4233, lon: -3.7189
+[2025-09-11T10:37:25.168+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440006: evseList length=2
+[2025-09-11T10:37:25.168+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.169+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.169+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Diagonal Mar",
+  "address": "Passeig del Taulat, 08019",
+  "city": "Barcelona",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 41.4089,
+    "longitude": 2.2197
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440601",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf3",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "C1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440602",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf4",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "C2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.172+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440006: Found 2 EVSEs to process
+[2025-09-11T10:37:25.172+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440601: evse_id=ES*IPD*E5bcc4cf3, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.172+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440602: evse_id=ES*IPD*E5bcc4cf4, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.173+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440006: Processed 2 EVSEs
+[2025-09-11T10:37:25.173+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440006: Coordinates converted to strings - lat: 41.4089, lon: 2.2197
+[2025-09-11T10:37:25.173+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440007: evseList length=0
+[2025-09-11T10:37:25.173+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.173+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.173+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440007",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial La Maquinista",
+  "address": "Carrer de Josep Estivill, 08030",
+  "city": "Barcelona",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 41.4456,
+    "longitude": 2.1898
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.174+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440007: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.174+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440007: Coordinates converted to strings - lat: 41.4456, lon: 2.1898
+[2025-09-11T10:37:25.174+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440008: evseList length=0
+[2025-09-11T10:37:25.174+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.174+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.174+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440008",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Glòries",
+  "address": "Av. Diagonal, 208, 08013",
+  "city": "Barcelona",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 41.4036,
+    "longitude": 2.1897
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.174+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440008: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.175+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440008: Coordinates converted to strings - lat: 41.4036, lon: 2.1897
+[2025-09-11T10:37:25.175+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440009: evseList length=1
+[2025-09-11T10:37:25.175+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.175+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.175+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440009",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Aqua Multiespacio",
+  "address": "Carrer de Menorca, 19, 46023",
+  "city": "València",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 39.4699,
+    "longitude": -0.3763
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440801",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf7",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "E1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.176+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440009: Found 1 EVSEs to process
+[2025-09-11T10:37:25.176+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440801: evse_id=ES*IPD*E5bcc4cf7, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.176+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440009: Processed 1 EVSEs
+[2025-09-11T10:37:25.176+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440009: Coordinates converted to strings - lat: 39.4699, lon: -0.3763
+[2025-09-11T10:37:25.177+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440010: evseList length=0
+[2025-09-11T10:37:25.177+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.177+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.177+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440010",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Nuevo Centro",
+  "address": "Carrer de Menorca, 19, 46023",
+  "city": "València",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 39.4699,
+    "longitude": -0.3763
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.178+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440010: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.178+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440010: Coordinates converted to strings - lat: 39.4699, lon: -0.3763
+[2025-09-11T10:37:25.178+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440001: evseList length=3
+[2025-09-11T10:37:25.179+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.179+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.179+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Plaza Norte 2",
+  "address": "Plaza Norte 2, 28760 Tres Cantos",
+  "city": "Tres Cantos",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.6011,
+    "longitude": -3.7083
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440101",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cee",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "A1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440102",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cef",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "A2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440103",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf0",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "A3",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.179+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440001: Found 3 EVSEs to process
+[2025-09-11T10:37:25.180+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440101: evse_id=ES*IPD*E5bcc4cee, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.180+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440102: evse_id=ES*IPD*E5bcc4cef, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.180+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440103: evse_id=ES*IPD*E5bcc4cf0, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.180+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440001: Processed 3 EVSEs
+[2025-09-11T10:37:25.180+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440001: Coordinates converted to strings - lat: 40.6011, lon: -3.7083
+[2025-09-11T10:37:25.181+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440012: evseList length=0
+[2025-09-11T10:37:25.181+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.181+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.181+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440012",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Nervión Plaza",
+  "address": "Calle Luis Montoto, 41005",
+  "city": "Sevilla",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 37.3898,
+    "longitude": -5.9767
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.182+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440012: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.182+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440012: Coordinates converted to strings - lat: 37.3898, lon: -5.9767
+[2025-09-11T10:37:25.182+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440013: evseList length=1
+[2025-09-11T10:37:25.182+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.183+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.183+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440013",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Zubiarte",
+  "address": "Paseo de Uribitarte, 48001",
+  "city": "Bilbao",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 43.2627,
+    "longitude": -2.9253
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655441001",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf9",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "G1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.183+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440013: Found 1 EVSEs to process
+[2025-09-11T10:37:25.183+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655441001: evse_id=ES*IPD*E5bcc4cf9, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.183+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440013: Processed 1 EVSEs
+[2025-09-11T10:37:25.184+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440013: Coordinates converted to strings - lat: 43.2627, lon: -2.9253
+[2025-09-11T10:37:25.184+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440014: evseList length=0
+[2025-09-11T10:37:25.184+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.185+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.185+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440014",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Max Center",
+  "address": "Calle Max, 1, 48950 Erandio",
+  "city": "Erandio",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 43.3123,
+    "longitude": -2.9567
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.186+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440014: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.186+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440014: Coordinates converted to strings - lat: 43.3123, lon: -2.9567
+[2025-09-11T10:37:25.187+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440015: evseList length=1
+[2025-09-11T10:37:25.187+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.187+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.187+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440015",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Larios",
+  "address": "Calle Larios, 29005",
+  "city": "Málaga",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 36.7213,
+    "longitude": -4.4217
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655441101",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cfa",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "H1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.188+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440015: Found 1 EVSEs to process
+[2025-09-11T10:37:25.188+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655441101: evse_id=ES*IPD*E5bcc4cfa, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.188+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440015: Processed 1 EVSEs
+[2025-09-11T10:37:25.189+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440015: Coordinates converted to strings - lat: 36.7213, lon: -4.4217
+[2025-09-11T10:37:25.191+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440016: evseList length=0
+[2025-09-11T10:37:25.192+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.192+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.193+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440016",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Vialia",
+  "address": "Estación de Málaga-María Zambrano, 29002",
+  "city": "Málaga",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 36.7456,
+    "longitude": -4.4567
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.193+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440016: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.194+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440016: Coordinates converted to strings - lat: 36.7456, lon: -4.4567
+[2025-09-11T10:37:25.195+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440017: evseList length=2
+[2025-09-11T10:37:25.196+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.197+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.197+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440017",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Colombo",
+  "address": "Av. Lusíada, 1500-392",
+  "city": "Lisboa",
+  "postal_code": null,
+  "state": null,
+  "country": "PRT",
+  "coordinates": {
+    "latitude": 38.7223,
+    "longitude": -9.1393
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Lisbon",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440701",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf5",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "D1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440702",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf6",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "D2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.198+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440017: Found 2 EVSEs to process
+[2025-09-11T10:37:25.199+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440701: evse_id=ES*IPD*E5bcc4cf5, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.199+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440702: evse_id=ES*IPD*E5bcc4cf6, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.199+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440017: Processed 2 EVSEs
+[2025-09-11T10:37:25.200+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440017: Coordinates converted to strings - lat: 38.7223, lon: -9.1393
+[2025-09-11T10:37:25.200+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440018: evseList length=0
+[2025-09-11T10:37:25.200+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.200+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.201+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440018",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Vasco da Gama",
+  "address": "Av. D. João II, 1990-094",
+  "city": "Lisboa",
+  "postal_code": null,
+  "state": null,
+  "country": "PRT",
+  "coordinates": {
+    "latitude": 38.7567,
+    "longitude": -9.0945
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Lisbon",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.201+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440018: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.202+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440018: Coordinates converted to strings - lat: 38.7567, lon: -9.0945
+[2025-09-11T10:37:25.202+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440020: evseList length=0
+[2025-09-11T10:37:25.202+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.202+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.203+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440020",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Mar Shopping",
+  "address": "Rua do Mar, 4150-518",
+  "city": "Porto",
+  "postal_code": null,
+  "state": null,
+  "country": "PRT",
+  "coordinates": {
+    "latitude": 41.1567,
+    "longitude": -8.6234
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Lisbon",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:37:25.203+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440020: No EVSEs found or evseList is empty
+[2025-09-11T10:37:25.203+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440020: Coordinates converted to strings - lat: 41.1567, lon: -8.6234
+[2025-09-11T10:37:25.203+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440011: evseList length=1
+[2025-09-11T10:37:25.203+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.204+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:37:25.204+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440011",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Los Arcos",
+  "address": "Av. de Andalucía, 1, 41007",
+  "city": "Sevilla",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 37.3891,
+    "longitude": -5.9845
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440901",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf8",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "F1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:37:25.204+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440011: Found 1 EVSEs to process
+[2025-09-11T10:37:25.204+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440901: evse_id=ES*IPD*E5bcc4cf8, country_code=ES, party_id=IPD
+[2025-09-11T10:37:25.204+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440011: Processed 1 EVSEs
+[2025-09-11T10:37:25.205+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440011: Coordinates converted to strings - lat: 37.3891, lon: -5.9845
+[2025-09-11T10:37:25.205+00:00] [info] Response structure: cleanedLocations type=object, length=20
+[2025-09-11T10:37:25.205+00:00] [info] First location sample:
+[2025-09-11T10:37:25.215+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:25 +0000] "GET /ocpi/cpo/2.2/locations HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:28.312+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:28.313+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"location_id":"540c1583-5d8a-4c32-a807-a086412430c3"}}
+[2025-09-11T10:37:28.329+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:28 +0000] "GET /ocpi/cpo/2.2/evses?location_id=540c1583-5d8a-4c32-a807-a086412430c3 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:34.875+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/bbd29147-ccae-4d6e-b1d0-44c4511168d7","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:34.877+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"PUT","id":"bbd29147-ccae-4d6e-b1d0-44c4511168d7","body":{"status":"CHARGING","last_updated":"2025-09-11T10:37:34.809Z"}}
+[2025-09-11T10:37:34.890+00:00] [info] 🔔 Iniciando notificación de EVSE actualizado: bbd29147-ccae-4d6e-b1d0-44c4511168d7
+[2025-09-11T10:37:34.891+00:00] [info] 🔔 Notificando a organizaciones sobre EVSE actualizado:
+[2025-09-11T10:37:34.902+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:34 +0000] "PUT /ocpi/cpo/2.2/evses/bbd29147-ccae-4d6e-b1d0-44c4511168d7 HTTP/1.1" 200 809 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:34.904+00:00] [info] 📋 Encontradas 1 organizaciones configuradas para notificaciones (excluyendo nuestro CPO)
+[2025-09-11T10:37:34.905+00:00] [info] 📤 Notificando a 1 organización(es) sobre EVSE actualizado bbd29147-ccae-4d6e-b1d0-44c4511168d7
+[2025-09-11T10:37:34.907+00:00] [info] 📤 Notificando EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7 a organización EFI en https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 con método PATCH
+[2025-09-11T10:37:34.909+00:00] [info] 📋 Preparando payload PATCH para EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7: | {"last_updated":"2025-09-11T10:37:34.908Z","tariff_ids":["f461eb81-ed27-4201-bd5b-3bd0dc96742f"]}
+[2025-09-11T10:37:34.970+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:37:34.971+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:37:35.006+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:37:35 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:37:35.308+00:00] [info] ✅ EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7 notificado exitosamente a organización EFI con método PATCH
+[2025-09-11T10:37:35.309+00:00] [info] ✅ Notificaciones de EVSE actualizado enviadas a todas las organizaciones
+[2025-09-11T10:37:35.309+00:00] [info] ✅ Notificación de EVSE actualizado completada: bbd29147-ccae-4d6e-b1d0-44c4511168d7
+[2025-09-11T10:37:37.337+00:00] [info] ::1 - - [11/Sep/2025:10:37:37 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:38:10.400+00:00] [info] ::1 - - [11/Sep/2025:10:38:10 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:38:20.553+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:38:20.553+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:38:20.554+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"CHARGING","last_updated":"2025-09-11T10:37:34.883Z"}
+[2025-09-11T10:38:20.863+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:38:20.869+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to CHARGING in database
+[2025-09-11T10:38:43.407+00:00] [info] ::1 - - [11/Sep/2025:10:38:43 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:39:20.564+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:39:20.565+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:39:20.566+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"CHARGING","last_updated":"2025-09-11T10:38:20.863Z"}
+[2025-09-11T10:39:20.899+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:39:20.903+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to CHARGING in database
+[2025-09-11T10:39:35.017+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:39:35.018+00:00] [info] OCPI Operation | {"endpoint":"/locations","operation":"GET","query":{}}
+[2025-09-11T10:39:35.024+00:00] [info] Querying locations with EVSEs...
+[2025-09-11T10:39:35.043+00:00] [info] Found 20 locations
+[2025-09-11T10:39:35.044+00:00] [info] Location 1: 540c1583-5d8a-4c32-a807-a086412430c3 has 1 EVSEs
+[2025-09-11T10:39:35.045+00:00] [info] Location 2: 550e8400-e29b-41d4-a716-446655440002 has 2 EVSEs
+[2025-09-11T10:39:35.046+00:00] [info] Location 3: 550e8400-e29b-41d4-a716-446655440003 has 0 EVSEs
+[2025-09-11T10:39:35.046+00:00] [info] Location 4: 550e8400-e29b-41d4-a716-446655440004 has 0 EVSEs
+[2025-09-11T10:39:35.047+00:00] [info] Location 5: 550e8400-e29b-41d4-a716-446655440005 has 0 EVSEs
+[2025-09-11T10:39:35.047+00:00] [info] Location 6: 550e8400-e29b-41d4-a716-446655440006 has 2 EVSEs
+[2025-09-11T10:39:35.048+00:00] [info] Location 7: 550e8400-e29b-41d4-a716-446655440007 has 0 EVSEs
+[2025-09-11T10:39:35.048+00:00] [info] Location 8: 550e8400-e29b-41d4-a716-446655440008 has 0 EVSEs
+[2025-09-11T10:39:35.049+00:00] [info] Location 9: 550e8400-e29b-41d4-a716-446655440009 has 1 EVSEs
+[2025-09-11T10:39:35.049+00:00] [info] Location 10: 550e8400-e29b-41d4-a716-446655440010 has 0 EVSEs
+[2025-09-11T10:39:35.050+00:00] [info] Location 11: 550e8400-e29b-41d4-a716-446655440001 has 3 EVSEs
+[2025-09-11T10:39:35.050+00:00] [info] Location 12: 550e8400-e29b-41d4-a716-446655440012 has 0 EVSEs
+[2025-09-11T10:39:35.050+00:00] [info] Location 13: 550e8400-e29b-41d4-a716-446655440013 has 1 EVSEs
+[2025-09-11T10:39:35.051+00:00] [info] Location 14: 550e8400-e29b-41d4-a716-446655440014 has 0 EVSEs
+[2025-09-11T10:39:35.051+00:00] [info] Location 15: 550e8400-e29b-41d4-a716-446655440015 has 1 EVSEs
+[2025-09-11T10:39:35.052+00:00] [info] Location 16: 550e8400-e29b-41d4-a716-446655440016 has 0 EVSEs
+[2025-09-11T10:39:35.052+00:00] [info] Location 17: 550e8400-e29b-41d4-a716-446655440017 has 2 EVSEs
+[2025-09-11T10:39:35.053+00:00] [info] Location 18: 550e8400-e29b-41d4-a716-446655440018 has 0 EVSEs
+[2025-09-11T10:39:35.053+00:00] [info] Location 19: 550e8400-e29b-41d4-a716-446655440020 has 0 EVSEs
+[2025-09-11T10:39:35.054+00:00] [info] Location 20: 550e8400-e29b-41d4-a716-446655440011 has 1 EVSEs
+[2025-09-11T10:39:35.055+00:00] [info] Pagination debug: total=20, limit=100, offset=0
+[2025-09-11T10:39:35.055+00:00] [info] Calculated: totalPages=1, currentPage=1, hasNext=false, hasPrev=false
+[2025-09-11T10:39:35.056+00:00] [info] Processing location 540c1583-5d8a-4c32-a807-a086412430c3: evseList length=1
+[2025-09-11T10:39:35.057+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.058+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.062+00:00] [info] Location raw data: {
+  "id": "540c1583-5d8a-4c32-a807-a086412430c3",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "release",
+  "address": "release 4",
+  "city": "release",
+  "postal_code": "15140",
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 0.000001,
+    "longitude": -0.000001
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:30:46.379Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "bbd29147-ccae-4d6e-b1d0-44c4511168d7",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*Ebbd29147",
+      "status": "CHARGING",
+      "capabilities": [
+        "CHARGING_PROFILE_CAPABLE"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "CHADEMO",
+          "format": "SOCKET",
+          "power_type": "AC_1_PHASE",
+          "max_voltage": 230,
+          "max_amperage": 32,
+          "max_electric_power": 7360,
+          "tariff_ids": [
+            "f461eb81-ed27-4201-bd5b-3bd0dc96742f"
+          ],
+          "last_updated": "2025-09-11T07:31:42.283Z"
+        }
+      ],
+      "physical_reference": "rel",
+      "last_updated": "2025-09-11T10:39:20.899Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.063+00:00] [info] Location 540c1583-5d8a-4c32-a807-a086412430c3: Found 1 EVSEs to process
+[2025-09-11T10:39:35.064+00:00] [info] EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7: evse_id=ES*IPD*Ebbd29147, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.065+00:00] [info] Location 540c1583-5d8a-4c32-a807-a086412430c3: Processed 1 EVSEs
+[2025-09-11T10:39:35.066+00:00] [info] Location 540c1583-5d8a-4c32-a807-a086412430c3: Coordinates converted to strings - lat: 0.000001, lon: -0.000001
+[2025-09-11T10:39:35.067+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440002: evseList length=2
+[2025-09-11T10:39:35.068+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.069+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.069+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial La Gavia",
+  "address": "Av. de las Suertes, 28047",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.3897,
+    "longitude": -3.6289
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440201",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf1",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "B1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440202",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf2",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "B2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.070+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440002: Found 2 EVSEs to process
+[2025-09-11T10:39:35.070+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440201: evse_id=ES*IPD*E5bcc4cf1, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.071+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440202: evse_id=ES*IPD*E5bcc4cf2, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.072+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440002: Processed 2 EVSEs
+[2025-09-11T10:39:35.073+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440002: Coordinates converted to strings - lat: 40.3897, lon: -3.6289
+[2025-09-11T10:39:35.073+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440003: evseList length=0
+[2025-09-11T10:39:35.074+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.075+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.075+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440003",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Isla Azul",
+  "address": "Calle de la Isla Azul, 28042",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.4567,
+    "longitude": -3.6123
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.076+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440003: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.076+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440003: Coordinates converted to strings - lat: 40.4567, lon: -3.6123
+[2025-09-11T10:39:35.077+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440004: evseList length=0
+[2025-09-11T10:39:35.078+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.079+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.079+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440004",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Plaza de Castilla",
+  "address": "Plaza de Castilla, 28046",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.4667,
+    "longitude": -3.6897
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.080+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440004: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.080+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440004: Coordinates converted to strings - lat: 40.4667, lon: -3.6897
+[2025-09-11T10:39:35.081+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440005: evseList length=0
+[2025-09-11T10:39:35.081+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.081+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.082+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440005",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Príncipe Pío",
+  "address": "Paseo de la Florida, 28008",
+  "city": "Madrid",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.4233,
+    "longitude": -3.7189
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.082+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440005: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.083+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440005: Coordinates converted to strings - lat: 40.4233, lon: -3.7189
+[2025-09-11T10:39:35.083+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440006: evseList length=2
+[2025-09-11T10:39:35.084+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.085+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.086+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Diagonal Mar",
+  "address": "Passeig del Taulat, 08019",
+  "city": "Barcelona",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 41.4089,
+    "longitude": 2.2197
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440601",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf3",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "C1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440602",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf4",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "C2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.086+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440006: Found 2 EVSEs to process
+[2025-09-11T10:39:35.087+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440601: evse_id=ES*IPD*E5bcc4cf3, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.088+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440602: evse_id=ES*IPD*E5bcc4cf4, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.089+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440006: Processed 2 EVSEs
+[2025-09-11T10:39:35.090+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440006: Coordinates converted to strings - lat: 41.4089, lon: 2.2197
+[2025-09-11T10:39:35.091+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440007: evseList length=0
+[2025-09-11T10:39:35.091+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.091+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.092+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440007",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial La Maquinista",
+  "address": "Carrer de Josep Estivill, 08030",
+  "city": "Barcelona",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 41.4456,
+    "longitude": 2.1898
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.093+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440007: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.094+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440007: Coordinates converted to strings - lat: 41.4456, lon: 2.1898
+[2025-09-11T10:39:35.094+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440008: evseList length=0
+[2025-09-11T10:39:35.095+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.095+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.096+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440008",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Glòries",
+  "address": "Av. Diagonal, 208, 08013",
+  "city": "Barcelona",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 41.4036,
+    "longitude": 2.1897
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.098+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440008: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.098+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440008: Coordinates converted to strings - lat: 41.4036, lon: 2.1897
+[2025-09-11T10:39:35.099+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440009: evseList length=1
+[2025-09-11T10:39:35.099+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.099+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.100+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440009",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Aqua Multiespacio",
+  "address": "Carrer de Menorca, 19, 46023",
+  "city": "València",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 39.4699,
+    "longitude": -0.3763
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440801",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf7",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "E1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.100+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440009: Found 1 EVSEs to process
+[2025-09-11T10:39:35.101+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440801: evse_id=ES*IPD*E5bcc4cf7, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.101+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440009: Processed 1 EVSEs
+[2025-09-11T10:39:35.101+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440009: Coordinates converted to strings - lat: 39.4699, lon: -0.3763
+[2025-09-11T10:39:35.102+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440010: evseList length=0
+[2025-09-11T10:39:35.102+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.103+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.103+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440010",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Nuevo Centro",
+  "address": "Carrer de Menorca, 19, 46023",
+  "city": "València",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 39.4699,
+    "longitude": -0.3763
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.104+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440010: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.104+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440010: Coordinates converted to strings - lat: 39.4699, lon: -0.3763
+[2025-09-11T10:39:35.105+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440001: evseList length=3
+[2025-09-11T10:39:35.105+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.106+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.106+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Plaza Norte 2",
+  "address": "Plaza Norte 2, 28760 Tres Cantos",
+  "city": "Tres Cantos",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 40.6011,
+    "longitude": -3.7083
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440101",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cee",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "A1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440102",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cef",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "A2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440103",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf0",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "A3",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.107+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440001: Found 3 EVSEs to process
+[2025-09-11T10:39:35.107+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440101: evse_id=ES*IPD*E5bcc4cee, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.108+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440102: evse_id=ES*IPD*E5bcc4cef, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.112+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440103: evse_id=ES*IPD*E5bcc4cf0, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.113+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440001: Processed 3 EVSEs
+[2025-09-11T10:39:35.113+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440001: Coordinates converted to strings - lat: 40.6011, lon: -3.7083
+[2025-09-11T10:39:35.114+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440012: evseList length=0
+[2025-09-11T10:39:35.114+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.115+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.115+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440012",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Nervión Plaza",
+  "address": "Calle Luis Montoto, 41005",
+  "city": "Sevilla",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 37.3898,
+    "longitude": -5.9767
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.116+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440012: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.116+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440012: Coordinates converted to strings - lat: 37.3898, lon: -5.9767
+[2025-09-11T10:39:35.117+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440013: evseList length=1
+[2025-09-11T10:39:35.117+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.118+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.118+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440013",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Zubiarte",
+  "address": "Paseo de Uribitarte, 48001",
+  "city": "Bilbao",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 43.2627,
+    "longitude": -2.9253
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655441001",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf9",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "G1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.119+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440013: Found 1 EVSEs to process
+[2025-09-11T10:39:35.120+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655441001: evse_id=ES*IPD*E5bcc4cf9, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.121+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440013: Processed 1 EVSEs
+[2025-09-11T10:39:35.121+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440013: Coordinates converted to strings - lat: 43.2627, lon: -2.9253
+[2025-09-11T10:39:35.122+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440014: evseList length=0
+[2025-09-11T10:39:35.122+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.123+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.123+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440014",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Max Center",
+  "address": "Calle Max, 1, 48950 Erandio",
+  "city": "Erandio",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 43.3123,
+    "longitude": -2.9567
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.124+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440014: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.124+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440014: Coordinates converted to strings - lat: 43.3123, lon: -2.9567
+[2025-09-11T10:39:35.125+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440015: evseList length=1
+[2025-09-11T10:39:35.125+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.126+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.126+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440015",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Larios",
+  "address": "Calle Larios, 29005",
+  "city": "Málaga",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 36.7213,
+    "longitude": -4.4217
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655441101",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cfa",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "H1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.127+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440015: Found 1 EVSEs to process
+[2025-09-11T10:39:35.128+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655441101: evse_id=ES*IPD*E5bcc4cfa, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.128+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440015: Processed 1 EVSEs
+[2025-09-11T10:39:35.128+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440015: Coordinates converted to strings - lat: 36.7213, lon: -4.4217
+[2025-09-11T10:39:35.129+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440016: evseList length=0
+[2025-09-11T10:39:35.130+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.130+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.131+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440016",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Vialia",
+  "address": "Estación de Málaga-María Zambrano, 29002",
+  "city": "Málaga",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 36.7456,
+    "longitude": -4.4567
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.131+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440016: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.132+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440016: Coordinates converted to strings - lat: 36.7456, lon: -4.4567
+[2025-09-11T10:39:35.133+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440017: evseList length=2
+[2025-09-11T10:39:35.133+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.133+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.134+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440017",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Colombo",
+  "address": "Av. Lusíada, 1500-392",
+  "city": "Lisboa",
+  "postal_code": null,
+  "state": null,
+  "country": "PRT",
+  "coordinates": {
+    "latitude": 38.7223,
+    "longitude": -9.1393
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Lisbon",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440701",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf5",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "D1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440702",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf6",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "D2",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.134+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440017: Found 2 EVSEs to process
+[2025-09-11T10:39:35.135+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440701: evse_id=ES*IPD*E5bcc4cf5, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.135+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440702: evse_id=ES*IPD*E5bcc4cf6, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.136+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440017: Processed 2 EVSEs
+[2025-09-11T10:39:35.136+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440017: Coordinates converted to strings - lat: 38.7223, lon: -9.1393
+[2025-09-11T10:39:35.137+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440018: evseList length=0
+[2025-09-11T10:39:35.137+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.138+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.138+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440018",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Vasco da Gama",
+  "address": "Av. D. João II, 1990-094",
+  "city": "Lisboa",
+  "postal_code": null,
+  "state": null,
+  "country": "PRT",
+  "coordinates": {
+    "latitude": 38.7567,
+    "longitude": -9.0945
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Lisbon",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.139+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440018: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.139+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440018: Coordinates converted to strings - lat: 38.7567, lon: -9.0945
+[2025-09-11T10:39:35.140+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440020: evseList length=0
+[2025-09-11T10:39:35.140+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.141+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.141+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440020",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Mar Shopping",
+  "address": "Rua do Mar, 4150-518",
+  "city": "Porto",
+  "postal_code": null,
+  "state": null,
+  "country": "PRT",
+  "coordinates": {
+    "latitude": 41.1567,
+    "longitude": -8.6234
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Lisbon",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": []
+}
+[2025-09-11T10:39:35.142+00:00] [warn] Location 550e8400-e29b-41d4-a716-446655440020: No EVSEs found or evseList is empty
+[2025-09-11T10:39:35.142+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440020: Coordinates converted to strings - lat: 41.1567, lon: -8.6234
+[2025-09-11T10:39:35.143+00:00] [info] Processing location 550e8400-e29b-41d4-a716-446655440011: evseList length=1
+[2025-09-11T10:39:35.144+00:00] [info] Location data: country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.144+00:00] [info] Full location object keys: id, country_code, party_id, name, address, city, postal_code, state, country, coordinates, related_locations, parking_type, directions, operator, suboperator, owner, facilities, time_zone, opening_times, charging_when_closed, images, energy_mix, last_updated, publish, evseList
+[2025-09-11T10:39:35.145+00:00] [info] Location raw data: {
+  "id": "550e8400-e29b-41d4-a716-446655440011",
+  "country_code": "ES",
+  "party_id": "IPD",
+  "name": "Centro Comercial Los Arcos",
+  "address": "Av. de Andalucía, 1, 41007",
+  "city": "Sevilla",
+  "postal_code": null,
+  "state": null,
+  "country": "ESP",
+  "coordinates": {
+    "latitude": 37.3891,
+    "longitude": -5.9845
+  },
+  "related_locations": null,
+  "parking_type": "ON_STREET",
+  "directions": null,
+  "operator": null,
+  "suboperator": null,
+  "owner": null,
+  "facilities": null,
+  "time_zone": "Europe/Madrid",
+  "opening_times": null,
+  "charging_when_closed": null,
+  "images": null,
+  "energy_mix": null,
+  "last_updated": "2025-09-11T07:03:55.608Z",
+  "publish": true,
+  "evseList": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440901",
+      "country_code": "ES",
+      "party_id": "IPD",
+      "evse_id": "ES*IPD*E5bcc4cf8",
+      "status": "AVAILABLE",
+      "capabilities": [
+        "RESERVABLE",
+        "RFID_READER"
+      ],
+      "connectors": [
+        {
+          "id": "1",
+          "standard": "IEC_62196_T2",
+          "format": "SOCKET",
+          "power_type": "AC_3_PHASE",
+          "max_voltage": 400,
+          "max_amperage": 32,
+          "max_electric_power": 22000
+        }
+      ],
+      "physical_reference": "F1",
+      "last_updated": "2025-09-11T07:03:55.614Z"
+    }
+  ]
+}
+[2025-09-11T10:39:35.145+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440011: Found 1 EVSEs to process
+[2025-09-11T10:39:35.146+00:00] [info] EVSE 550e8400-e29b-41d4-a716-446655440901: evse_id=ES*IPD*E5bcc4cf8, country_code=ES, party_id=IPD
+[2025-09-11T10:39:35.147+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440011: Processed 1 EVSEs
+[2025-09-11T10:39:35.148+00:00] [info] Location 550e8400-e29b-41d4-a716-446655440011: Coordinates converted to strings - lat: 37.3891, lon: -5.9845
+[2025-09-11T10:39:35.148+00:00] [info] Response structure: cleanedLocations type=object, length=20
+[2025-09-11T10:39:35.149+00:00] [info] First location sample:
+[2025-09-11T10:39:35.165+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:39:35 +0000] "GET /ocpi/cpo/2.2/locations HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:39:39.586+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:39:39.586+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"location_id":"540c1583-5d8a-4c32-a807-a086412430c3"}}
+[2025-09-11T10:39:39.592+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:39:39 +0000] "GET /ocpi/cpo/2.2/evses?location_id=540c1583-5d8a-4c32-a807-a086412430c3 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:39:45.865+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/bbd29147-ccae-4d6e-b1d0-44c4511168d7","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:39:45.867+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"PUT","id":"bbd29147-ccae-4d6e-b1d0-44c4511168d7","body":{"status":"AVAILABLE","last_updated":"2025-09-11T10:39:45.841Z"}}
+[2025-09-11T10:39:45.879+00:00] [info] 🔔 Iniciando notificación de EVSE actualizado: bbd29147-ccae-4d6e-b1d0-44c4511168d7
+[2025-09-11T10:39:45.880+00:00] [info] 🔔 Notificando a organizaciones sobre EVSE actualizado:
+[2025-09-11T10:39:45.887+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:39:45 +0000] "PUT /ocpi/cpo/2.2/evses/bbd29147-ccae-4d6e-b1d0-44c4511168d7 HTTP/1.1" 200 810 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:39:45.889+00:00] [info] 📋 Encontradas 1 organizaciones configuradas para notificaciones (excluyendo nuestro CPO)
+[2025-09-11T10:39:45.892+00:00] [info] 📤 Notificando a 1 organización(es) sobre EVSE actualizado bbd29147-ccae-4d6e-b1d0-44c4511168d7
+[2025-09-11T10:39:45.893+00:00] [info] 📤 Notificando EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7 a organización EFI en https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 con método PATCH
+[2025-09-11T10:39:45.894+00:00] [info] 📋 Preparando payload PATCH para EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7: | {"last_updated":"2025-09-11T10:39:45.894Z","tariff_ids":["f461eb81-ed27-4201-bd5b-3bd0dc96742f"]}
+[2025-09-11T10:39:45.936+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:39:45.938+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:39:45.974+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:39:45 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:39:46.140+00:00] [info] ✅ EVSE bbd29147-ccae-4d6e-b1d0-44c4511168d7 notificado exitosamente a organización EFI con método PATCH
+[2025-09-11T10:39:46.142+00:00] [info] ✅ Notificaciones de EVSE actualizado enviadas a todas las organizaciones
+[2025-09-11T10:39:46.143+00:00] [info] ✅ Notificación de EVSE actualizado completada: bbd29147-ccae-4d6e-b1d0-44c4511168d7
+[2025-09-11T10:39:49.426+00:00] [info] ::1 - - [11/Sep/2025:10:39:49 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:40:20.549+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:40:20.550+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:40:20.550+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:39:45.873Z"}
+[2025-09-11T10:40:20.743+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:40:20.755+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:40:22.069+00:00] [info] ::1 - - [11/Sep/2025:10:40:22 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:40:54.618+00:00] [info] ::1 - - [11/Sep/2025:10:40:54 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:41:20.552+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:41:20.552+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:41:20.552+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:40:20.744Z"}
+[2025-09-11T10:41:20.889+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:41:20.897+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:41:27.487+00:00] [info] ::1 - - [11/Sep/2025:10:41:27 +0000] "GET /health HTTP/1.1" 200 122 "-" "-"
+[2025-09-11T10:42:20.553+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:42:20.554+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:42:20.554+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:41:20.890Z"}
+[2025-09-11T10:42:20.768+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:42:20.781+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:42:33.467+00:00] [info] ::1 - - [11/Sep/2025:10:42:33 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:43:05.848+00:00] [info] ::1 - - [11/Sep/2025:10:43:05 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:43:20.553+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:43:20.553+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:43:20.554+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:42:20.769Z"}
+[2025-09-11T10:43:20.933+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:43:20.939+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:43:38.912+00:00] [info] ::1 - - [11/Sep/2025:10:43:38 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:44:11.475+00:00] [info] ::1 - - [11/Sep/2025:10:44:11 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:44:20.554+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:44:20.554+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:44:20.555+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:43:20.933Z"}
+[2025-09-11T10:44:20.808+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:44:20.821+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:44:43.899+00:00] [info] ::1 - - [11/Sep/2025:10:44:43 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:45:16.662+00:00] [info] ::1 - - [11/Sep/2025:10:45:16 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:45:20.553+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:45:20.554+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:45:20.554+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:44:20.809Z"}
+[2025-09-11T10:45:20.892+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:45:20.896+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:45:49.115+00:00] [info] ::1 - - [11/Sep/2025:10:45:49 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:46:20.553+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:46:20.553+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:46:20.553+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:45:20.892Z"}
+[2025-09-11T10:46:20.763+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:46:20.773+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:46:21.944+00:00] [info] ::1 - - [11/Sep/2025:10:46:21 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
+[2025-09-11T10:46:54.945+00:00] [info] ::1 - - [11/Sep/2025:10:46:54 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
+[2025-09-11T10:47:20.553+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:47:20.554+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:47:20.554+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:46:20.764Z"}
+[2025-09-11T10:47:20.904+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:47:20.912+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:47:27.612+00:00] [info] ::1 - - [11/Sep/2025:10:47:27 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:48:00.797+00:00] [info] ::1 - - [11/Sep/2025:10:48:00 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
+[2025-09-11T10:48:20.556+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:48:20.557+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:48:20.557+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:47:20.905Z"}
+[2025-09-11T10:48:20.861+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:48:20.870+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:48:33.596+00:00] [info] ::1 - - [11/Sep/2025:10:48:33 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:49:05.911+00:00] [info] ::1 - - [11/Sep/2025:10:49:05 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
+[2025-09-11T10:49:20.564+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:49:20.565+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:49:20.566+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:48:20.861Z"}
+[2025-09-11T10:49:20.800+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:49:20.808+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:49:39.122+00:00] [info] ::1 - - [11/Sep/2025:10:49:39 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
+[2025-09-11T10:49:48.385+00:00] [info] SIGTERM received, shutting down gracefully
+[2025-09-11T10:49:48.386+00:00] [info] Stopping EVSE Notification Service
+[2025-09-11T10:49:48.396+00:00] [info] Redis client disconnected
+[2025-09-11T10:49:55.222+00:00] [info] Redis client connected
+[2025-09-11T10:49:55.237+00:00] [info] Redis client ready
+[2025-09-11T10:49:55.340+00:00] [info] Database connection established successfully
+[2025-09-11T10:49:55.342+00:00] [info] Database models synchronized (skipping sync)
+[2025-09-11T10:49:55.345+00:00] [info] Redis connection established successfully
+[2025-09-11T10:49:55.352+00:00] [info] Starting EVSE Notification Service with interval: 60000ms
+[2025-09-11T10:49:55.353+00:00] [info] EVSE Notification Service started
+[2025-09-11T10:49:55.355+00:00] [info] 🔄 Starting Charging Notification Service with interval: 20000ms
+[2025-09-11T10:49:55.357+00:00] [info] ✅ Charging Notification Service started
+[2025-09-11T10:49:55.359+00:00] [info] Charging Notification Service started
+[2025-09-11T10:49:55.361+00:00] [info] CPO OCPI 2.2 Server running on port 3000
+[2025-09-11T10:49:55.361+00:00] [info] Environment: development
+[2025-09-11T10:49:55.363+00:00] [info] API Documentation: http://localhost:3000/api-docs
+[2025-09-11T10:49:55.364+00:00] [info] Health Check: http://localhost:3000/health
+[2025-09-11T10:49:57.004+00:00] [info] ::1 - - [11/Sep/2025:10:49:57 +0000] "GET /health HTTP/1.1" 200 121 "-" "-"
+[2025-09-11T10:50:55.407+00:00] [info] Selected EVSE ES*IPD*E5bcc4cef (UID: 550e8400-e29b-41d4-a716-446655440102) for status change: AVAILABLE -> MAINTENANCE
+[2025-09-11T10:50:55.408+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:50:55.408+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:50:55.409+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/550e8400-e29b-41d4-a716-446655440001/550e8400-e29b-41d4-a716-446655440102 with payload: | {"status":"MAINTENANCE","last_updated":"2025-09-11T10:50:55.408Z"}
+[2025-09-11T10:50:55.652+00:00] [error] Failed to notify eMSP EFI about EVSE ES*IPD*E5bcc4cef (UID: 550e8400-e29b-41d4-a716-446655440102):
+[2025-09-11T10:50:55.653+00:00] [warn] Notification failed for eMSP EFI, EVSE ES*IPD*E5bcc4cef (UID: 550e8400-e29b-41d4-a716-446655440102): Request failed with status code 400
+[2025-09-11T10:51:09.764+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:09 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:09.876+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:09 +0000] "GET /styles.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:09.882+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:09 +0000] "GET /bootstrap.bundle.min.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:09.885+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:09 +0000] "GET /app.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:10.347+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:10 +0000] "GET /easter-egg.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:10.350+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:10 +0000] "GET /sparkle.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:10.497+00:00] [info] 🌐 Serving OCPI settings: | {"partyId":"IPD","countryCode":"ES","version":"2.2","baseUrl":"https://51aa1c8286a6.ngrok-free.app"}
+[2025-09-11T10:51:10.505+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:10 +0000] "GET /api/config/ocpi-settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:10.891+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:10 +0000] "GET /health HTTP/1.1" 200 122 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:10.910+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:51:10.921+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:51:10.922+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:51:10.930+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:10 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:14.088+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:51:14.091+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:51:14.190+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:14 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:15.129+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:51:15.131+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:51:15.170+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:51:15 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:51:55.384+00:00] [info] Selected EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7) for status change: AVAILABLE -> OCCUPIED
+[2025-09-11T10:51:55.385+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:51:55.386+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:51:55.387+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"OCCUPIED","last_updated":"2025-09-11T10:51:55.385Z"}
+[2025-09-11T10:51:55.646+00:00] [error] Failed to notify eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7):
+[2025-09-11T10:51:55.647+00:00] [warn] Notification failed for eMSP EFI, EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): Request failed with status code 400
+[2025-09-11T10:52:15.029+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:52:15.031+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:52:15.068+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:52:15 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:52:55.364+00:00] [info] Selected EVSE ES*IPD*E5bcc4cf3 (UID: 550e8400-e29b-41d4-a716-446655440601) for status change: AVAILABLE -> OUT_OF_ORDER
+[2025-09-11T10:52:55.364+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:52:55.365+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:52:55.365+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/550e8400-e29b-41d4-a716-446655440006/550e8400-e29b-41d4-a716-446655440601 with payload: | {"status":"OUT_OF_ORDER","last_updated":"2025-09-11T10:52:55.364Z"}
+[2025-09-11T10:52:55.599+00:00] [error] Failed to notify eMSP EFI about EVSE ES*IPD*E5bcc4cf3 (UID: 550e8400-e29b-41d4-a716-446655440601):
+[2025-09-11T10:52:55.600+00:00] [warn] Notification failed for eMSP EFI, EVSE ES*IPD*E5bcc4cf3 (UID: 550e8400-e29b-41d4-a716-446655440601): Request failed with status code 400
+[2025-09-11T10:53:15.867+00:00] [info] ::1 - - [11/Sep/2025:10:53:15 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:53:48.263+00:00] [info] ::1 - - [11/Sep/2025:10:53:48 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:53:55.374+00:00] [info] Selected EVSE ES*IPD*E5bcc4cf1 (UID: 550e8400-e29b-41d4-a716-446655440201) for status change: AVAILABLE -> OUT_OF_ORDER
+[2025-09-11T10:53:55.375+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:53:55.376+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:53:55.377+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/550e8400-e29b-41d4-a716-446655440002/550e8400-e29b-41d4-a716-446655440201 with payload: | {"status":"OUT_OF_ORDER","last_updated":"2025-09-11T10:53:55.375Z"}
+[2025-09-11T10:53:55.627+00:00] [error] Failed to notify eMSP EFI about EVSE ES*IPD*E5bcc4cf1 (UID: 550e8400-e29b-41d4-a716-446655440201):
+[2025-09-11T10:53:55.628+00:00] [warn] Notification failed for eMSP EFI, EVSE ES*IPD*E5bcc4cf1 (UID: 550e8400-e29b-41d4-a716-446655440201): Request failed with status code 400
+[2025-09-11T10:54:21.443+00:00] [info] ::1 - - [11/Sep/2025:10:54:21 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:54:39.148+00:00] [info] SIGTERM received, shutting down gracefully
+[2025-09-11T10:54:39.150+00:00] [info] Stopping EVSE Notification Service
+[2025-09-11T10:54:39.184+00:00] [info] Redis client disconnected
+[2025-09-11T10:54:45.073+00:00] [info] Redis client connected
+[2025-09-11T10:54:45.093+00:00] [info] Redis client ready
+[2025-09-11T10:54:45.221+00:00] [info] Database connection established successfully
+[2025-09-11T10:54:45.223+00:00] [info] Database models synchronized (skipping sync)
+[2025-09-11T10:54:45.227+00:00] [info] Redis connection established successfully
+[2025-09-11T10:54:45.232+00:00] [info] Starting EVSE Notification Service with interval: 60000ms
+[2025-09-11T10:54:45.233+00:00] [info] EVSE Notification Service started
+[2025-09-11T10:54:45.235+00:00] [info] 🔄 Starting Charging Notification Service with interval: 20000ms
+[2025-09-11T10:54:45.236+00:00] [info] ✅ Charging Notification Service started
+[2025-09-11T10:54:45.238+00:00] [info] Charging Notification Service started
+[2025-09-11T10:54:45.239+00:00] [info] CPO OCPI 2.2 Server running on port 3000
+[2025-09-11T10:54:45.240+00:00] [info] Environment: development
+[2025-09-11T10:54:45.241+00:00] [info] API Documentation: http://localhost:3000/api-docs
+[2025-09-11T10:54:45.242+00:00] [info] Health Check: http://localhost:3000/health
+[2025-09-11T10:54:47.849+00:00] [info] ::1 - - [11/Sep/2025:10:54:47 +0000] "GET /health HTTP/1.1" 200 121 "-" "-"
+[2025-09-11T10:54:53.048+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:53.129+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET /styles.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:53.139+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET /bootstrap.bundle.min.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:53.146+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET /sparkle.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:53.156+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET /app.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:53.568+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET /easter-egg.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:53.668+00:00] [info] 🌐 Serving OCPI settings: | {"partyId":"IPD","countryCode":"ES","version":"2.2","baseUrl":"https://51aa1c8286a6.ngrok-free.app"}
+[2025-09-11T10:54:53.671+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:53 +0000] "GET /api/config/ocpi-settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:54.020+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:54 +0000] "GET /health HTTP/1.1" 200 122 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:54.089+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:54:54.109+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:54:54.112+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:54:54.135+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:54 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:54:57.783+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:54:57.785+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:54:57.874+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:54:57 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:20.056+00:00] [info] ::1 - - [11/Sep/2025:10:55:20 +0000] "GET /health HTTP/1.1" 200 122 "-" "-"
+[2025-09-11T10:55:45.272+00:00] [info] Selected EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7) for status change: AVAILABLE -> CHARGING
+[2025-09-11T10:55:45.273+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:55:45.274+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:55:45.276+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"CHARGING","last_updated":"2025-09-11T10:55:45.273Z"}
+[2025-09-11T10:55:45.654+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:55:45.675+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to CHARGING in database
+[2025-09-11T10:55:52.445+00:00] [info] ::1 - - [11/Sep/2025:10:55:52 +0000] "GET /health HTTP/1.1" 200 122 "-" "-"
+[2025-09-11T10:55:53.401+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:53.495+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET /styles.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:53.503+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET /sparkle.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:53.519+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET /bootstrap.bundle.min.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:53.525+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET /app.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:53.724+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET /easter-egg.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:53.825+00:00] [info] 🌐 Serving OCPI settings: | {"partyId":"IPD","countryCode":"ES","version":"2.2","baseUrl":"https://51aa1c8286a6.ngrok-free.app"}
+[2025-09-11T10:55:53.830+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:53 +0000] "GET /api/config/ocpi-settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:54.033+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:54 +0000] "GET /health HTTP/1.1" 200 122 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:54.049+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:55:54.056+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:55:54.057+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:55:54.061+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:54 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:55:55.533+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:55:55.535+00:00] [info] OCPI Operation | {"endpoint":"/evses","operation":"GET","query":{"limit":"1000"}}
+[2025-09-11T10:55:55.580+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:55:55 +0000] "GET /ocpi/cpo/2.2/evses?limit=1000 HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:56:24.896+00:00] [info] ::1 - - [11/Sep/2025:10:56:24 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
+[2025-09-11T10:56:45.266+00:00] [info] Selected EVSE ES*IPD*E5bcc4cf5 (UID: 550e8400-e29b-41d4-a716-446655440701) for status change: AVAILABLE -> UNKNOWN
+[2025-09-11T10:56:45.267+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:56:45.268+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:56:45.270+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/550e8400-e29b-41d4-a716-446655440017/550e8400-e29b-41d4-a716-446655440701 with payload: | {"status":"UNKNOWN","last_updated":"2025-09-11T10:56:45.267Z"}
+[2025-09-11T10:56:45.523+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*E5bcc4cf5 (UID: 550e8400-e29b-41d4-a716-446655440701): 200
+[2025-09-11T10:56:45.539+00:00] [info] Updated EVSE UID 550e8400-e29b-41d4-a716-446655440701 status to UNKNOWN in database
+[2025-09-11T10:57:30.758+00:00] [info] ::1 - - [11/Sep/2025:10:57:30 +0000] "GET /health HTTP/1.1" 200 123 "-" "-"
