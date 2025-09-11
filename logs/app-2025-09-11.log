@@ -1,0 +1,40 @@
+[2025-09-11T10:29:20.337+00:00] [info] Redis client connected
+[2025-09-11T10:29:20.368+00:00] [info] Redis client ready
+[2025-09-11T10:29:20.521+00:00] [info] Database connection established successfully
+[2025-09-11T10:29:20.523+00:00] [info] Database models synchronized (skipping sync)
+[2025-09-11T10:29:20.530+00:00] [info] Redis connection established successfully
+[2025-09-11T10:29:20.536+00:00] [info] Starting EVSE Notification Service with interval: 60000ms
+[2025-09-11T10:29:20.538+00:00] [info] EVSE Notification Service started
+[2025-09-11T10:29:20.539+00:00] [info] 🔄 Starting Charging Notification Service with interval: 20000ms
+[2025-09-11T10:29:20.541+00:00] [info] ✅ Charging Notification Service started
+[2025-09-11T10:29:20.542+00:00] [info] Charging Notification Service started
+[2025-09-11T10:29:20.545+00:00] [info] CPO OCPI 2.2 Server running on port 3000
+[2025-09-11T10:29:20.546+00:00] [info] Environment: development
+[2025-09-11T10:29:20.547+00:00] [info] API Documentation: http://localhost:3000/api-docs
+[2025-09-11T10:29:20.548+00:00] [info] Health Check: http://localhost:3000/health
+[2025-09-11T10:29:28.847+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:29:28 +0000] "GET /health HTTP/1.1" 200 122 "-" "curl/8.5.0"
+[2025-09-11T10:30:06.008+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:06 +0000] "GET /logs/recent HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:06.797+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:06 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:06.922+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:06 +0000] "GET /styles.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:06.926+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:06 +0000] "GET /bootstrap.bundle.min.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:06.935+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:06 +0000] "GET /app.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:07.406+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:07 +0000] "GET /easter-egg.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:07.407+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:07 +0000] "GET /sparkle.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:07.470+00:00] [info] 🌐 Serving OCPI settings: | {"partyId":"IPD","countryCode":"ES","version":"2.2","baseUrl":"https://51aa1c8286a6.ngrok-free.app"}
+[2025-09-11T10:30:07.477+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:07 +0000] "GET /api/config/ocpi-settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:08.072+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:08 +0000] "GET /health HTTP/1.1" 200 122 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:08.140+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/connections","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:30:08.154+00:00] [info] Authentication successful | {"ip":"::ffff:172.18.0.1","path":"/","partyId":"IPD","countryCode":"ES"}
+[2025-09-11T10:30:08.155+00:00] [info] Loading OCPI connections for frontend
+[2025-09-11T10:30:08.163+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:10:30:08 +0000] "GET /api/connections HTTP/1.1" 200 334 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T10:30:20.583+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:30:20.584+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:30:20.586+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:24:27.288Z"}
+[2025-09-11T10:30:21.125+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:30:21.148+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database
+[2025-09-11T10:30:29.317+00:00] [info] ::1 - - [11/Sep/2025:10:30:29 +0000] "GET /health HTTP/1.1" 200 122 "-" "-"
+[2025-09-11T10:31:20.561+00:00] [info] Processing 1 EVSE status changes for 1 eMSPs
+[2025-09-11T10:31:20.562+00:00] [info] Notifying eMSP EFI (ES) about 1 EVSE changes
+[2025-09-11T10:31:20.562+00:00] [info] Sending PATCH to https://ocpi-api.pre.efimob.net/ocpi/emsp/2.2/locations/ES/IPD/540c1583-5d8a-4c32-a807-a086412430c3/bbd29147-ccae-4d6e-b1d0-44c4511168d7 with payload: | {"status":"AVAILABLE","last_updated":"2025-09-11T10:30:21.126Z"}
+[2025-09-11T10:31:20.831+00:00] [info] Successfully notified eMSP EFI about EVSE ES*IPD*Ebbd29147 (UID: bbd29147-ccae-4d6e-b1d0-44c4511168d7): 200
+[2025-09-11T10:31:20.837+00:00] [info] Updated EVSE UID bbd29147-ccae-4d6e-b1d0-44c4511168d7 status to AVAILABLE in database

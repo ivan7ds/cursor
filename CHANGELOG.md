@@ -90,6 +90,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Incluidos tokens con diferentes perfiles: REGULAR, FAST, GREEN, CHEAP
   - Mejorada cobertura de pruebas para diferentes escenarios de autenticación
 
+- **Sincronización de logs y sistema de rotación**
+  - Cambiado montaje de logs de volumen Docker a carpeta local para desarrollo
+  - Implementado sistema de rotación de logs con winston-daily-rotate-file
+  - Configurada rotación automática cuando archivos alcanzan 10MB
+  - Establecida retención de logs por 7 días (comprimidos)
+  - Separados logs de errores con retención de 30 días
+  - Agregados logs de excepciones y rechazos de promesas
+  - Mejorada gestión de espacio en disco para logs
+  - Sincronización completa entre logs del contenedor y carpeta local
+
 - **Corrección de error de columna en tabla emsp_locations**
   - Solucionado error PostgreSQL 42703 al guardar locations de eMSPs
   - Corregido nombre de columna de `evse_list` a `evses` en consultas SQL

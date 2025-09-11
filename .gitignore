@@ -1,4 +1,5 @@
 .env
 node_modules
 .scannerwork
-.backups
+backups/*
+.logs/*
