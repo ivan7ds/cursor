@@ -17,11 +17,60 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Agregado fallback para `business_details` cuando no está disponible en la respuesta
   - Handshake ahora completa exitosamente sin errores de validación de base de datos
 
+- **Corrección de longitud de IDs de conectores en script de base de datos**
+  - Corregidos IDs de conectores en `scripts/complete_database_setup.sql` para usar UUIDs de 36 caracteres
+  - Eliminada concatenación incorrecta de `-conn-1` que generaba IDs de 44 caracteres
+  - Todos los conectores ahora tienen IDs consistentes con el formato UUID estándar
+  - Actualizada base de datos existente para eliminar sufijos `-conn-1` de IDs de conectores
+
+- **Corrección de regeneración innecesaria de evse_id en respuestas de locations**
+  - Solucionado problema de `evse_id` duplicados en respuestas GET /locations
+  - Implementada validación para no regenerar `evse_id` si ya existe uno válido en la base de datos
+  - Mantenidos `evse_id` correctamente almacenados en la base de datos (formato: `ES*IPD*E5bcc4cee`)
+  - Eliminada regeneración automática que causaba duplicados al usar primeros 8 caracteres del UUID
+  - Respuestas de locations ahora mantienen `evse_id` únicos y consistentes
+
+- **Corrección de notificaciones PATCH para EVSEs soft-deleted**
+  - Solucionado problema donde se enviaban notificaciones PATCH de EVSEs eliminados
+  - Implementado filtro `deleted_at: null` en consultas de EVSEs para excluir registros soft-deleted
+  - Reemplazadas consultas `EVSE.findByPk(id)` por `EVSE.findOne()` con filtro de soft delete
+  - Eliminadas notificaciones innecesarias de EVSEs que ya fueron eliminados
+  - Mejorada consistencia entre estado de datos y notificaciones enviadas
+
+- **Corrección de sobrescritura de evse_id en respuestas de locations**
+  - Solucionado problema donde se regeneraban `evse_id` en cada petición GET `/locations`
+  - Implementada validación condicional para solo regenerar `evse_id` si no existe o no tiene formato eMI3
+  - Mantenidos `evse_id` existentes válidos en lugar de sobrescribirlos constantemente
+  - Eliminada regeneración automática que causaba duplicados en respuestas OCPI
+  - Mejorada estabilidad de identificadores de EVSEs en comunicaciones externas
+
+- **Cambio de IDs de conectores de UUID a números enteros en frontend y base de datos**
+  - Modificada generación de IDs de conectores en formulario de creación de EVSEs
+  - IDs de conectores ahora son números enteros secuenciales por EVSE (1, 2, 3...)
+  - Implementada función `generateConnectorId()` para generar números secuenciales únicos por EVSE
+  - Actualizada lógica en creación y edición de EVSEs para usar números de conector
+  - Actualizado script `complete_database_setup.sql` para usar IDs numéricos por EVSE
+  - Cada EVSE tiene sus conectores numerados independientemente desde 1
+  - Reemplazados 14 UUIDs de conectores por "1" (cada EVSE tiene 1 conector)
+  - Mejorada experiencia de usuario con IDs más simples y legibles
+  - Consistencia entre frontend y datos de inicialización de la base de datos
+  - Solucionado problema donde los IDs de conectores tenían 44 caracteres en lugar de 36
+  - Corregido script `complete_database_setup.sql` para usar UUIDs válidos de 36 caracteres
+  - Reemplazados IDs concatenados (formato: `evse-id-conn-1`) por UUIDs estándar
+  - Ahora todos los IDs de conectores siguen el formato UUID v4 consistente con el resto de la aplicación
+  - Eliminada inconsistencia entre scripts de inicialización y código de la aplicación
+
 ### Technical
 - **Mejoras en `src/api/handshake.js`**
   - Corregida extracción de `business_details` de respuesta de credenciales con roles múltiples
   - Implementada búsqueda del rol CPO para obtener información de negocio
   - Agregado manejo robusto de respuestas de organizaciones externas
+
+- **Mejoras en `scripts/complete_database_setup.sql`**
+  - Corregidos 15 IDs de conectores de formato concatenado a UUID v4 estándar
+  - Eliminada inconsistencia de longitud entre scripts de inicialización y código de aplicación
+  - Todos los IDs de conectores ahora tienen exactamente 36 caracteres como se espera en la aplicación
+  - Mantenida integridad referencial y funcionalidad de los datos de prueba
 
 ## [0.11.7] - 2025-09-10
 

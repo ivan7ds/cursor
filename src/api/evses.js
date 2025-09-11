@@ -191,7 +191,12 @@ router.put('/:id', async (req, res) => {
     logger.ocpi('/evses', 'PUT', { id: req.params.id, body: req.body });
     
     const { id } = req.params;
-    const evse = await EVSE.findByPk(id);
+    const evse = await EVSE.findOne({
+      where: { 
+        id: id,
+        deleted_at: null 
+      }
+    });
     
     if (!evse) {
       return res.status(404).json({
@@ -249,7 +254,12 @@ router.delete('/:id', async (req, res) => {
     logger.ocpi('/evses', 'DELETE', { id: req.params.id });
     
     const { id } = req.params;
-    const evse = await EVSE.findByPk(id);
+    const evse = await EVSE.findOne({
+      where: { 
+        id: id,
+        deleted_at: null 
+      }
+    });
     
     if (!evse) {
       return res.status(404).json({

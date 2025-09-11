@@ -3633,6 +3633,32 @@ if (filterActiveExtSessions) {
         }
     }
 
+    generateConnectorId() {
+        try {
+            // Obtener todos los conectores existentes en el formulario actual
+            const existingConnectors = document.querySelectorAll('.evse-connector .connector-id');
+            const existingIds = Array.from(existingConnectors)
+                .map(input => parseInt(input.value))
+                .filter(id => !isNaN(id))
+                .sort((a, b) => a - b);
+            
+            // Encontrar el siguiente número disponible (1, 2, 3...)
+            let nextId = 1;
+            for (const id of existingIds) {
+                if (id === nextId) {
+                    nextId++;
+                } else {
+                    break;
+                }
+            }
+            
+            return nextId.toString();
+        } catch (error) {
+            console.error('❌ Error generando ID de conector:', error);
+            return '1';
+        }
+    }
+
     async saveLocation() {
         try {
             console.log('💾 Guardando location...');
@@ -4047,9 +4073,9 @@ if (filterActiveExtSessions) {
             connectorElements.forEach((connectorElement, index) => {
                 const idField = connectorElement.querySelector('.connector-id');
                 if (idField && !idField.value) {
-                    const uuid = this.generateUUID();
-                    idField.value = uuid;
-                    console.log(`✅ ID de conector ${index + 1} generado:`, uuid);
+                    const connectorId = (index + 1).toString();
+                    idField.value = connectorId;
+                    console.log(`✅ ID de conector ${index + 1} generado:`, connectorId);
                 }
             });
         } catch (error) {
@@ -4154,14 +4180,14 @@ if (filterActiveExtSessions) {
             const newConnector = container.lastElementChild;
             const idField = newConnector.querySelector('.connector-id');
             if (idField) {
-                idField.value = this.generateUUID();
+                idField.value = this.generateConnectorId();
             }
             
             // Event listener para el botón de generar ID
             const generateBtn = newConnector.querySelector('.generate-connector-id');
             if (generateBtn) {
                 generateBtn.addEventListener('click', () => {
-                    idField.value = this.generateUUID();
+                    idField.value = this.generateConnectorId();
                 });
             }
             
@@ -4928,7 +4954,7 @@ if (filterActiveExtSessions) {
                     const button = event.target.closest('.generate-edit-connector-id');
                     const input = button.parentElement.querySelector('.connector-id');
                     if (input) {
-                        input.value = this.generateUUID();
+                        input.value = this.generateConnectorId();
                     }
                 }
                 
