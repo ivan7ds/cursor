@@ -19594,3 +19594,9 @@
 [2025-09-11T12:44:01.331+00:00] [info] ::1 - - [11/Sep/2025:12:44:01 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
 [2025-09-11T12:44:02.050+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:12:44:02 +0000] "GET /logs/recent HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
 [2025-09-11T12:44:12.049+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:12:44:12 +0000] "GET /logs/recent HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T12:44:22.056+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:12:44:22 +0000] "GET /logs/recent HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T12:44:32.054+00:00] [info] ::ffff:172.18.0.1 - - [11/Sep/2025:12:44:32 +0000] "GET /logs/recent HTTP/1.1" 200 - "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+[2025-09-11T12:44:34.085+00:00] [info] ::1 - - [11/Sep/2025:12:44:34 +0000] "GET /health HTTP/1.1" 200 124 "-" "-"
+[2025-09-11T12:44:38.981+00:00] [info] SIGTERM received, shutting down gracefully
+[2025-09-11T12:44:38.982+00:00] [info] Stopping EVSE Notification Service
+[2025-09-11T12:44:39.009+00:00] [info] Redis client disconnected
