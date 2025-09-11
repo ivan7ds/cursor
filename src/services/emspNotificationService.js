@@ -286,6 +286,7 @@ class EMSPNotificationService {
      */
     prepareEVSEPatchPayload(evseData) {
         const payload = {
+            status: evseData.status,
             last_updated: new Date().toISOString()
         };
 

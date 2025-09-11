@@ -107,6 +107,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Mejorada lógica para excluir EVSEs soft-deleted y con sesiones activas
   - Agregado logging detallado de cambios de estado seleccionados
 
+- **Corrección de notificación PATCH de EVSE**
+  - Corregido bug donde notificaciones PATCH no incluían el estado del EVSE
+  - Agregado campo `status` al payload de `prepareEVSEPatchPayload`
+  - Asegurado que cambios manuales de estado se notifiquen correctamente
+
 - **Corrección de error de columna en tabla emsp_locations**
   - Solucionado error PostgreSQL 42703 al guardar locations de eMSPs
   - Corregido nombre de columna de `evse_list` a `evses` en consultas SQL
