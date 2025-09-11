@@ -457,7 +457,7 @@ class EMSPNotificationService {
             logger.info(`📤 Notificando creación de token ${tokenData.uid} a ${organizations.length} organizaciones EMSP`);
 
             const notificationPromises = organizations.map(organization => 
-                this.notifyOrganizationAboutToken(organization, tokenData, 'POST')
+                this.notifyOrganizationAboutToken(organization, tokenData, 'PUT')
             );
 
             await Promise.allSettled(notificationPromises);
@@ -477,7 +477,7 @@ class EMSPNotificationService {
     async notifyOrganizationAboutToken(organization, tokenData, method = 'PUT') {
         try {
             const sanitizedUrl = this.sanitizeUrl(organization.url);
-            const url = `${sanitizedUrl}/ocpi/emsp/2.2/tokens/${tokenData.country_code}/${tokenData.party_id}/${tokenData.uid}`;
+            const url = `${sanitizedUrl}/ocpi/cpo/2.2/tokens/${tokenData.country_code}/${tokenData.party_id}/${tokenData.uid}`;
             
             logger.info(`📤 Enviando ${method} de token a ${organization.party_id} (${organization.url})`);
             

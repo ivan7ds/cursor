@@ -229,8 +229,8 @@ router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
         // Actualizar usando Sequelize de forma segura
         const [affectedRows] = await EmspSession.update(updateFields, {
             where: {
-                country_code: country_code,
-                party_id: party_id,
+                emsp_country_code: country_code,
+                emsp_party_id: party_id,
                 session_id: session_id
             }
         });

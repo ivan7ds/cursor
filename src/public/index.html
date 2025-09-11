@@ -1860,12 +1860,12 @@
                             <div class="col-md-6">
                                 <label for="tokenUid" class="form-label">UID del Token *</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="tokenUid" required readonly>
+                                    <input type="text" class="form-control" id="tokenUid" required placeholder="Escribir UID personalizado o generar automáticamente">
                                     <button type="button" class="btn btn-outline-secondary" id="generateTokenUidBtn">
                                         <i class="bi bi-arrow-clockwise"></i> Generar
                                     </button>
                                 </div>
-                                <small class="form-text text-muted">UID único autogenerado (UUID)</small>
+                                <small class="form-text text-muted">Escriba un UID personalizado o use el botón para generar uno automáticamente</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="tokenType" class="form-label">Tipo de Token *</label>
@@ -1873,6 +1873,7 @@
                                     <option value="">Seleccionar tipo...</option>
                                     <option value="RFID">RFID</option>
                                     <option value="APP_USER">APP_USER</option>
+                                    <option value="AD_HOC_USER">AD_HOC_USER</option>
                                     <option value="OTHER">OTHER</option>
                                 </select>
                             </div>

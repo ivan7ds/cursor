@@ -52,6 +52,44 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Mejorada consistencia entre configuración del servidor y URLs generadas en frontend
   - Eliminado uso de localhost hardcodeado en comandos OCPI
 
+- **Corrección de error 500 en PATCH sessions**
+  - Solucionado error PostgreSQL "column does not exist" en operaciones PATCH de sesiones
+  - Corregido uso de nombres de columnas incorrectos en cláusula WHERE del UPDATE
+  - Cambiado `country_code` por `emsp_country_code` en consulta de actualización
+  - Cambiado `party_id` por `emsp_party_id` en consulta de actualización
+  - Eliminado error 500 que impedía actualizar sesiones de eMSPs externos
+
+- **Mejoras en formulario de creación de tokens**
+  - Campo UID del token ahora es editable para permitir UIDs personalizados
+  - Agregada opción `AD_HOC_USER` al select de tipos de token
+  - Implementado autocompletado automático para tokens AD_HOC_USER:
+    - Emisor: "EMSP_System"
+    - ID de contrato: "contract-001" 
+    - Número visual: "AH001"
+  - Mejorada flexibilidad en la creación de tokens con valores personalizados
+
+- **Corrección de método HTTP en notificaciones de tokens**
+  - Cambiado método de notificación de tokens de POST a PUT según protocolo OCPI 2.2
+  - Corregido en `emspNotificationService.js` para cumplir con especificación estándar
+  - Mejorada compatibilidad con organizaciones EMSP externas
+
+- **Corrección de finalización de recarga en EVSEs externos**
+  - Solucionado problema donde no se podía finalizar recarga en EVSEs externos
+  - Corregido campo de búsqueda de `party_id` a `emsp_party_id` en función `getRealSessionId()`
+  - Eliminado filtro de status `ACTIVE` que impedía encontrar sesiones `COMPLETED`
+  - Mejorada lógica para encontrar la sesión más reciente del CPO EFI
+  - Agregados logs adicionales para debugging de sesiones encontradas
+
+- **Expansión de datos de prueba para tokens**
+  - Ampliado script de población de base de datos con 19 tokens de prueba
+  - Agregadas combinaciones completas de tipos de token: RFID, APP_USER, AD_HOC_USER, OTHER
+  - Incluidos diferentes métodos de autenticación: RFID, APP_USER, WHITELIST, COMMAND, AUTH_REQUEST
+  - Agregados tokens de prueba específicos para recarga externa (test_token1, test_token2, test_token3)
+  - Incluidos tokens con diferentes estados: válidos, inválidos, expirados
+  - Agregados tokens con diferentes configuraciones de whitelist: ALWAYS, ALLOWED, ALLOWED_OFFLINE, NEVER
+  - Incluidos tokens con diferentes perfiles: REGULAR, FAST, GREEN, CHEAP
+  - Mejorada cobertura de pruebas para diferentes escenarios de autenticación
+
 - **Corrección de error de columna en tabla emsp_locations**
   - Solucionado error PostgreSQL 42703 al guardar locations de eMSPs
   - Corregido nombre de columna de `evse_list` a `evses` en consultas SQL

@@ -3396,6 +3396,15 @@ if (filterActiveExtSessions) {
                 console.log('✅ Event listener para saveTokenBtn agregado');
             }
 
+            // Event listener para cambio de tipo de token
+            const tokenTypeSelect = document.getElementById('tokenType');
+            if (tokenTypeSelect) {
+                tokenTypeSelect.addEventListener('change', () => {
+                    this.handleTokenTypeChange();
+                });
+                console.log('✅ Event listener para tokenType agregado');
+            }
+
             console.log('✅ Event listeners del modal de tokens configurados');
         } catch (error) {
             console.error('❌ Error configurando event listeners del modal de tokens:', error);
@@ -6054,6 +6063,32 @@ if (filterActiveExtSessions) {
         }
     }
 
+    handleTokenTypeChange() {
+        try {
+            const tokenType = document.getElementById('tokenType').value;
+            console.log('🔄 Cambio de tipo de token detectado:', tokenType);
+            
+            if (tokenType === 'AD_HOC_USER') {
+                // Autocompletar campos para AD_HOC_USER
+                document.getElementById('tokenIssuer').value = 'EMSP_System';
+                document.getElementById('tokenContractId').value = 'contract-001';
+                document.getElementById('tokenVisualNumber').value = 'AH001';
+                
+                console.log('✅ Campos autocompletados para AD_HOC_USER');
+            } else {
+                // Limpiar campos si no es AD_HOC_USER
+                document.getElementById('tokenIssuer').value = '';
+                document.getElementById('tokenContractId').value = '';
+                document.getElementById('tokenVisualNumber').value = '';
+                
+                console.log('✅ Campos limpiados para tipo:', tokenType);
+            }
+            
+        } catch (error) {
+            console.error('❌ Error manejando cambio de tipo de token:', error);
+        }
+    }
+
     resetTokenForm() {
         try {
             console.log('🔄 Reseteando formulario de token...');
@@ -7557,21 +7592,22 @@ if (filterActiveExtSessions) {
             if (response.ok) {
                 const data = await response.json();
                 if (data.data && data.data.length > 0) {
-                    // Buscar la sesión más reciente con status ACTIVE del CPO EFI
-                    const activeSessions = data.data.filter(session => 
-                        session.party_id === 'EFI' && 
-                        session.status === 'ACTIVE'
+                    // Buscar la sesión más reciente del CPO EFI (usando emsp_party_id)
+                    const efiSessions = data.data.filter(session => 
+                        session.emsp_party_id === 'EFI'
                     );
                     
-                    if (activeSessions.length > 0) {
+                    if (efiSessions.length > 0) {
                         // Ordenar por last_updated descendente y tomar la más reciente
-                        activeSessions.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
-                        const latestSession = activeSessions[0];
+                        efiSessions.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
+                        const latestSession = efiSessions[0];
                         
                         this.logToChargingConsole(`🔍 Session ID encontrado: ${latestSession.session_id}`, 'info');
+                        this.logToChargingConsole(`   📊 Estado: ${latestSession.status}`, 'info');
+                        this.logToChargingConsole(`   🔌 EVSE: ${latestSession.evse_uid}`, 'evse');
                         return latestSession.session_id;
                     } else {
-                        this.logToChargingConsole('⚠️ No se encontraron sesiones activas del CPO EFI', 'warning');
+                        this.logToChargingConsole('⚠️ No se encontraron sesiones del CPO EFI', 'warning');
                         return null;
                     }
                 }

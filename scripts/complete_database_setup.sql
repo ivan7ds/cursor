@@ -94,10 +94,40 @@ INSERT INTO tariffs (id, country_code, party_id, currency, type, elements, start
 ('tariff-002', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'EUR', 'FAST', '[{"price_components": [{"type": "ENERGY", "price": 0.35, "step_size": 1}]}]', NULL, NULL, NOW(), NOW(), NOW()),
 ('tariff-003', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'EUR', 'REGULAR', '[{"price_components": [{"type": "ENERGY", "price": 0.28, "step_size": 1}]}]', NULL, NULL, NOW(), NOW(), NOW());
 
--- Insert sample tokens
-INSERT INTO tokens (id, country_code, party_id, uid, type, auth_method, contract_id, issuer, valid, whitelist, language, default_profile_type, energy_contract, last_updated, created_at, updated_at) VALUES
-('token-001', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-001', 'RFID', 'RFID', 'CONTRACT-001', :OCPI_PARTY_ID, true, 'ALWAYS', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
-('token-002', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-002', 'APP_USER', 'APP_USER', 'CONTRACT-002', :OCPI_PARTY_ID, true, 'ALLOWED', 'en', 'FAST', NULL, NOW(), NOW(), NOW());
+-- Insert sample tokens with various combinations
+INSERT INTO tokens (id, country_code, party_id, uid, type, auth_method, contract_id, visual_number, issuer, valid, whitelist, language, default_profile_type, energy_contract, last_updated, created_at, updated_at) VALUES
+-- RFID Tokens
+('token-001', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-001', 'RFID', 'RFID', 'CONTRACT-001', 'RF001', :OCPI_PARTY_ID, true, 'ALWAYS', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
+('token-002', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-002', 'RFID', 'RFID', 'CONTRACT-002', 'RF002', :OCPI_PARTY_ID, true, 'ALLOWED', 'es', 'FAST', NULL, NOW(), NOW(), NOW()),
+('token-003', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-003', 'RFID', 'RFID', 'CONTRACT-003', 'RF003', :OCPI_PARTY_ID, false, 'NEVER', 'en', 'GREEN', NULL, NOW(), NOW(), NOW()),
+
+-- APP_USER Tokens
+('token-004', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-004', 'APP_USER', 'APP_USER', 'CONTRACT-004', 'AP001', :OCPI_PARTY_ID, true, 'ALWAYS', 'en', 'FAST', NULL, NOW(), NOW(), NOW()),
+('token-005', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-005', 'APP_USER', 'APP_USER', 'CONTRACT-005', 'AP002', :OCPI_PARTY_ID, true, 'ALLOWED_OFFLINE', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
+('token-006', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-006', 'APP_USER', 'APP_USER', 'CONTRACT-006', 'AP003', :OCPI_PARTY_ID, true, 'ALLOWED', 'en', 'CHEAP', NULL, NOW(), NOW(), NOW()),
+
+-- AD_HOC_USER Tokens
+('token-007', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'ad-hoc-user-001', 'AD_HOC_USER', 'APP_USER', 'contract-001', 'AH001', 'EMSP_System', true, 'ALWAYS', 'es', 'REGULAR', '{"provider": "EMSP_System", "type": "ad_hoc"}', NOW(), NOW(), NOW()),
+('token-008', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'ad-hoc-user-002', 'AD_HOC_USER', 'WHITELIST', 'contract-002', 'AH002', 'EMSP_System', true, 'ALWAYS', 'en', 'FAST', '{"provider": "EMSP_System", "type": "ad_hoc"}', NOW(), NOW(), NOW()),
+('token-009', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'ad-hoc-user-003', 'AD_HOC_USER', 'RFID', 'contract-003', 'AH003', 'EMSP_System', true, 'ALLOWED', 'es', 'GREEN', '{"provider": "EMSP_System", "type": "ad_hoc"}', NOW(), NOW(), NOW()),
+
+-- OTHER Tokens
+('token-010', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-010', 'OTHER', 'WHITELIST', 'CONTRACT-010', 'OT001', :OCPI_PARTY_ID, true, 'ALWAYS', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
+('token-011', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-011', 'OTHER', 'COMMAND', 'CONTRACT-011', 'OT002', :OCPI_PARTY_ID, true, 'ALLOWED', 'en', 'FAST', NULL, NOW(), NOW(), NOW()),
+('token-012', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'TOKEN-012', 'OTHER', 'AUTH_REQUEST', 'CONTRACT-012', 'OT003', :OCPI_PARTY_ID, false, 'NEVER', 'es', 'CHEAP', NULL, NOW(), NOW(), NOW()),
+
+-- Test Tokens for external charging
+('token-013', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'test_token1', 'RFID', 'RFID', 'CONTRACT-TEST-001', 'TT001', 'TEST_SYSTEM', true, 'ALWAYS', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
+('token-014', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'test_token2', 'APP_USER', 'APP_USER', 'CONTRACT-TEST-002', 'TT002', 'TEST_SYSTEM', true, 'ALWAYS', 'en', 'FAST', NULL, NOW(), NOW(), NOW()),
+('token-015', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'test_token3', 'OTHER', 'WHITELIST', 'CONTRACT-TEST-003', 'TT003', 'TEST_SYSTEM', true, 'ALWAYS', 'es', 'GREEN', NULL, NOW(), NOW(), NOW()),
+
+-- Group Tokens
+('token-016', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'group-token-001', 'RFID', 'RFID', 'CONTRACT-GROUP-001', 'GT001', :OCPI_PARTY_ID, true, 'ALWAYS', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
+('token-017', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'group-token-002', 'APP_USER', 'APP_USER', 'CONTRACT-GROUP-002', 'GT002', :OCPI_PARTY_ID, true, 'ALLOWED', 'en', 'FAST', NULL, NOW(), NOW(), NOW()),
+
+-- Invalid/Expired Tokens
+('token-018', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'expired-token-001', 'RFID', 'RFID', 'CONTRACT-EXP-001', 'EX001', :OCPI_PARTY_ID, false, 'NEVER', 'es', 'REGULAR', NULL, NOW(), NOW(), NOW()),
+('token-019', :OCPI_COUNTRY_CODE, :OCPI_PARTY_ID, 'invalid-token-001', 'APP_USER', 'APP_USER', 'CONTRACT-INV-001', 'IN001', :OCPI_PARTY_ID, false, 'NEVER', 'en', 'FAST', NULL, NOW(), NOW(), NOW());
 
 -- Insert OCPI authentication token using environment variables
 INSERT INTO ocpi_tokens (id, token, party_id, country_code, is_active, metadata) VALUES
