@@ -184,144 +184,59 @@ router.get('/recent', (req, res) => {
         const limit = parseInt(req.query.limit) || 100;
         const level = req.query.level;
 
-        // Leer logs reales del archivo de manera simple y eficiente
-        const fs = require('fs');
-        const path = require('path');
-        const logFile = path.join(__dirname, '../../logs/app.log');
+        // Usar logs en memoria (más eficiente)
+        const logger = require('../utils/logger');
+        let recentLogs = logger.getInMemoryLogs(limit, level);
         
-        let recentLogs = [];
-        
-        try {
-            if (fs.existsSync(logFile)) {
-                console.log(`📊 Intentando leer archivo de logs: ${logFile}`);
-                
-                // Leer el archivo de manera segura con límites de tamaño
-                const stats = fs.statSync(logFile);
-                if (stats.size > 1024 * 1024) { // Si es mayor a 1MB
-                    console.warn('⚠️ Archivo de logs muy grande, usando solo las últimas líneas');
-                    // Usar tail para leer solo las últimas líneas
-                    const { execSync } = require('child_process');
-                    const tailOutput = execSync(`tail -${Math.min(limit, 50)} "${logFile}"`, { encoding: 'utf8' });
-                    const logLines = tailOutput.split('\n').filter(line => line.trim());
-                    
-                    recentLogs = logLines.map(line => {
-                        try {
-                            // Parsear formato de log: [timestamp] [LEVEL] message
-                            const logMatch = line.match(/^\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)$/);
-                            
-                            if (logMatch) {
-                                const [, timestamp, level, message] = logMatch;
-                                
-                                // Filtrar logs innecesarios
-                                if (shouldExcludeLog(message)) {
-                                    return null; // Excluir este log
-                                }
-                                
-                                return {
-                                    timestamp: timestamp,
-                                    level: level,
-                                    message: message.substring(0, 500), // Limitar longitud del mensaje
-                                    source: 'application'
-                                };
-                            } else {
-                                return {
-                                    timestamp: new Date().toISOString(),
-                                    level: 'INFO',
-                                    message: line.substring(0, 200),
-                                    source: 'file'
-                                };
-                            }
-                        } catch (parseError) {
-                            return {
-                                timestamp: new Date().toISOString(),
-                                level: 'INFO',
-                                message: 'Error parsing log line',
-                                source: 'error'
-                            };
-                        }
-                    }).filter(log => log !== null)
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Ordenar por timestamp descendente
-                    
-                } else {
-                    // Archivo pequeño, leer completo
-                    const logContent = fs.readFileSync(logFile, 'utf8');
-                    const logLines = logContent.split('\n').filter(line => line.trim());
-                    
-                    // Procesar solo las últimas líneas
-                    const linesToProcess = logLines.slice(-Math.min(limit, 50));
-                    
-                    recentLogs = linesToProcess.map(line => {
-                        try {
-                            // Parsear formato de log: [timestamp] [LEVEL] message
-                            const logMatch = line.match(/^\[([^\]]+)\]\s+\[([^\]]+)\]\s+(.+)$/);
-                            
-                            if (logMatch) {
-                                const [, timestamp, level, message] = logMatch;
-                                
-                                // Filtrar logs innecesarios
-                                if (shouldExcludeLog(message)) {
-                                    return null; // Excluir este log
-                                }
-                                
-                                return {
-                                    timestamp: timestamp,
-                                    level: level,
-                                    message: message.substring(0, 500), // Limitar longitud del mensaje
-                                    source: 'application'
-                                };
-                            } else {
-                                return {
-                                    timestamp: new Date().toISOString(),
-                                    level: 'INFO',
-                                    message: line.substring(0, 200),
-                                    source: 'file'
-                                };
-                            }
-                        } catch (parseError) {
-                            return {
-                                timestamp: new Date().toISOString(),
-                                level: 'INFO',
-                                message: 'Error parsing log line',
-                                source: 'error'
-                            };
-                        }
-                    }).filter(log => log !== null)
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Ordenar por timestamp descendente
-                }
-                
-                console.log(`📊 Logs procesados: ${recentLogs.length}`);
-                
-            } else {
-                console.log('⚠️ Archivo de logs no encontrado:', logFile);
+        // Filtrar logs innecesarios
+        recentLogs = recentLogs.filter(log => {
+            if (!log.message || typeof log.message !== 'string') {
+                return false;
             }
-        } catch (fileError) {
-            console.warn('⚠️ Error leyendo archivo de logs:', fileError.message);
-        }
+            
+            const messageLower = log.message.toLowerCase();
+            
+            // Excluir logs de peticiones HTTP del navegador
+            if (messageLower.includes('get /logs/recent') || 
+                messageLower.includes('get /health') ||
+                messageLower.includes('get /favicon.ico')) {
+                return false;
+            }
+            
+            // Excluir logs del middleware de logging
+            if (messageLower.includes('api request incoming') ||
+                messageLower.includes('api response outgoing') ||
+                messageLower.includes('api request summary') ||
+                messageLower.includes('🚀') ||
+                messageLower.includes('📤') ||
+                messageLower.includes('📊')) {
+                return false;
+            }
+            
+            return true;
+        });
         
-        // Si no hay logs del archivo, usar logs simulados como respaldo
+        // Si no hay logs en memoria, usar logs simulados como respaldo
         if (recentLogs.length === 0) {
             recentLogs = [
                 {
                     timestamp: new Date().toISOString(),
                     level: 'INFO',
-                    message: 'Dashboard accedido',
-                    source: 'web'
+                    message: 'Sistema de logs iniciado',
+                    source: 'system'
                 },
                 {
                     timestamp: new Date(Date.now() - 5000).toISOString(),
                     level: 'INFO',
-                    message: 'Streaming de logs iniciado',
-                    source: 'system'
+                    message: 'Dashboard accedido',
+                    source: 'web'
                 }
             ];
         }
 
-        // Filtrar por nivel si se especifica
-        const filteredLogs = level ? recentLogs.filter(log => log.level === level) : recentLogs;
-
         res.status(200).json({
             status_code: 1000,
-            data: filteredLogs.slice(0, limit),
+            data: recentLogs.slice(0, limit),
             timestamp: new Date().toISOString()
         });
 
@@ -429,5 +344,8 @@ function shouldExcludeLog(message) {
     
     return false;
 }
+
+// Register broadcast function globally to avoid circular dependency
+global.broadcastLogFunction = broadcastLog;
 
 module.exports = { router, broadcastLog, broadcastChargingLog };

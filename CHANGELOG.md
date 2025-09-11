@@ -112,6 +112,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Agregado campo `status` al payload de `prepareEVSEPatchPayload`
   - Asegurado que cambios manuales de estado se notifiquen correctamente
 
+- **Mejora del sistema de logs en tiempo real**
+  - Implementado almacenamiento en memoria de logs para visualización en tiempo real
+  - Integrado winston con sistema de broadcasting para EventSource
+  - Optimizado endpoint `/logs/recent` para usar logs en memoria en lugar de archivos
+  - Agregado límite de 1000 logs en memoria para control de memoria
+  - Mejorada eficiencia eliminando lectura constante de archivos de disco
+  - Corregido sistema de streaming de logs en tiempo real
+
 - **Corrección de error de columna en tabla emsp_locations**
   - Solucionado error PostgreSQL 42703 al guardar locations de eMSPs
   - Corregido nombre de columna de `evse_list` a `evses` en consultas SQL

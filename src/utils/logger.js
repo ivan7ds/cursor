@@ -67,6 +67,84 @@ logger.ocpi = (endpoint, operation, meta = {}) => {
   });
 };
 
+// In-memory log storage for real-time viewing
+const inMemoryLogs = [];
+const MAX_MEMORY_LOGS = 1000; // Keep last 1000 logs in memory
+
+// Override the winston logger methods to capture logs in memory
+const originalInfo = logger.info;
+const originalWarn = logger.warn;
+const originalError = logger.error;
+const originalDebug = logger.debug;
+
+function addToMemory(level, message, meta = {}) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    level: level,
+    message: typeof message === 'string' ? message : JSON.stringify(message),
+    source: 'application',
+    meta: meta
+  };
+  
+  inMemoryLogs.push(logEntry);
+  
+  // Keep only the last MAX_MEMORY_LOGS
+  if (inMemoryLogs.length > MAX_MEMORY_LOGS) {
+    inMemoryLogs.shift();
+  }
+  
+  // Broadcast to connected clients
+  if (global.broadcastLogFunction) {
+    try {
+      global.broadcastLogFunction(logEntry);
+    } catch (error) {
+      // Ignore if broadcast function not available
+    }
+  }
+}
+
+// Override logger methods
+logger.info = (message, meta) => {
+  addToMemory('INFO', message, meta);
+  return originalInfo.call(logger, message, meta);
+};
+
+logger.warn = (message, meta) => {
+  addToMemory('WARN', message, meta);
+  return originalWarn.call(logger, message, meta);
+};
+
+logger.error = (message, meta) => {
+  addToMemory('ERROR', message, meta);
+  return originalError.call(logger, message, meta);
+};
+
+logger.debug = (message, meta) => {
+  addToMemory('DEBUG', message, meta);
+  return originalDebug.call(logger, message, meta);
+};
+
+// Add some test logs to verify the system is working
+setTimeout(() => {
+  logger.info('Sistema de logs en tiempo real iniciado correctamente');
+  logger.info('Test de logs en tiempo real - mensaje 1');
+  logger.warn('Test de logs en tiempo real - advertencia');
+  logger.error('Test de logs en tiempo real - error de prueba');
+}, 2000);
+
+// Export function to get in-memory logs
+logger.getInMemoryLogs = (limit = 100, level = null) => {
+  let logs = [...inMemoryLogs];
+  
+  if (level) {
+    logs = logs.filter(log => log.level === level);
+  }
+  
+  return logs
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, limit);
+};
+
 module.exports = logger;
 
 
