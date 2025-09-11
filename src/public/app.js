@@ -62,7 +62,8 @@ class DashboardApp {
                 }
             });
             if (response.ok) {
-                const settings = await response.json();
+                const responseData = await response.json();
+                const settings = responseData.data || responseData; // Soporte para ambas estructuras
                 window.OCPI_PARTY_ID = settings.partyId;
                 window.OCPI_COUNTRY_CODE = settings.countryCode;
                 window.OCPI_VERSION = settings.version;

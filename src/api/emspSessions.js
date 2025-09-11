@@ -76,19 +76,10 @@ router.put('/:country_code/:party_id/:session_id', async (req, res) => {
             id_token: sessionData.cdr_token?.uid || '',
             start_datetime: sessionData.start_date_time,
             end_datetime: sessionData.end_date_time,
-            start_date_time: sessionData.start_date_time,
-            end_date_time: sessionData.end_date_time,
             total_cost: totalCost,
             status: sessionData.status,
             last_updated: sessionData.last_updated || new Date().toISOString(),
-            country_code: country_code,
-            party_id: party_id,
-            kwh: sessionData.kwh || 0.0,
-            cdr_token: sessionData.cdr_token ? JSON.stringify(sessionData.cdr_token) : null,
-            auth_method: sessionData.auth_method,
-            location_id: sessionData.location_id,
-            currency: sessionData.currency || 'EUR',
-            charging_periods: sessionData.charging_periods ? JSON.stringify(sessionData.charging_periods) : null
+            kwh: sessionData.kwh || 0.0
         });
 
         logger.info(`✅ Session upserted`, {

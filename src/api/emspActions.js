@@ -65,7 +65,7 @@ router.post('/save-cpo-locations', authMiddleware, async (req, res) => {
                 const [result] = await sequelize.query(`
                     INSERT INTO emsp_locations (
                         id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
-                        postal_code, country, coordinates, evse_list, directions, operator, 
+                        postal_code, country, coordinates, evses, directions, operator, 
                         suboperator, owner, facilities, time_zone, opening_times, 
                         charging_when_closed, images, energy_mix, last_updated
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -80,7 +80,7 @@ router.post('/save-cpo-locations', authMiddleware, async (req, res) => {
                         postal_code = EXCLUDED.postal_code,
                         country = EXCLUDED.country,
                         coordinates = EXCLUDED.coordinates,
-                        evse_list = EXCLUDED.evse_list,
+                        evses = EXCLUDED.evses,
                         directions = EXCLUDED.directions,
                         operator = EXCLUDED.operator,
                         suboperator = EXCLUDED.suboperator,

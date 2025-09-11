@@ -30,6 +30,35 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Eliminada regeneración automática que causaba duplicados al usar primeros 8 caracteres del UUID
   - Respuestas de locations ahora mantienen `evse_id` únicos y consistentes
 
+- **Corrección de desincronización entre modelo y tabla emsp_sessions**
+  - Solucionado error PostgreSQL 42703 al insertar sesiones de eMSPs
+  - Corregido modelo `EmspSession.js` para coincidir con estructura real de la tabla
+  - Eliminados campos inexistentes: `country_code`, `party_id`, `auth_method`, `location_id`, `currency`, `charging_periods`
+  - Corregido tipo de dato de `total_cost` de JSONB a DECIMAL(10,2)
+  - Actualizado código de inserción en `emspSessions.js` para usar solo campos válidos
+  - Eliminado error que impedía guardar sesiones de eMSPs externos
+
+- **Corrección de carga de configuración OCPI en frontend**
+  - Solucionado problema donde `window.OCPI_PARTY_ID` era undefined al cargar tokens
+  - Corregido acceso a estructura de respuesta del endpoint `/api/config/ocpi-settings`
+  - Implementado soporte para ambas estructuras de respuesta (con y sin wrapper `data`)
+  - Eliminado error que impedía obtener tokens válidos para comandos START_SESSION
+  - Mejorada compatibilidad entre frontend y backend en carga de configuración
+
+- **Corrección de URL base en response_url de comandos START_SESSION**
+  - Solucionado problema donde response_url usaba localhost en lugar de OCPI_BASE_URL
+  - Agregado campo `baseUrl` al endpoint `/api/config/ocpi-settings` para devolver OCPI_BASE_URL
+  - Corregida estructura de respuesta del endpoint para incluir `data` wrapper
+  - Mejorada consistencia entre configuración del servidor y URLs generadas en frontend
+  - Eliminado uso de localhost hardcodeado en comandos OCPI
+
+- **Corrección de error de columna en tabla emsp_locations**
+  - Solucionado error PostgreSQL 42703 al guardar locations de eMSPs
+  - Corregido nombre de columna de `evse_list` a `evses` en consultas SQL
+  - Actualizada consulta INSERT/UPDATE en `emspActions.js` para usar nombre correcto de columna
+  - Corregido valor por defecto en `server.js` para usar `evses` en lugar de `evse_list`
+  - Eliminado error que impedía guardar locations obtenidas de eMSPs externos
+
 - **Corrección de notificaciones PATCH para EVSEs soft-deleted**
   - Solucionado problema donde se enviaban notificaciones PATCH de EVSEs eliminados
   - Implementado filtro `deleted_at: null` en consultas de EVSEs para excluir registros soft-deleted

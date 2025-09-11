@@ -118,7 +118,7 @@ app.get('/test-emsp-locations', (req, res) => {
         country: process.env.OCPI_COUNTRY_CODE || 'ES',
         city: 'Test City',
         address: 'Test Address',
-        evse_list: '[]',
+        evses: '[]',
         last_updated: new Date().toISOString()
       }
     ],
