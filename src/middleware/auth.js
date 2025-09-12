@@ -1,8 +1,13 @@
 const logger = require('../utils/logger');
 const OCPITokenService = require('../services/ocpiTokenService');
 
-// Token OCPI por defecto para desarrollo (se usará solo si no hay tokens en BD)
-const DEFAULT_OCPI_TOKEN = process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
+// Token OCPI - debe estar configurado en variables de entorno
+const DEFAULT_OCPI_TOKEN = process.env.OCPI_TOKEN;
+
+// Validar que el token esté configurado
+if (!DEFAULT_OCPI_TOKEN) {
+  throw new Error('OCPI_TOKEN environment variable is required but not set');
+}
 
 /**
  * Middleware de autenticación OCPI
@@ -41,7 +46,7 @@ const authMiddleware = async (req, res, next) => {
     const tokenInfo = await OCPITokenService.validateToken(providedToken);
     
     if (!tokenInfo) {
-      // Si no se encuentra en BD, verificar el token por defecto (para compatibilidad)
+      // Verificar el token configurado en variables de entorno
       if (providedToken !== DEFAULT_OCPI_TOKEN) {
         logger.warn('Authentication failed: Invalid token', { 
           ip: req.ip, 

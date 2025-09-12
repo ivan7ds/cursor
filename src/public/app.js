@@ -17,6 +17,16 @@ class DashboardApp {
         console.log('✅ Constructor completado');
     }
 
+    // Función centralizada para obtener el token de autenticación
+    getAuthToken() {
+        const storedToken = localStorage.getItem('ocpi_token');
+        if (!storedToken) {
+            console.error('❌ No se encontró token OCPI en localStorage. Por favor, configura el token en la aplicación.');
+            throw new Error('OCPI token not configured. Please set the token in the application.');
+        }
+        return storedToken;
+    }
+
     // Función auxiliar para detectar si una URL es de ngrok y agregar headers necesarios
     isNgrokUrl(url) {
         return url && (url.includes('ngrok.io') || url.includes('ngrok-free.app') || url.includes('ngrok.app'));
@@ -58,7 +68,7 @@ class DashboardApp {
         try {
             const response = await fetch(`${this.baseUrl}/api/config/ocpi-settings`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             if (response.ok) {
@@ -818,7 +828,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -876,7 +886,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -1714,7 +1724,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -1846,7 +1856,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -1899,7 +1909,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -2000,7 +2010,7 @@ if (filterActiveExtSessions) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(updatePayload)
             });
@@ -2181,7 +2191,7 @@ if (filterActiveExtSessions) {
             // Cargar todos los EVSEs para paginado
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?limit=1000`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -2517,7 +2527,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/api/connections`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -2650,7 +2660,7 @@ if (filterActiveExtSessions) {
                 const response = await fetch(`${this.baseUrl}/api/delete-connection/${partyId}/${countryCode}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${this.getAuthToken()}`
                     }
                 });
                 
@@ -2682,7 +2692,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tokens`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -2754,7 +2764,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/sessions`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -2886,7 +2896,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
 
@@ -2960,12 +2970,12 @@ if (filterActiveExtSessions) {
             const [locationsResponse, evsesResponse] = await Promise.all([
                 fetch(`${this.baseUrl}/ocpi/emsp/2.2/locations`, {
                     headers: { 
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${this.getAuthToken()}`
                     }
                 }),
                 fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                     headers: { 
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${this.getAuthToken()}`
                     }
                 })
             ]);
@@ -3052,7 +3062,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -3152,7 +3162,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tariffs`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -3244,7 +3254,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -3686,7 +3696,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(locationData)
             });
@@ -4245,7 +4255,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations?limit=1000`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -4309,7 +4319,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(evseData)
             });
@@ -4431,7 +4441,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}&limit=1`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -4459,7 +4469,7 @@ if (filterActiveExtSessions) {
             // Obtener todos los EVSEs de esta location
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}&limit=1000`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -4484,7 +4494,7 @@ if (filterActiveExtSessions) {
                     const deleteResponse = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evse.id}`, {
                         method: 'DELETE',
                         headers: {
-                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                            'Authorization': `Token ${this.getAuthToken()}`
                         }
                     });
                     
@@ -4580,7 +4590,7 @@ if (filterActiveExtSessions) {
                 const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evseId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${this.getAuthToken()}`
                     }
                 });
                 
@@ -4646,7 +4656,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evseId}`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -5011,7 +5021,7 @@ if (filterActiveExtSessions) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(evseData)
             });
@@ -5189,7 +5199,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationId}`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -5369,7 +5379,7 @@ if (filterActiveExtSessions) {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                            'Authorization': `Token ${this.getAuthToken()}`
                         },
                         body: JSON.stringify(locationData)
                     });
@@ -5550,7 +5560,7 @@ if (filterActiveExtSessions) {
                 const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${this.getAuthToken()}`
                     }
                 });
                 
@@ -5744,7 +5754,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -5855,7 +5865,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(tariffData)
             });
@@ -5926,7 +5936,7 @@ if (filterActiveExtSessions) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -6123,7 +6133,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify(tokenData)
             });
@@ -6216,7 +6226,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tokens/stored`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -6356,7 +6366,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/api/connections`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -6505,7 +6515,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-sessions`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Authorization': `Token ${this.getAuthToken()}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -6579,7 +6589,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify({
                     cpoUrl,
@@ -6621,7 +6631,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify({
                     tariffs
@@ -6751,7 +6761,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 },
                 body: JSON.stringify({
                     tokens
@@ -6964,7 +6974,7 @@ if (filterActiveExtSessions) {
             // Obtener Sessions del CPO desde nuestra base de datos
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Authorization': `Token ${this.getAuthToken()}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -7474,7 +7484,7 @@ if (filterActiveExtSessions) {
             // Obtener la URL base desde la configuración del servidor
             const response = await fetch('/api/config/ocpi-settings', {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -7536,7 +7546,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -7585,7 +7595,7 @@ if (filterActiveExtSessions) {
         try {
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/sessions`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
 
@@ -7705,7 +7715,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             const response = await fetch(`${this.baseUrl}/api/ext-sessions`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
             
@@ -7979,7 +7989,7 @@ ${JSON.stringify(data, null, 2)}`;
             const credentialsResponse = await fetch(`${this.baseUrl}/api/connections`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
 
@@ -8012,7 +8022,7 @@ ${JSON.stringify(data, null, 2)}`;
             const sessionsResponse = await fetch(`${this.baseUrl}/api/ext-sessions`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${this.getAuthToken()}`
                 }
             });
 
@@ -8079,7 +8089,7 @@ ${JSON.stringify(data, null, 2)}`;
             const response = await fetch(`${this.baseUrl}/api/ext-sessions/${sessionId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Authorization': `Token ${this.getAuthToken()}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(updateData)
