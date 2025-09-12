@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.9] - 2025-09-11
+
+### Fixed
+- **Corrección de columnas de fecha en pestaña Ext Sessions**
+  - Solucionado problema donde las columnas "Inicio" y "Fin" mostraban "N/A" en lugar de las fechas reales
+  - Corregidos nombres de campos de `start_date_time`/`end_date_time` a `start_datetime`/`end_datetime` en el frontend
+  - Las fechas ahora se muestran correctamente formateadas en español
+
+- **Corrección de mapeo de campos de fecha en actualizaciones PATCH de sesiones externas**
+  - Solucionado problema donde las actualizaciones PATCH de sesiones externas no guardaban correctamente las fechas de fin
+  - Corregido mapeo de campos `start_date_time`/`end_date_time` a `start_datetime`/`end_datetime` en el endpoint PATCH
+  - Las sesiones completadas ahora guardan correctamente su fecha de finalización
+  - Actualizadas 3 sesiones existentes que tenían `end_datetime` como NULL con fechas de fin estimadas
+  - Verificado que las nuevas actualizaciones PATCH funcionan correctamente y actualizan las fechas de fin
+
 ## [0.11.8] - 2025-09-10
 
 ### Fixed

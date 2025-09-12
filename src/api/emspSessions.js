@@ -184,10 +184,10 @@ router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
         const updateFields = {};
 
         if (updateData.start_date_time !== undefined) {
-            updateFields.start_date_time = updateData.start_date_time;
+            updateFields.start_datetime = updateData.start_date_time;
         }
         if (updateData.end_date_time !== undefined) {
-            updateFields.end_date_time = updateData.end_date_time;
+            updateFields.end_datetime = updateData.end_date_time;
         }
         if (updateData.kwh !== undefined) {
             updateFields.kwh = updateData.kwh;
