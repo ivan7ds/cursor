@@ -2,6 +2,7 @@ const { Session, EVSE, Tariff, Credentials } = require('../models');
 const axios = require('axios');
 const logger = require('../utils/logger');
 const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const { logJobError, logJobExecution } = require('../api/testMonitoring');
 
 class ChargingNotificationService {
   /**
@@ -35,6 +36,8 @@ class ChargingNotificationService {
         await this.processActiveSessions();
       } catch (error) {
         logger.error('❌ Error in charging notification service:', error);
+        // Registrar error en el sistema de monitoreo
+        logJobError('Charging Notification Service', `Error in charging notification service: ${error.message}`, 'error');
       }
     }, this.intervalMs);
 
@@ -71,6 +74,8 @@ class ChargingNotificationService {
       });
 
       if (activeSessions.length === 0) {
+        // Registrar ejecución exitosa aunque no haya sesiones activas
+        logJobExecution('Charging Notification Service', 'No active sessions found, job completed');
         return;
       }
 
@@ -84,8 +89,13 @@ class ChargingNotificationService {
         }
       }
 
+      // Registrar ejecución exitosa en el sistema de monitoreo
+      logJobExecution('Charging Notification Service', `Processed ${activeSessions.length} active charging sessions`);
+
     } catch (error) {
       logger.error('❌ Error processing active sessions:', error);
+      // Registrar error en el sistema de monitoreo
+      logJobError('Charging Notification Service', `Error processing active sessions: ${error.message}`, 'error');
     }
   }
 
@@ -164,6 +174,8 @@ class ChargingNotificationService {
 
     } catch (error) {
       logger.error(`❌ Error updating charging session ${session.id}:`, error);
+      // Registrar error en el sistema de monitoreo
+      logJobError('Charging Notification Service', `Error updating charging session ${session.id}: ${error.message}`, 'error');
     }
   }
 
@@ -252,6 +264,8 @@ class ChargingNotificationService {
         error: error.message,
         status_code: error.response?.status
       });
+      // Registrar error en el sistema de monitoreo
+      logJobError('Charging Notification Service', `Failed to notify EMSP about charging update for session ${session.id}: ${error.message}`, 'error');
     }
   }
 }

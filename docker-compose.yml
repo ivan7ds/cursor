@@ -35,7 +35,6 @@ services:
     volumes:
       - ./src:/app/src
       - ./scripts:/app/scripts
-      - ./logs:/app/logs
     networks:
       - cpo-network
 

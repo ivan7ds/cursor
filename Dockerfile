@@ -12,16 +12,12 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
-# Create logs directory
-RUN mkdir -p logs
-
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
 
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-RUN mkdir -p logs && chown -R nodejs:nodejs logs
+# Create logs directory and change ownership
+RUN mkdir -p logs && chown -R nodejs:nodejs /app
 USER nodejs
 
 # Expose port

@@ -8132,30 +8132,6 @@ ${JSON.stringify(data, null, 2)}`;
                 console.warn('⚠️ Elemento refreshTestStatus no encontrado');
             }
             
-            // Botón de ejecutar pruebas de ejemplo
-            const runSampleTests = document.getElementById('runSampleTests');
-            if (runSampleTests) {
-                runSampleTests.addEventListener('click', () => {
-                    console.log('🧪 Botón runSampleTests clickeado');
-                    this.runSampleTests();
-                });
-                console.log('✅ Event listener para runSampleTests agregado');
-            } else {
-                console.warn('⚠️ Elemento runSampleTests no encontrado');
-            }
-            
-            // Botón de ver historial de pruebas
-            const viewTestHistory = document.getElementById('viewTestHistory');
-            if (viewTestHistory) {
-                viewTestHistory.addEventListener('click', () => {
-                    console.log('📋 Botón viewTestHistory clickeado');
-                    this.toggleTestHistory();
-                });
-                console.log('✅ Event listener para viewTestHistory agregado');
-            } else {
-                console.warn('⚠️ Elemento viewTestHistory no encontrado');
-            }
-            
             // Botón de limpiar errores
             const clearTestErrors = document.getElementById('clearTestErrors');
             if (clearTestErrors) {
@@ -8463,163 +8439,6 @@ ${JSON.stringify(data, null, 2)}`;
     }
     
     /**
-     * Ejecuta pruebas de ejemplo
-     */
-    async runSampleTests() {
-        try {
-            console.log('🧪 Ejecutando pruebas de ejemplo...');
-            
-            const response = await fetch('/api/test-monitoring/run-sample-tests', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showNotification(`Pruebas ejecutadas: ${result.data.testsExecuted} pruebas`, 'success');
-                
-                // Actualizar las estadísticas en la UI
-                this.updateTestStatistics(result.data.currentStatistics);
-                
-                // Recargar datos de la pestaña Test
-                await this.loadTestData();
-                
-                console.log('✅ Pruebas de ejemplo ejecutadas exitosamente');
-            } else {
-                throw new Error(result.error || 'Error desconocido');
-            }
-            
-        } catch (error) {
-            console.error('❌ Error ejecutando pruebas de ejemplo:', error);
-            this.showNotification('Error ejecutando pruebas: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Alterna la visibilidad del historial de pruebas
-     */
-    async toggleTestHistory() {
-        try {
-            const testHistorySection = document.getElementById('testHistorySection');
-            const viewTestHistoryBtn = document.getElementById('viewTestHistory');
-            
-            if (testHistorySection && viewTestHistoryBtn) {
-                if (testHistorySection.style.display === 'none') {
-                    // Mostrar historial
-                    await this.loadTestHistory();
-                    testHistorySection.style.display = 'block';
-                    viewTestHistoryBtn.innerHTML = '<i class="bi bi-eye-slash"></i> Ocultar Historial';
-                } else {
-                    // Ocultar historial
-                    testHistorySection.style.display = 'none';
-                    viewTestHistoryBtn.innerHTML = '<i class="bi bi-list-ul"></i> Ver Historial';
-                }
-            }
-        } catch (error) {
-            console.error('❌ Error alternando historial de pruebas:', error);
-            this.showNotification('Error mostrando historial: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Carga el historial de pruebas
-     */
-    async loadTestHistory() {
-        try {
-            console.log('📋 Cargando historial de pruebas...');
-            
-            const response = await fetch('/api/test-monitoring/test-history?limit=20');
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.displayTestHistory(result.data.tests);
-                console.log('✅ Historial de pruebas cargado');
-            } else {
-                throw new Error(result.error || 'Error desconocido');
-            }
-            
-        } catch (error) {
-            console.error('❌ Error cargando historial de pruebas:', error);
-            this.showNotification('Error cargando historial: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Muestra el historial de pruebas en la tabla
-     */
-    displayTestHistory(tests) {
-        try {
-            const testHistoryTable = document.getElementById('testHistoryTable');
-            
-            if (!testHistoryTable) {
-                console.warn('⚠️ Tabla de historial de pruebas no encontrada');
-                return;
-            }
-            
-            if (tests.length === 0) {
-                testHistoryTable.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay pruebas registradas</td></tr>';
-                return;
-            }
-            
-            testHistoryTable.innerHTML = tests.map(test => {
-                const statusClass = this.getTestStatusClass(test.status);
-                const statusIcon = this.getTestStatusIcon(test.status);
-                const duration = test.duration ? `${test.duration}ms` : '-';
-                const timestamp = new Date(test.timestamp).toLocaleString();
-                
-                return `
-                    <tr>
-                        <td>${test.testName}</td>
-                        <td><span class="badge ${statusClass}">${statusIcon} ${test.status}</span></td>
-                        <td>${test.message || '-'}</td>
-                        <td>${duration}</td>
-                        <td>${timestamp}</td>
-                    </tr>
-                `;
-            }).join('');
-            
-        } catch (error) {
-            console.error('❌ Error mostrando historial de pruebas:', error);
-        }
-    }
-    
-    /**
-     * Obtiene la clase CSS para el estado de la prueba
-     */
-    getTestStatusClass(status) {
-        switch (status) {
-            case 'passed': return 'bg-success';
-            case 'failed': return 'bg-danger';
-            case 'running': return 'bg-warning';
-            default: return 'bg-secondary';
-        }
-    }
-    
-    /**
-     * Obtiene el icono para el estado de la prueba
-     */
-    getTestStatusIcon(status) {
-        switch (status) {
-            case 'passed': return '✓';
-            case 'failed': return '✗';
-            case 'running': return '⏳';
-            default: return '?';
-        }
-    }
-    
-    /**
      * Alterna la visibilidad del log de errores
      */
     toggleErrorLog() {
@@ -8719,7 +8538,6 @@ ${JSON.stringify(data, null, 2)}`;
             console.error('❌ Error agregando error al log:', error);
         }
     }
-}
 
 // Inicializar la aplicación cuando el DOM esté listo
 console.log('📜 Script app.js cargado');

@@ -38,6 +38,7 @@ const emspRoutes = require('./api/emsp');
 const emspSessionsRoutes = require('./api/emspSessions');
 const emspLocationsRoutes = require('./api/emspLocations');
 const { router: emspActionsRoutes } = require('./api/emspActions');
+const { router: testMonitoringRoutes } = require('./api/testMonitoring');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -149,6 +150,12 @@ app.use('/api/ext-sessions', authMiddleware, require('./api/extSessions'));
 app.use('/api/charging-logs', require('./api/chargingLogs'));
 app.use('/api/handshake', authMiddleware, require('./api/handshake'));
 app.use('/api/config', configRoutes);
+
+  // ===== RUTAS DE MONITOREO DE TESTS =====
+  // Estas rutas permiten monitorear el estado de los jobs y pruebas (SIN AUTENTICACIÓN)
+  app.use('/api/test-monitoring', testMonitoringRoutes);
+
+// Middleware para rutas específicas de API
 app.use('/api', authMiddleware, require('./api/deleteConnection'));
 app.use('/api/connections', authMiddleware, require('./api/connections'));
 

@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { Credentials, EVSE, Session } = require('../models');
 const logger = require('../utils/logger');
+const { logJobError, logJobExecution } = require('../api/testMonitoring');
 
 class EVSENotificationService {
   /**
@@ -67,6 +68,8 @@ class EVSENotificationService {
       
       if (emsps.length === 0) {
         logger.debug('No connected eMSPs found, skipping notifications');
+        // Registrar ejecución exitosa aunque no haya trabajo
+        logJobExecution('EVSE Notification Service', 'No connected eMSPs found, job completed');
         return;
       }
 
@@ -75,6 +78,8 @@ class EVSENotificationService {
       
       if (evseChanges.length === 0) {
         logger.debug('No EVSE status changes found, skipping notifications');
+        // Registrar ejecución exitosa aunque no haya trabajo
+        logJobExecution('EVSE Notification Service', 'No EVSE status changes found, job completed');
         return;
       }
 
@@ -85,8 +90,13 @@ class EVSENotificationService {
         await this.notifyEMSP(emsp, evseChanges);
       }
 
+      // Registrar ejecución exitosa en el sistema de monitoreo
+      logJobExecution('EVSE Notification Service', `Processed ${evseChanges.length} EVSE changes for ${emsps.length} eMSPs`);
+
     } catch (error) {
       logger.error('Error processing EVSE notifications:', error);
+      // Registrar error en el sistema de monitoreo
+      logJobError('EVSE Notification Service', `Error processing notifications: ${error.message}`, 'error');
     }
   }
 
@@ -196,6 +206,8 @@ class EVSENotificationService {
 
     } catch (error) {
       logger.error(`Error notifying eMSP ${emsp.party_id}:`, error);
+      // Registrar error en el sistema de monitoreo
+      logJobError('EVSE Notification Service', `Error notifying eMSP ${emsp.party_id}: ${error.message}`, 'error');
     }
   }
 
@@ -232,6 +244,9 @@ class EVSENotificationService {
 
     } catch (error) {
       logger.error(`Failed to notify eMSP ${emsp.party_id} about EVSE ${evseChange.evse_id} (UID: ${evseChange.evse_uid}):`, error.message);
+      
+      // Registrar error en el sistema de monitoreo
+      logJobError('EVSE Notification Service', `Failed to notify eMSP ${emsp.party_id} about EVSE ${evseChange.evse_id}: ${error.message}`, 'error');
       
       // En caso de error, podríamos implementar reintentos o cola de notificaciones
       await this.handleNotificationError(emsp, evseChange, error);

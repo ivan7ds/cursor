@@ -7,6 +7,116 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.12.0] - 2025-09-15
+
+### Fixed
+- **Campo "Última ejecución" incorrecto**: Corregido problema donde el campo se actualizaba con cada consulta
+  - Eliminada actualización incorrecta de `lastRun` en cada petición al endpoint de estado
+  - Implementado sistema de notificación real de ejecución de jobs
+  - Los servicios ahora notifican su ejecución real al sistema de monitoreo
+  - El campo "Última ejecución" ahora muestra realmente cuándo se ejecutaron los jobs
+
+### Added
+- **Sistema de notificación de ejecución de jobs**: Implementado tracking real de ejecución
+  - Función `logJobExecution()` para registrar ejecuciones exitosas de servicios
+  - Notificaciones automáticas cuando EVSE Notification Service se ejecuta
+  - Notificaciones automáticas cuando Charging Notification Service se ejecuta
+  - Tracking de ejecuciones incluso cuando no hay trabajo que procesar
+
+### Changed
+- **Monitoreo de servicios mejorado**: Sistema de monitoreo más preciso y confiable
+  - Los timestamps de `lastRun` ahora reflejan la ejecución real de los jobs
+  - Mejor separación entre consultas de estado y ejecución real de servicios
+  - Logs más detallados para debugging de servicios
+
+## [0.11.13] - 2025-09-15
+
+### Fixed
+- **Estadísticas Fake en Test Monitoring**: Eliminada generación de estadísticas aleatorias/fake
+  - Reemplazado sistema de estadísticas simuladas por datos reales basados en historial de pruebas
+  - Implementado sistema de seguimiento de pruebas reales con historial persistente
+  - Agregados endpoints para ejecutar pruebas de ejemplo y consultar historial
+  - Corregido problema de autenticación en endpoints de test-monitoring
+  - Las estadísticas ahora muestran valores reales y consistentes en lugar de valores aleatorios
+
+### Added
+- **Sistema de Pruebas Real**: Implementado sistema completo de monitoreo de pruebas
+  - Endpoint `/api/test-monitoring/run-sample-tests` para ejecutar pruebas de ejemplo
+  - Endpoint `/api/test-monitoring/test-history` para consultar historial de pruebas
+  - Interfaz de usuario mejorada con botones para ejecutar pruebas y ver historial
+  - Tabla de historial de pruebas con estados visuales (passed/failed/running)
+  - Estadísticas en tiempo real basadas en datos reales de las últimas 24 horas
+
+### Changed
+- **Frontend Test Tab**: Mejorada la pestaña de Test con funcionalidades reales
+  - Agregados botones "Ejecutar Pruebas" y "Ver Historial"
+  - Implementada tabla de historial de pruebas con información detallada
+  - Estadísticas ahora se actualizan automáticamente con datos reales
+  - Mejorada la experiencia de usuario con notificaciones de estado
+
+## [0.11.12] - 2025-09-15
+
+### Fixed
+- **Error de Sintaxis en Frontend**: Corregido error de sintaxis en `app.js` línea 8120 y 8543
+  - Eliminadas funciones duplicadas fuera de la clase `DashboardApp`
+  - Agregado cierre correcto de la clase `DashboardApp`
+  - Solucionado error `Uncaught SyntaxError: Unexpected token '{'` y `Unexpected token '.'`
+- **Permisos de Logs**: Corregidos permisos de escritura en el directorio `logs/`
+  - Solucionado error `EACCES: permission denied` al iniciar el servidor
+  - Aplicados permisos correctos para el usuario del sistema
+- **Error 401 Unauthorized en Test Monitoring**: Corregido problema de autenticación en endpoints de monitoreo
+  - Movidas rutas `/api/test-monitoring` antes del middleware de autenticación
+  - Endpoints de monitoreo ahora son públicos para permitir acceso desde el frontend
+  - Solucionado error `401 (Unauthorized)` al acceder a la pestaña Test
+- **Conflicto de Puerto**: Resuelto problema de puerto 3000 ya en uso
+  - Detenido proceso anterior que ocupaba el puerto
+  - Servidor ahora inicia correctamente sin conflictos
+- **Estadísticas de Pruebas Dinámicas**: Corregido problema de estadísticas estáticas
+  - Implementada función `updateTestStatistics()` para actualizar estadísticas dinámicamente
+  - Estadísticas ahora cambian cada 10 segundos simulando actividad real
+  - Solucionado problema de estadísticas que no se actualizaban en la pestaña Test
+
+## [0.11.11] - 2025-09-15
+
+### Added
+- **Nueva pestaña "Test" para monitoreo de jobs y pruebas**
+  - Pestaña dedicada para monitorear el estado de los servicios de notificación
+  - Visualización en tiempo real del estado de EVSE Notification Service y Charging Notification Service
+  - Log de errores recientes con información detallada de servicios y timestamps
+  - Estadísticas de pruebas con contadores de total, exitosas, fallidas y en ejecución
+  - Badge de notificación que aparece cuando hay errores en los jobs
+  - Botones para actualizar estado, limpiar errores y alternar visibilidad del log
+  - Actualización automática cada 30 segundos cuando la pestaña está activa
+
+- **API de monitoreo de tests en el backend**
+  - Endpoint `GET /api/test-monitoring/status` para obtener estado de servicios y estadísticas
+  - Endpoint `GET /api/test-monitoring/errors` para obtener errores recientes de jobs
+  - Endpoint `POST /api/test-monitoring/errors` para registrar nuevos errores
+  - Endpoint `DELETE /api/test-monitoring/errors` para limpiar todos los errores
+  - Endpoint `POST /api/test-monitoring/test-result` para registrar resultados de pruebas
+  - Función `logJobError()` para registrar errores desde otros servicios
+
+- **Integración de logging de errores en servicios de notificación**
+  - EVSE Notification Service ahora registra errores en el sistema de monitoreo
+  - Charging Notification Service ahora registra errores en el sistema de monitoreo
+  - Errores se categorizan por servicio y nivel (error, warning)
+  - Timestamps automáticos para todos los errores registrados
+  - Contadores de errores por servicio actualizados en tiempo real
+
+- **Script de prueba para el sistema de monitoreo**
+  - Script `scripts/test-monitoring.js` para simular errores y probar funcionalidad
+  - Comando `npm run test:monitoring` para ejecutar pruebas del sistema
+  - Simulación de errores de diferentes servicios y niveles
+  - Simulación de resultados de pruebas con diferentes estados
+  - Verificación completa de la funcionalidad de la pestaña Test
+
+### Technical
+- **Frontend**: Nueva pestaña Test con interfaz completa de monitoreo
+- **Backend**: API REST completa para monitoreo de tests y jobs
+- **Servicios**: Integración de logging de errores en servicios existentes
+- **Scripts**: Herramienta de prueba para validar funcionalidad
+- **Documentación**: CHANGELOG actualizado con nuevas funcionalidades
+
 ## [0.11.10] - 2025-09-15
 
 ### Fixed
