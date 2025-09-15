@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.11.10] - 2025-09-15
+
+### Fixed
+- **Corrección del orden de notificaciones en comando STOP_SESSION**
+  - Intercambiado orden de notificaciones para cumplir con protocolo OCPI 2.2.1
+  - Ahora se envía primero PUT de sesión finalizada y después PATCH de EVSE disponible
+  - Corregido en `src/api/commands.js` en función `STOP_SESSION`
+  - Mejorada compatibilidad con organizaciones eMSP externas
+  - Orden correcto: 1) Respuesta HTTP "Stop accepted", 2) PUT notificación sesión finalizada, 3) PATCH notificación EVSE disponible
+
 ## [0.11.9] - 2025-09-11
 
 ### Fixed

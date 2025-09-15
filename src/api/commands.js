@@ -794,11 +794,11 @@ router.post('/STOP_SESSION', async (req, res) => {
     // Notificar al EMSP de forma asíncrona
     setImmediate(async () => {
       try {
-        // 1. Enviar PATCH al EMSP con el cambio de estado del EVSE
-        await notifyEMSPAboutEVSEStatusChange(session.evse_uid, 'AVAILABLE');
-
-        // 2. Enviar PUT al EMSP con la sesión finalizada
+        // 1. Enviar PUT al EMSP con la sesión finalizada
         await notifyEMSPAboutSessionStop(session, evse);
+
+        // 2. Enviar PATCH al EMSP con el cambio de estado del EVSE
+        await notifyEMSPAboutEVSEStatusChange(session.evse_uid, 'AVAILABLE');
       } catch (error) {
         logger.error('❌ STOP_SESSION: Notification failed but command accepted', {
           response_url,
