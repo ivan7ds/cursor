@@ -8397,6 +8397,25 @@ ${JSON.stringify(data, null, 2)}`;
                     emspTokensErrorCount.textContent = services.emspTokensSyncService.errorCount;
                 }
                 
+                // Actualizar estado de Test Location EVSE Creation Service
+                const testLocationEvseStatus = document.getElementById('test-location-evse-service-status');
+                const testLocationEvseLastRun = document.getElementById('test-location-evse-last-run');
+                const testLocationEvseErrorCount = document.getElementById('test-location-evse-error-count');
+                
+                if (testLocationEvseStatus) {
+                    testLocationEvseStatus.textContent = services.testLocationEVSECreationService.status === 'active' ? 'Activo' : 'Inactivo';
+                    testLocationEvseStatus.className = services.testLocationEVSECreationService.status === 'active' ? 'badge bg-info' : 'badge bg-danger';
+                }
+                
+                if (testLocationEvseLastRun) {
+                    testLocationEvseLastRun.textContent = services.testLocationEVSECreationService.lastRun ? 
+                        new Date(services.testLocationEVSECreationService.lastRun).toLocaleString() : '-';
+                }
+                
+                if (testLocationEvseErrorCount) {
+                    testLocationEvseErrorCount.textContent = services.testLocationEVSECreationService.errorCount;
+                }
+                
                 // Actualizar estadísticas de pruebas
                 this.updateTestStatistics(testStatistics);
                 

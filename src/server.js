@@ -22,6 +22,7 @@ const chargingNotificationService = require('./services/chargingNotificationServ
 const emspLocationsSyncService = require('./services/emspLocationsSyncService');
 const emspTariffsSyncService = require('./services/emspTariffsSyncService');
 const emspTokensSyncService = require('./services/emspTokensSyncService');
+const testLocationEVSECreationService = require('./services/testLocationEVSECreationService');
 
 // Import OCPI routes
 const credentialsRoutes = require('./api/credentials');
@@ -231,6 +232,10 @@ async function startServer() {
     emspTokensSyncService.start();
     logger.info('EMSP Tokens Sync Service started');
     
+    // Start Test Location EVSE Creation Service
+    testLocationEVSECreationService.start();
+    logger.info('Test Location EVSE Creation Service started');
+    
   } catch (error) {
     logger.error('Failed to start server:', error.message || error);
     logger.error('Error stack:', error.stack);
@@ -252,6 +257,8 @@ process.on('SIGTERM', async () => {
   emspTariffsSyncService.stop();
   logger.info('Stopping EMSP Tokens Sync Service');
   emspTokensSyncService.stop();
+  logger.info('Stopping Test Location EVSE Creation Service');
+  testLocationEVSECreationService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
@@ -269,6 +276,8 @@ process.on('SIGINT', async () => {
   emspTariffsSyncService.stop();
   logger.info('Stopping EMSP Tokens Sync Service');
   emspTokensSyncService.stop();
+  logger.info('Stopping Test Location EVSE Creation Service');
+  testLocationEVSECreationService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);

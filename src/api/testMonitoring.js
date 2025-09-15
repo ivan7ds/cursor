@@ -29,6 +29,11 @@ let serviceStatus = {
         status: 'active',
         lastRun: null,
         errorCount: 0
+    },
+    testLocationEVSECreationService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
     }
 };
 
@@ -188,6 +193,7 @@ router.delete('/errors', async (req, res) => {
         serviceStatus.emspLocationsSyncService.errorCount = 0;
         serviceStatus.emspTariffsSyncService.errorCount = 0;
         serviceStatus.emspTokensSyncService.errorCount = 0;
+        serviceStatus.testLocationEVSECreationService.errorCount = 0;
         
         res.json({
             success: true,
@@ -376,6 +382,8 @@ function logJobError(service, message, level = 'error') {
         serviceStatus.emspTariffsSyncService.errorCount++;
     } else if (service === 'EMSP Tokens Sync Service') {
         serviceStatus.emspTokensSyncService.errorCount++;
+    } else if (service === 'Test Location EVSE Creation Service') {
+        serviceStatus.testLocationEVSECreationService.errorCount++;
     }
     
     logger.warn(`🚨 Error de job registrado: [${service}] ${message}`);
@@ -403,6 +411,9 @@ function logJobExecution(service, message = 'Job executed successfully') {
     } else if (service === 'EMSP Tokens Sync Service') {
         serviceStatus.emspTokensSyncService.lastRun = now;
         logger.info(`✅ EMSP Tokens Sync Service ejecutado: ${message}`);
+    } else if (service === 'Test Location EVSE Creation Service') {
+        serviceStatus.testLocationEVSECreationService.lastRun = now;
+        logger.info(`✅ Test Location EVSE Creation Service ejecutado: ${message}`);
     }
 }
 
@@ -420,6 +431,7 @@ router.post('/toggle-jobs', async (req, res) => {
         const emspLocationsSyncService = require('../services/emspLocationsSyncService');
         const emspTariffsSyncService = require('../services/emspTariffsSyncService');
         const emspTokensSyncService = require('../services/emspTokensSyncService');
+        const testLocationEVSECreationService = require('../services/testLocationEVSECreationService');
         
         // Verificar el estado actual (usando el primer servicio como referencia)
         const currentStatus = evseNotificationService.getStatus();
@@ -433,6 +445,7 @@ router.post('/toggle-jobs', async (req, res) => {
             emspLocationsSyncService.stop();
             emspTariffsSyncService.stop();
             emspTokensSyncService.stop();
+            testLocationEVSECreationService.stop();
             
             // Actualizar estado en serviceStatus
             serviceStatus.evseNotificationService.status = 'paused';
@@ -440,6 +453,7 @@ router.post('/toggle-jobs', async (req, res) => {
             serviceStatus.emspLocationsSyncService.status = 'paused';
             serviceStatus.emspTariffsSyncService.status = 'paused';
             serviceStatus.emspTokensSyncService.status = 'paused';
+            serviceStatus.testLocationEVSECreationService.status = 'paused';
             
             logger.info('✅ Todos los jobs pausados');
             
@@ -458,6 +472,7 @@ router.post('/toggle-jobs', async (req, res) => {
             emspLocationsSyncService.start();
             emspTariffsSyncService.start();
             emspTokensSyncService.start();
+            testLocationEVSECreationService.start();
             
             // Actualizar estado en serviceStatus
             serviceStatus.evseNotificationService.status = 'active';
@@ -465,6 +480,7 @@ router.post('/toggle-jobs', async (req, res) => {
             serviceStatus.emspLocationsSyncService.status = 'active';
             serviceStatus.emspTariffsSyncService.status = 'active';
             serviceStatus.emspTokensSyncService.status = 'active';
+            serviceStatus.testLocationEVSECreationService.status = 'active';
             
             logger.info('✅ Todos los jobs activados');
             

@@ -7,6 +7,68 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-09-15
+
+### Added
+- **Test Location EVSE Creation Service**: Nuevo job automático para pruebas de creación de locations y EVSEs
+  - Servicio que se ejecuta periódicamente según configuración de variable de entorno
+  - Creación automática de locations y EVSEs de prueba con datos válidos
+  - Notificaciones HTTP reales a operadores externos conectados
+  - Validación de respuestas de organizaciones conectadas
+  - Limpieza automática con borrado definitivo (hard delete)
+  - Variable de entorno `TEST_LOCATION_EVSE_CREATION_INTERVAL_MS` (valor por defecto: 300000ms)
+  - Panel de monitoreo en la pestaña Test con estado, última ejecución y contador de errores
+  - Integración completa con el sistema de monitoreo de tests
+
+- **Notificaciones HTTP Reales**: Implementación de notificaciones HTTP reales para operadores externos
+  - Notificaciones PUT para creación de locations y EVSEs
+  - Notificaciones PATCH para eliminación (status REMOVED para EVSEs, publish false para locations)
+  - Headers HTTP completos con autenticación, User-Agent y X-Request-ID
+  - Manejo de errores y timeouts (10 segundos)
+  - URLs construidas correctamente según OCPI 2.2
+
+- **Sistema de Backup**: Creación automática de backups de base de datos
+  - Backup almacenado en carpeta `backups/` con timestamp
+  - Comando: `pg_dump` con credenciales correctas
+  - Backup creado antes de cambios importantes
+
+### Changed
+- **Vista de Test**: Actualizada para mostrar 6 servicios en lugar de 5
+  - Layout cambiado a 3 filas (2-2-2) para acomodar el nuevo servicio
+  - Nuevo panel para "Test Location EVSE Creation Service" con monitoreo completo
+  - JavaScript actualizado para manejar el nuevo servicio en `updateServiceStatus()`
+  - Integración con el botón de control de jobs
+
+- **Payloads OCPI**: Corregidos para cumplir estándares OCPI 2.2
+  - Campo `country` cambiado de 2 a 3 caracteres ("ES" → "ESP")
+  - Campo `time_zone` agregado ("Europe/Madrid")
+  - Capacidades de EVSE corregidas (eliminado "RENTABLE" inválido)
+  - Estructura de payloads idéntica a los menús manuales
+
+- **Validaciones de Datos**: Mejoradas para detectar problemas de validación
+  - Validación de capacidades de EVSE según OCPI 2.2
+  - Validación de longitud de campos (country, physical_reference)
+  - Detección de errores de validación en notificaciones HTTP
+
+### Fixed
+- **Error de Capabilities**: Corregido uso de capacidades inválidas en EVSEs
+  - Eliminado "RENTABLE" que no es válido según OCPI 2.2
+  - Usado "RESERVABLE" y "REMOTE_START_STOP_CAPABLE" (válidas)
+
+- **Error de Country**: Corregido campo country con longitud insuficiente
+  - Cambiado de "ES" (2 caracteres) a "ESP" (3 caracteres)
+  - Cumple con validación "country must be longer than or equal to 3 characters"
+
+- **Notificaciones Simuladas**: Reemplazadas por notificaciones HTTP reales
+  - Eliminadas simulaciones con delays artificiales
+  - Implementadas peticiones HTTP reales con axios
+  - Manejo de respuestas y errores reales del operador externo
+
+- **Limpieza de Datos**: Mejorada para usar borrado definitivo
+  - Cambiado de soft delete a hard delete (`force: true`)
+  - Notificaciones de eliminación antes del borrado
+  - Limpieza completa de datos de prueba
+
 ## [0.15.0] - 2025-09-15
 
 ### Added
