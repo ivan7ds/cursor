@@ -21,6 +21,7 @@ const evseNotificationService = require('./services/evseNotificationService');
 const chargingNotificationService = require('./services/chargingNotificationService');
 const emspLocationsSyncService = require('./services/emspLocationsSyncService');
 const emspTariffsSyncService = require('./services/emspTariffsSyncService');
+const emspTokensSyncService = require('./services/emspTokensSyncService');
 
 // Import OCPI routes
 const credentialsRoutes = require('./api/credentials');
@@ -226,6 +227,10 @@ async function startServer() {
     emspTariffsSyncService.start();
     logger.info('EMSP Tariffs Sync Service started');
     
+    // Start EMSP Tokens Sync Service
+    emspTokensSyncService.start();
+    logger.info('EMSP Tokens Sync Service started');
+    
   } catch (error) {
     logger.error('Failed to start server:', error.message || error);
     logger.error('Error stack:', error.stack);
@@ -245,6 +250,8 @@ process.on('SIGTERM', async () => {
   emspLocationsSyncService.stop();
   logger.info('Stopping EMSP Tariffs Sync Service');
   emspTariffsSyncService.stop();
+  logger.info('Stopping EMSP Tokens Sync Service');
+  emspTokensSyncService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
@@ -260,6 +267,8 @@ process.on('SIGINT', async () => {
   emspLocationsSyncService.stop();
   logger.info('Stopping EMSP Tariffs Sync Service');
   emspTariffsSyncService.stop();
+  logger.info('Stopping EMSP Tokens Sync Service');
+  emspTokensSyncService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);

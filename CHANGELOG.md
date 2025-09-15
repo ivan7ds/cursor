@@ -7,6 +7,51 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.15.0] - 2025-09-15
+
+### Added
+- **EMSP Tokens Sync Service**: Nuevo job automático para sincronizar tokens de operadores externos
+  - Servicio que se ejecuta periódicamente según configuración de variable de entorno
+  - Sincronización automática de tokens desde EMSPs conectados
+  - Almacenamiento de tokens en tabla `emsp_tokens`
+  - Integración completa con el sistema de monitoreo de tests
+  - Variable de entorno `EMSP_TOKENS_SYNC_INTERVAL_MS` (valor por defecto: 60000ms)
+  - Panel de monitoreo en la pestaña Test con estado, última ejecución y contador de errores
+  - Autenticación correcta usando tokens de la tabla `credentials`
+  - Endpoint correcto `/ocpi/emsp/2.2/tokens/` para obtener tokens de EMSPs
+
+- **Control de Jobs**: Botón para activar/desactivar todos los jobs desde la interfaz
+  - Botón dinámico en la pestaña Test que cambia entre "Pausar Jobs" y "Activar Jobs"
+  - Control simultáneo de todos los 5 servicios (EVSE, Charging, Locations, Tariffs, Tokens)
+  - Iconos y colores dinámicos según el estado actual
+  - Endpoint `POST /api/test-monitoring/toggle-jobs` para control backend
+  - Actualización automática del estado en la interfaz
+
+### Changed
+- **Vista de Test**: Actualizada para mostrar 5 servicios en lugar de 4
+  - Layout cambiado a 3 filas (2-2-1) para acomodar el nuevo servicio
+  - Nuevo panel para "EMSP Tokens Sync Service" con monitoreo completo
+  - JavaScript actualizado para manejar el nuevo servicio en `updateServiceStatus()`
+  - Botón de control de jobs agregado antes del botón "Ejecutar Pruebas"
+
+- **Validaciones de Datos**: Implementadas validaciones robustas para todos los servicios EMSP
+  - **EMSP Locations Sync Service**: Marca como error cuando encuentra 0 locations
+  - **EMSP Tariffs Sync Service**: Marca como error cuando encuentra 0 tarifas
+  - **EMSP Tokens Sync Service**: Marca como error cuando encuentra 0 tokens
+  - Comportamiento consistente en todos los servicios para detectar datos faltantes
+
+### Fixed
+- **Contador de Errores**: Corregido problema de actualización de contadores de errores
+  - Función `logJobError` actualizada para incluir todos los servicios EMSP
+  - Contadores de errores se incrementan correctamente para todos los servicios
+  - Sistema de monitoreo actualizado para manejar 5 servicios simultáneamente
+
+- **Estado de Servicios**: Mejorado el manejo del estado de servicios
+  - Estado se actualiza correctamente cuando se pausan/activan los jobs
+  - Servicios muestran `status: "paused"` cuando están pausados
+  - Servicios muestran `status: "active"` cuando están activos
+  - Sincronización completa entre backend y frontend
+
 ## [0.14.0] - 2025-09-15
 
 ### Added

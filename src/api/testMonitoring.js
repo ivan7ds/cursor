@@ -24,6 +24,11 @@ let serviceStatus = {
         status: 'active',
         lastRun: null,
         errorCount: 0
+    },
+    emspTokensSyncService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
     }
 };
 
@@ -182,6 +187,7 @@ router.delete('/errors', async (req, res) => {
         serviceStatus.chargingNotificationService.errorCount = 0;
         serviceStatus.emspLocationsSyncService.errorCount = 0;
         serviceStatus.emspTariffsSyncService.errorCount = 0;
+        serviceStatus.emspTokensSyncService.errorCount = 0;
         
         res.json({
             success: true,
@@ -364,6 +370,12 @@ function logJobError(service, message, level = 'error') {
         serviceStatus.evseNotificationService.errorCount++;
     } else if (service === 'Charging Notification Service') {
         serviceStatus.chargingNotificationService.errorCount++;
+    } else if (service === 'EMSP Locations Sync Service') {
+        serviceStatus.emspLocationsSyncService.errorCount++;
+    } else if (service === 'EMSP Tariffs Sync Service') {
+        serviceStatus.emspTariffsSyncService.errorCount++;
+    } else if (service === 'EMSP Tokens Sync Service') {
+        serviceStatus.emspTokensSyncService.errorCount++;
     }
     
     logger.warn(`🚨 Error de job registrado: [${service}] ${message}`);
@@ -388,8 +400,92 @@ function logJobExecution(service, message = 'Job executed successfully') {
     } else if (service === 'EMSP Tariffs Sync Service') {
         serviceStatus.emspTariffsSyncService.lastRun = now;
         logger.info(`✅ EMSP Tariffs Sync Service ejecutado: ${message}`);
+    } else if (service === 'EMSP Tokens Sync Service') {
+        serviceStatus.emspTokensSyncService.lastRun = now;
+        logger.info(`✅ EMSP Tokens Sync Service ejecutado: ${message}`);
     }
 }
+
+/**
+ * POST /api/test-monitoring/toggle-jobs
+ * Activa o desactiva todos los jobs
+ */
+router.post('/toggle-jobs', async (req, res) => {
+    try {
+        logger.info('🔄 Toggle jobs request received');
+        
+        // Importar los servicios
+        const evseNotificationService = require('../services/evseNotificationService');
+        const chargingNotificationService = require('../services/chargingNotificationService');
+        const emspLocationsSyncService = require('../services/emspLocationsSyncService');
+        const emspTariffsSyncService = require('../services/emspTariffsSyncService');
+        const emspTokensSyncService = require('../services/emspTokensSyncService');
+        
+        // Verificar el estado actual (usando el primer servicio como referencia)
+        const currentStatus = evseNotificationService.getStatus();
+        const jobsActive = currentStatus.isRunning;
+        
+        if (jobsActive) {
+            // Pausar todos los jobs
+            logger.info('⏸️ Pausando todos los jobs...');
+            evseNotificationService.stop();
+            chargingNotificationService.stop();
+            emspLocationsSyncService.stop();
+            emspTariffsSyncService.stop();
+            emspTokensSyncService.stop();
+            
+            // Actualizar estado en serviceStatus
+            serviceStatus.evseNotificationService.status = 'paused';
+            serviceStatus.chargingNotificationService.status = 'paused';
+            serviceStatus.emspLocationsSyncService.status = 'paused';
+            serviceStatus.emspTariffsSyncService.status = 'paused';
+            serviceStatus.emspTokensSyncService.status = 'paused';
+            
+            logger.info('✅ Todos los jobs pausados');
+            
+            res.json({
+                success: true,
+                data: {
+                    jobsActive: false,
+                    message: 'Todos los jobs han sido pausados'
+                }
+            });
+        } else {
+            // Activar todos los jobs
+            logger.info('▶️ Activando todos los jobs...');
+            evseNotificationService.start();
+            chargingNotificationService.start();
+            emspLocationsSyncService.start();
+            emspTariffsSyncService.start();
+            emspTokensSyncService.start();
+            
+            // Actualizar estado en serviceStatus
+            serviceStatus.evseNotificationService.status = 'active';
+            serviceStatus.chargingNotificationService.status = 'active';
+            serviceStatus.emspLocationsSyncService.status = 'active';
+            serviceStatus.emspTariffsSyncService.status = 'active';
+            serviceStatus.emspTokensSyncService.status = 'active';
+            
+            logger.info('✅ Todos los jobs activados');
+            
+            res.json({
+                success: true,
+                data: {
+                    jobsActive: true,
+                    message: 'Todos los jobs han sido activados'
+                }
+            });
+        }
+        
+    } catch (error) {
+        logger.error('❌ Error toggling jobs:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            message: error.message
+        });
+    }
+});
 
 module.exports = {
     router,

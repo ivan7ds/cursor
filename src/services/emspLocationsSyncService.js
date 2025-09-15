@@ -163,6 +163,14 @@ class EMSPLocationsSyncService {
         const locations = response.data.data || [];
         
         logger.info(`📍 Found ${locations.length} locations for EMSP ${party_id} (${country_code})`);
+
+        // Verificar si devuelve 0 locations - esto se considera un error
+        if (locations.length === 0) {
+          const errorMessage = `No locations found for EMSP ${party_id} (${country_code}) - this is considered an error`;
+          logger.error(`❌ ${errorMessage}`);
+          logJobError('EMSP Locations Sync Service', errorMessage, 'error');
+          throw new Error(errorMessage);
+        }
         
         // Procesar cada location recibida
         for (const location of locations) {

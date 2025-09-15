@@ -159,6 +159,14 @@ class EMSPTariffsSyncService {
         
         logger.info(`💰 Found ${tariffs.length} tariffs for EMSP ${party_id} (${country_code})`);
 
+        // Verificar si devuelve 0 tarifas - esto se considera un error
+        if (tariffs.length === 0) {
+          const errorMessage = `No tariffs found for EMSP ${party_id} (${country_code}) - this is considered an error`;
+          logger.error(`❌ ${errorMessage}`);
+          logJobError('EMSP Tariffs Sync Service', errorMessage, 'error');
+          throw new Error(errorMessage);
+        }
+
         // Procesar cada tariff
         for (const tariff of tariffs) {
           await this.processEMSPTariff(tariff, party_id, country_code);

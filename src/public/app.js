@@ -8132,6 +8132,18 @@ ${JSON.stringify(data, null, 2)}`;
                 console.warn('⚠️ Elemento refreshTestStatus no encontrado');
             }
             
+            // Botón de activar/desactivar jobs
+            const toggleJobsStatus = document.getElementById('toggleJobsStatus');
+            if (toggleJobsStatus) {
+                toggleJobsStatus.addEventListener('click', () => {
+                    console.log('⏸️ Botón toggleJobsStatus clickeado');
+                    this.toggleJobsStatus();
+                });
+                console.log('✅ Event listener para toggleJobsStatus agregado');
+            } else {
+                console.warn('⚠️ Elemento toggleJobsStatus no encontrado');
+            }
+            
             // Botón de ejecutar pruebas de ejemplo
             const runSampleTests = document.getElementById('runSampleTests');
             if (runSampleTests) {
@@ -8366,6 +8378,25 @@ ${JSON.stringify(data, null, 2)}`;
                     emspTariffsErrorCount.textContent = services.emspTariffsSyncService.errorCount;
                 }
                 
+                // Actualizar estado de EMSP Tokens Sync Service
+                const emspTokensStatus = document.getElementById('emsp-tokens-service-status');
+                const emspTokensLastRun = document.getElementById('emsp-tokens-last-run');
+                const emspTokensErrorCount = document.getElementById('emsp-tokens-error-count');
+                
+                if (emspTokensStatus) {
+                    emspTokensStatus.textContent = services.emspTokensSyncService.status === 'active' ? 'Activo' : 'Inactivo';
+                    emspTokensStatus.className = services.emspTokensSyncService.status === 'active' ? 'badge bg-success' : 'badge bg-danger';
+                }
+                
+                if (emspTokensLastRun) {
+                    emspTokensLastRun.textContent = services.emspTokensSyncService.lastRun ? 
+                        new Date(services.emspTokensSyncService.lastRun).toLocaleString() : '-';
+                }
+                
+                if (emspTokensErrorCount) {
+                    emspTokensErrorCount.textContent = services.emspTokensSyncService.errorCount;
+                }
+                
                 // Actualizar estadísticas de pruebas
                 this.updateTestStatistics(testStatistics);
                 
@@ -8521,6 +8552,71 @@ ${JSON.stringify(data, null, 2)}`;
         } catch (error) {
             console.error('❌ Error limpiando errores de la pestaña Test:', error);
             this.showNotification('Error limpiando errores: ' + error.message, 'error');
+        }
+    }
+    
+    /**
+     * Activa o desactiva todos los jobs
+     */
+    async toggleJobsStatus() {
+        try {
+            console.log('⏸️ Cambiando estado de los jobs...');
+            
+            const response = await fetch('/api/test-monitoring/toggle-jobs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Actualizar el botón según el nuevo estado
+                this.updateJobsToggleButton(result.data.jobsActive);
+                
+                // Mostrar notificación
+                const message = result.data.jobsActive ? 'Jobs activados' : 'Jobs pausados';
+                this.showNotification(message, 'success');
+                
+                // Recargar datos de la pestaña Test
+                await this.loadTestData();
+                
+                console.log('✅ Estado de jobs cambiado exitosamente');
+            } else {
+                throw new Error(result.error || 'Error desconocido');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cambiando estado de jobs:', error);
+            this.showNotification('Error cambiando estado de jobs: ' + error.message, 'error');
+        }
+    }
+    
+    /**
+     * Actualiza el botón de toggle de jobs según el estado actual
+     */
+    updateJobsToggleButton(jobsActive) {
+        const toggleButton = document.getElementById('toggleJobsStatus');
+        const toggleIcon = document.getElementById('toggleJobsIcon');
+        const toggleText = document.getElementById('toggleJobsText');
+        
+        if (toggleButton && toggleIcon && toggleText) {
+            if (jobsActive) {
+                // Jobs están activos, mostrar opción de pausar
+                toggleButton.className = 'btn btn-outline-warning btn-sm';
+                toggleIcon.className = 'bi bi-pause-circle';
+                toggleText.textContent = 'Pausar Jobs';
+            } else {
+                // Jobs están pausados, mostrar opción de activar
+                toggleButton.className = 'btn btn-outline-success btn-sm';
+                toggleIcon.className = 'bi bi-play-circle';
+                toggleText.textContent = 'Activar Jobs';
+            }
         }
     }
     
