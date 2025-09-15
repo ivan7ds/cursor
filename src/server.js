@@ -19,6 +19,7 @@ const logger = require('./utils/logger');
 // Import EVSE Notification Service
 const evseNotificationService = require('./services/evseNotificationService');
 const chargingNotificationService = require('./services/chargingNotificationService');
+const emspLocationsSyncService = require('./services/emspLocationsSyncService');
 
 // Import OCPI routes
 const credentialsRoutes = require('./api/credentials');
@@ -216,6 +217,10 @@ async function startServer() {
     chargingNotificationService.start();
     logger.info('Charging Notification Service started');
     
+    // Start EMSP Locations Sync Service
+    emspLocationsSyncService.start();
+    logger.info('EMSP Locations Sync Service started');
+    
   } catch (error) {
     logger.error('Failed to start server:', error.message || error);
     logger.error('Error stack:', error.stack);
@@ -227,7 +232,12 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
+  logger.info('Stopping EVSE Notification Service');
   evseNotificationService.stop();
+  logger.info('Stopping Charging Notification Service');
+  chargingNotificationService.stop();
+  logger.info('Stopping EMSP Locations Sync Service');
+  emspLocationsSyncService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
@@ -235,7 +245,12 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
+  logger.info('Stopping EVSE Notification Service');
   evseNotificationService.stop();
+  logger.info('Stopping Charging Notification Service');
+  chargingNotificationService.stop();
+  logger.info('Stopping EMSP Locations Sync Service');
+  emspLocationsSyncService.stop();
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);

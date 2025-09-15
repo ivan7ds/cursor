@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ OCPI Test Application v0.12.0 - OCPI 2.2</title>
+    <title>✨ OCPI Test Application v0.13.0 - OCPI 2.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="sparkle.png" alt="Sparkle Chibi" width="50" height="50" class="me-2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); object-fit: contain;">
-                <span class="fw-bold">OCPI Test Application <small class="text-muted">v0.12.0</small></span>
+                <span class="fw-bold">OCPI Test Application <small class="text-muted">v0.13.0</small></span>
             </a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text">
@@ -958,7 +958,7 @@
                             <div class="col-md-12">
                                 <h6>Estado de los Jobs</h6>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="card border-success">
                                             <div class="card-body">
                                                 <h6 class="card-title text-success">
@@ -976,7 +976,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="card border-success">
                                             <div class="card-body">
                                                 <h6 class="card-title text-success">
@@ -990,6 +990,24 @@
                                                 </p>
                                                 <p class="card-text mb-0">
                                                     <strong>Errores:</strong> <span id="charging-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> EMSP Locations Sync Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="emsp-locations-service-status" class="badge bg-success">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="emsp-locations-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="emsp-locations-error-count" class="badge bg-danger">0</span>
                                                 </p>
                                             </div>
                                         </div>

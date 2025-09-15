@@ -7,6 +7,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.13.0] - 2025-09-15
+
+### Added
+- **EMSP Locations Sync Service**: Nuevo job automático para sincronizar locations de operadores externos
+  - Servicio que se ejecuta periódicamente según configuración de variable de entorno
+  - Sincronización automática de locations desde EMSPs conectados
+  - Almacenamiento de locations en tablas `emsp_locations` y `emsp_evses`
+  - Integración completa con el sistema de monitoreo de tests
+  - Variable de entorno `EMSP_LOCATIONS_SYNC_INTERVAL_MS` (valor por defecto: 60000ms)
+  - Panel de monitoreo en la pestaña Test con estado, última ejecución y contador de errores
+  - Autenticación correcta usando tokens de la tabla `credentials`
+  - Endpoint correcto `/ocpi/cpo/2.2/locations/` para obtener locations de EMSPs
+
+### Changed
+- **Vista de Test**: Actualizada para mostrar 3 servicios en lugar de 2
+  - Layout cambiado de 2 columnas a 3 columnas para acomodar el nuevo servicio
+  - Nuevo panel para "EMSP Locations Sync Service" con monitoreo completo
+  - JavaScript actualizado para manejar el nuevo servicio en `updateServiceStatus()`
+
+### Fixed
+- **Autenticación en jobs**: Corregido problema de autenticación en el nuevo servicio
+  - Consulta corregida para obtener tokens reales de la tabla `credentials`
+  - URL corregida para usar endpoint de CPO en lugar de EMSP
+  - Manejo correcto de headers de autenticación OCPI
+
 ## [0.12.0] - 2025-09-15
 
 ### Fixed

@@ -21,59 +21,57 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
             timestamp: new Date().toISOString()
         });
 
-        // Verificar que el EVSE existe en emsp_evses (contiene tanto id como location_id)
+        // Verificar si el EVSE ya existe en emsp_evses
         const evseResult = await EmspEVSE.findOne({
             where: { id: evse_uid },
             attributes: ['id', 'location_id']
         });
 
-        if (!evseResult) {
-            logger.warn(`⚠️ EVSE not found in emsp_evses: ${evse_uid}`, {
-                country_code,
-                party_id,
-                location_id,
-                evse_uid
-            });
-            return res.status(404).json({
-                status_code: 2001,
-                status_message: 'EVSE not found',
-                timestamp: new Date().toISOString()
-            });
-        }
+        // Usar el location_id de los parámetros (el operador externo nos lo envía)
+        let actualLocationId = location_id;
 
-        // Usar el location_id obtenido de emsp_evses
-        let actualLocationId = evseResult.location_id;
-
-        // Verificar si la ubicación existe, si no, crear una por defecto
-        const Location = require('../models/Location');
-        let location = await Location.findByPk(actualLocationId);
+        // Verificar si la ubicación existe en emsp_locations, si no, crear una
+        const { sequelize } = require('../database/connection');
         
-        if (!location) {
-            logger.warn(`⚠️ Location not found: ${actualLocationId}, creating default location`, {
+        // Verificar si existe en emsp_locations
+        const [existingLocation] = await sequelize.query(`
+            SELECT id FROM emsp_locations WHERE id = ?
+        `, {
+            replacements: [actualLocationId],
+            type: sequelize.QueryTypes.SELECT
+        });
+        
+        if (!existingLocation) {
+            logger.info(`📍 Creating new location in emsp_locations: ${actualLocationId}`, {
                 country_code,
                 party_id,
                 location_id: actualLocationId
             });
             
-            // Crear ubicación por defecto
-            location = await Location.create({
-                id: actualLocationId,
-                country_code: country_code,
-                party_id: party_id,
-                name: `Auto-created location for ${evse_uid}`,
-                address: 'Auto-created address',
-                city: 'Unknown',
-                postal_code: '00000',
-                country: country_code,
-                time_zone: 'Europe/Madrid', // Campo requerido
-                coordinates: {
-                    latitude: '0.0',
-                    longitude: '0.0'
-                },
-                last_updated: new Date().toISOString()
+            // Crear ubicación en emsp_locations
+            await sequelize.query(`
+                INSERT INTO emsp_locations (
+                    id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
+                    postal_code, country, coordinates, time_zone, last_updated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, {
+                replacements: [
+                    actualLocationId,
+                    party_id,
+                    country_code,
+                    actualLocationId,
+                    `Location for ${evse_uid}`,
+                    'Address not provided',
+                    'Unknown',
+                    '00000',
+                    country_code,
+                    JSON.stringify({ latitude: '0.0', longitude: '0.0' }),
+                    'Europe/Madrid',
+                    new Date().toISOString()
+                ]
             });
             
-            logger.info(`✅ Created default location: ${actualLocationId}`);
+            logger.info(`✅ Created location in emsp_locations: ${actualLocationId}`);
         }
 
         // Verificar si el EVSE ya existe en la tabla emsp_evses (EVSEs de organizaciones externas)
@@ -160,11 +158,11 @@ router.patch('/:country_code/:party_id/:location_id/:evse_uid', async (req, res)
             timestamp: new Date().toISOString()
         });
 
-        // Verificar que el EVSE existe
-        const evseResult = await EVSE.findByPk(evse_uid);
+        // Verificar que el EVSE existe en emsp_evses
+        const evseResult = await EmspEVSE.findByPk(evse_uid);
 
         if (!evseResult) {
-            logger.warn(`⚠️ EVSE not found: ${evse_uid}`, {
+            logger.warn(`⚠️ EVSE not found in emsp_evses: ${evse_uid}`, {
                 country_code,
                 party_id,
                 location_id,
