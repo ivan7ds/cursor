@@ -19,6 +19,11 @@ let serviceStatus = {
         status: 'active',
         lastRun: null,
         errorCount: 0
+    },
+    emspTariffsSyncService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
     }
 };
 
@@ -176,6 +181,7 @@ router.delete('/errors', async (req, res) => {
         serviceStatus.evseNotificationService.errorCount = 0;
         serviceStatus.chargingNotificationService.errorCount = 0;
         serviceStatus.emspLocationsSyncService.errorCount = 0;
+        serviceStatus.emspTariffsSyncService.errorCount = 0;
         
         res.json({
             success: true,
@@ -379,6 +385,9 @@ function logJobExecution(service, message = 'Job executed successfully') {
     } else if (service === 'EMSP Locations Sync Service') {
         serviceStatus.emspLocationsSyncService.lastRun = now;
         logger.info(`✅ EMSP Locations Sync Service ejecutado: ${message}`);
+    } else if (service === 'EMSP Tariffs Sync Service') {
+        serviceStatus.emspTariffsSyncService.lastRun = now;
+        logger.info(`✅ EMSP Tariffs Sync Service ejecutado: ${message}`);
     }
 }
 

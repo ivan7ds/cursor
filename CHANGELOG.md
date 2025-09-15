@@ -7,6 +7,35 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.14.0] - 2025-09-15
+
+### Added
+- **EMSP Tariffs Sync Service**: Nuevo job automático para sincronizar tarifas de operadores externos
+  - Servicio que se ejecuta periódicamente según configuración de variable de entorno
+  - Sincronización automática de tarifas desde EMSPs conectados
+  - Almacenamiento de tarifas en tabla `emsp_tariffs`
+  - Integración completa con el sistema de monitoreo de tests
+  - Variable de entorno `EMSP_TARIFFS_SYNC_INTERVAL_MS` (valor por defecto: 60000ms)
+  - Panel de monitoreo en la pestaña Test con estado, última ejecución y contador de errores
+  - Autenticación correcta usando tokens de la tabla `credentials`
+  - Endpoint correcto `/ocpi/cpo/2.2/tariffs/` para obtener tarifas de EMSPs
+  - Vista de tarifas sincronizadas con tabla interactiva y filtros
+  - Funciones JavaScript para cargar, mostrar y alternar vista de tarifas
+
+### Changed
+- **Vista de Test**: Actualizada para mostrar 4 servicios en lugar de 3
+  - Layout cambiado a 2 filas de 2 columnas para acomodar el nuevo servicio
+  - Nuevo panel para "EMSP Tariffs Sync Service" con monitoreo completo
+  - JavaScript actualizado para manejar el nuevo servicio en `updateServiceStatus()`
+  - Nueva sección "Tarifas Sincronizadas Recientemente" con tabla interactiva
+  - Botones de control para actualizar y mostrar/ocultar tarifas
+
+### Fixed
+- **Autenticación en jobs de tarifas**: Implementado manejo correcto de autenticación
+  - Consulta corregida para obtener tokens reales de la tabla `credentials`
+  - URL corregida para usar endpoint de CPO en lugar de EMSP
+  - Manejo correcto de headers de autenticación OCPI para tarifas
+
 ## [0.13.0] - 2025-09-15
 
 ### Added

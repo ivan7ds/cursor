@@ -8192,6 +8192,30 @@ ${JSON.stringify(data, null, 2)}`;
                 console.warn('⚠️ Elemento clearErrorLog no encontrado');
             }
             
+            // Botón de actualizar tarifas
+            const refreshTariffs = document.getElementById('refreshTariffs');
+            if (refreshTariffs) {
+                refreshTariffs.addEventListener('click', () => {
+                    console.log('💰 Botón refreshTariffs clickeado');
+                    this.loadTariffs();
+                });
+                console.log('✅ Event listener para refreshTariffs agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshTariffs no encontrado');
+            }
+            
+            // Botón de mostrar/ocultar tarifas
+            const toggleTariffsView = document.getElementById('toggleTariffsView');
+            if (toggleTariffsView) {
+                toggleTariffsView.addEventListener('click', () => {
+                    console.log('👁️ Botón toggleTariffsView clickeado');
+                    this.toggleTariffsView();
+                });
+                console.log('✅ Event listener para toggleTariffsView agregado');
+            } else {
+                console.warn('⚠️ Elemento toggleTariffsView no encontrado');
+            }
+            
             // Configurar actualización automática cada 30 segundos
             this.setupTestAutoRefresh();
             
@@ -8321,6 +8345,25 @@ ${JSON.stringify(data, null, 2)}`;
                 
                 if (emspLocationsErrorCount) {
                     emspLocationsErrorCount.textContent = services.emspLocationsSyncService.errorCount;
+                }
+                
+                // Actualizar estado de EMSP Tariffs Sync Service
+                const emspTariffsStatus = document.getElementById('emsp-tariffs-service-status');
+                const emspTariffsLastRun = document.getElementById('emsp-tariffs-last-run');
+                const emspTariffsErrorCount = document.getElementById('emsp-tariffs-error-count');
+                
+                if (emspTariffsStatus) {
+                    emspTariffsStatus.textContent = services.emspTariffsSyncService.status === 'active' ? 'Activo' : 'Inactivo';
+                    emspTariffsStatus.className = services.emspTariffsSyncService.status === 'active' ? 'badge bg-success' : 'badge bg-danger';
+                }
+                
+                if (emspTariffsLastRun) {
+                    emspTariffsLastRun.textContent = services.emspTariffsSyncService.lastRun ? 
+                        new Date(services.emspTariffsSyncService.lastRun).toLocaleString() : '-';
+                }
+                
+                if (emspTariffsErrorCount) {
+                    emspTariffsErrorCount.textContent = services.emspTariffsSyncService.errorCount;
                 }
                 
                 // Actualizar estadísticas de pruebas
@@ -8572,6 +8615,121 @@ ${JSON.stringify(data, null, 2)}`;
         } catch (error) {
             console.error('❌ Error cargando historial de pruebas:', error);
             this.showNotification('Error cargando historial: ' + error.message, 'error');
+        }
+    }
+    
+    /**
+     * Alterna la vista de tarifas sincronizadas
+     */
+    async toggleTariffsView() {
+        try {
+            const tariffsContainer = document.getElementById('tariffsContainer');
+            const toggleTariffsViewBtn = document.getElementById('toggleTariffsView');
+            const toggleTariffsViewText = document.getElementById('toggleTariffsViewText');
+            
+            if (tariffsContainer && toggleTariffsViewBtn) {
+                if (tariffsContainer.style.display === 'none') {
+                    // Mostrar tarifas
+                    await this.loadTariffs();
+                    tariffsContainer.style.display = 'block';
+                    toggleTariffsViewText.textContent = 'Ocultar';
+                } else {
+                    // Ocultar tarifas
+                    tariffsContainer.style.display = 'none';
+                    toggleTariffsViewText.textContent = 'Mostrar';
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error alternando vista de tarifas:', error);
+            this.showNotification('Error mostrando tarifas: ' + error.message, 'error');
+        }
+    }
+    
+    /**
+     * Carga las tarifas sincronizadas
+     */
+    async loadTariffs() {
+        try {
+            console.log('💰 Cargando tarifas sincronizadas...');
+            
+            const response = await fetch('/api/emsp/tariffs');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.status_code === 1000) {
+                this.displayTariffs(result.data);
+                console.log('✅ Tarifas cargadas');
+            } else {
+                throw new Error(result.status_message || 'Error desconocido');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error cargando tarifas:', error);
+            this.showNotification('Error cargando tarifas: ' + error.message, 'error');
+        }
+    }
+    
+    /**
+     * Muestra las tarifas en la tabla
+     */
+    displayTariffs(tariffs) {
+        try {
+            const tbody = document.getElementById('tariffsTableBody');
+            
+            if (!tbody) {
+                console.error('❌ No se encontró el elemento tariffsTableBody');
+                return;
+            }
+            
+            if (!tariffs || tariffs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay tarifas sincronizadas</td></tr>';
+                return;
+            }
+            
+            // Ordenar por última actualización (más recientes primero)
+            const sortedTariffs = tariffs.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
+            
+            tbody.innerHTML = sortedTariffs.map(tariff => {
+                const elements = tariff.elements ? JSON.parse(tariff.elements) : [];
+                const elementsText = elements.length > 0 ? `${elements.length} elemento(s)` : 'Sin elementos';
+                
+                return `
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary">${tariff.emsp_party_id}</span>
+                            <small class="text-muted d-block">${tariff.emsp_country_code}</small>
+                        </td>
+                        <td>
+                            <code>${tariff.tariff_id}</code>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">${tariff.type || 'N/A'}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">${tariff.currency || 'N/A'}</span>
+                        </td>
+                        <td>
+                            <small>${elementsText}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">${new Date(tariff.last_updated).toLocaleString()}</small>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            console.log(`✅ ${tariffs.length} tarifas mostradas`);
+            
+        } catch (error) {
+            console.error('❌ Error mostrando tarifas:', error);
+            const tbody = document.getElementById('tariffsTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error cargando tarifas</td></tr>';
+            }
         }
     }
     
