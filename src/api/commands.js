@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const { EVSE, Location, Token, Credentials, Session, CDR } = require('../models');
 const logger = require('../utils/logger');
 const AuthorizationService = require('../services/authorizationService');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 
 /**
  * Envía notificación al response_url con el resultado del comando
@@ -319,12 +320,12 @@ router.post('/START_SESSION', async (req, res) => {
       response_url
     });
 
-    // Crear sesión en la base de datos
+    // Crear sesión en la base de datos usando la información del token del eMSP
     const sessionId = uuidv4();
     const session = await Session.create({
       id: sessionId,
-      country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
-      party_id: process.env.OCPI_PARTY_ID || 'IPD',
+      country_code: token.country_code || process.env.OCPI_COUNTRY_CODE || 'ES',
+      party_id: token.party_id || process.env.OCPI_PARTY_ID || 'IPD',
       evse_uid: evse_uid,
       connector_id: evse.connectors && evse.connectors[0] ? evse.connectors[0].id : null,
       id_token: token.uid,
@@ -475,53 +476,65 @@ async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
       return;
     }
 
-    // Obtener credenciales del EMSP
-    const emspCredentials = await Credentials.findOne({
-      where: {
-        party_id: 'EPK' // EMSP conectado
-      }
-    });
+    // Obtener todas las credenciales de eMSPs válidas
+    const emspCredentialsList = await EMSPCredentialsHelper.getAllValidCredentials();
 
-    if (!emspCredentials) {
-      logger.error('❌ EMSP credentials not found for EVSE status notification');
+    if (!emspCredentialsList || emspCredentialsList.length === 0) {
+      logger.error('❌ No valid EMSP credentials found for EVSE status notification');
       return;
     }
 
-    // Construir URL del endpoint del EMSP
-    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    // Notificar a todos los eMSPs conectados
     const partyId = process.env.OCPI_PARTY_ID || 'IPD';
     const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
-    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evse.location_id}/${evseUid}`;
+    
+    for (const emspCredentials of emspCredentialsList) {
+      try {
+        // Construir URL del endpoint del EMSP
+        const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+        const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evse.location_id}/${evseUid}`;
 
-    // Preparar payload PATCH
-    const payload = {
-      status: newStatus,
-      last_updated: new Date().toISOString()
-    };
+        // Preparar payload PATCH
+        const payload = {
+          status: newStatus,
+          last_updated: new Date().toISOString()
+        };
 
-    logger.info('📤 Sending PATCH to EMSP about EVSE status change', {
-      emsp_url: emspUrl,
-      evse_uid: evseUid,
-      new_status: newStatus,
-      payload
-    });
+        logger.info('📤 Sending PATCH to EMSP about EVSE status change', {
+          emsp_url: emspUrl,
+          emsp_party_id: emspCredentials.party_id,
+          evse_uid: evseUid,
+          new_status: newStatus,
+          payload
+        });
 
-    // Enviar notificación PATCH
-    const response = await axios.patch(emspUrl, payload, {
-      headers: {
-        'Authorization': `Token ${emspCredentials.token}`,
-        'Content-Type': 'application/json',
-        'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
-      },
-      timeout: 10000
-    });
+        // Enviar notificación PATCH
+        const response = await axios.patch(emspUrl, payload, {
+          headers: {
+            'Authorization': `Token ${emspCredentials.token}`,
+            'Content-Type': 'application/json',
+            'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
+          },
+          timeout: 10000
+        });
 
-    logger.info('✅ EVSE status change notification sent successfully', {
-      emsp_url: emspUrl,
-      evse_uid: evseUid,
-      new_status: newStatus,
-      status_code: response.status
-    });
+        logger.info('✅ EVSE status change notification sent successfully', {
+          emsp_url: emspUrl,
+          emsp_party_id: emspCredentials.party_id,
+          evse_uid: evseUid,
+          new_status: newStatus,
+          status_code: response.status
+        });
+      } catch (emspError) {
+        logger.error('❌ Failed to notify specific EMSP about EVSE status change', {
+          emsp_party_id: emspCredentials.party_id,
+          evse_uid: evseUid,
+          new_status: newStatus,
+          error: emspError.message,
+          status_code: emspError.response?.status
+        });
+      }
+    }
 
   } catch (error) {
     logger.error('❌ Failed to notify EMSP about EVSE status change', {
@@ -549,15 +562,14 @@ async function notifyEMSPAboutSession(sessionId, evseUid, token, locationId) {
       return;
     }
 
-    // Obtener credenciales del EMSP
-    const emspCredentials = await Credentials.findOne({
-      where: {
-        party_id: 'EPK' // EMSP conectado
-      }
-    });
+    // Obtener credenciales del EMSP basándose en la información del token
+    const emspCredentials = await EMSPCredentialsHelper.getCredentialsByToken(token);
 
     if (!emspCredentials) {
-      logger.error('❌ EMSP credentials not found for session notification');
+      logger.error('❌ EMSP credentials not found for session notification', {
+        token_party_id: token.party_id,
+        token_country_code: token.country_code
+      });
       return;
     }
 
@@ -821,13 +833,14 @@ router.post('/STOP_SESSION', async (req, res) => {
  */
 async function notifyEMSPAboutSessionStop(session, evse) {
   try {
-    // Obtener credenciales del EMSP
-    const emspCredentials = await Credentials.findOne({
-      where: { party_id: 'EPK' }
-    });
+    // Obtener credenciales del EMSP basándose en la información de la sesión
+    const emspCredentials = await EMSPCredentialsHelper.getCredentialsBySession(session);
 
     if (!emspCredentials) {
-      logger.error('❌ EMSP credentials not found for session stop notification');
+      logger.error('❌ EMSP credentials not found for session stop notification', {
+        session_party_id: session.party_id,
+        session_country_code: session.country_code
+      });
       return;
     }
 

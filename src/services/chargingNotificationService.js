@@ -1,6 +1,7 @@
 const { Session, EVSE, Tariff, Credentials } = require('../models');
 const axios = require('axios');
 const logger = require('../utils/logger');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 
 class ChargingNotificationService {
   /**
@@ -189,13 +190,14 @@ class ChargingNotificationService {
    */
   async notifyEMSPAboutChargingUpdate(session, kwh, totalCost, tariffId) {
     try {
-      // Obtener credenciales del EMSP
-      const emspCredentials = await Credentials.findOne({
-        where: { party_id: 'EPK' }
-      });
+      // Obtener credenciales del EMSP basándose en la información de la sesión
+      const emspCredentials = await EMSPCredentialsHelper.getCredentialsBySession(session);
 
       if (!emspCredentials) {
-        logger.error('❌ EMSP credentials not found for charging update notification');
+        logger.error('❌ EMSP credentials not found for charging update notification', {
+          session_party_id: session.party_id,
+          session_country_code: session.country_code
+        });
         return;
       }
 

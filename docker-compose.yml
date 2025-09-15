@@ -3,6 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
+    user: "nodejs:nodejs"
     ports:
       - "${PORT}:${PORT}"
     env_file:

@@ -1,5 +1,5 @@
 const logger = require('../utils/logger');
-const { Token } = require('../models');
+const { Token, EmspToken } = require('../models');
 
 /**
  * Servicio de autorización en tiempo real para tokens OCPI
@@ -44,13 +44,47 @@ class AuthorizationService {
         };
       }
 
-      // Buscar el token en la base de datos
-      const token = await Token.findOne({
+      // Buscar el token en la base de datos - primero en tokens, luego en emsp_tokens
+      let token = await Token.findOne({
         where: {
           uid: tokenUid,
           valid: true
         }
       });
+
+      // Si no se encuentra en tokens, buscar en emsp_tokens
+      if (!token) {
+        const emspToken = await EmspToken.findOne({
+          where: {
+            token_uid: tokenUid,
+            valid: true
+          }
+        });
+
+        if (emspToken) {
+          // Mapear el token de emsp_tokens al formato esperado
+          token = {
+            uid: emspToken.token_uid,
+            country_code: emspToken.emsp_country_code,
+            party_id: emspToken.emsp_party_id,
+            type: emspToken.type,
+            auth_method: 'AUTH_REQUEST', // Valor por defecto para tokens eMSP
+            contract_id: emspToken.contract_id,
+            visual_number: emspToken.visual_number,
+            issuer: emspToken.issuer,
+            group_id: emspToken.group_id,
+            valid: emspToken.valid,
+            whitelist: emspToken.whitelist,
+            language: emspToken.language,
+            default_profile_type: emspToken.default_profile_type,
+            energy_contract: emspToken.energy_contract,
+            last_updated: emspToken.last_updated,
+            valid_until: null, // Los tokens eMSP no tienen expiración por defecto
+            location_id: null,
+            evse_uid: null
+          };
+        }
+      }
 
       if (!token) {
         logger.warn('⚠️ Authorization: Token not found or invalid', {
@@ -173,10 +207,18 @@ class AuthorizationService {
         evse_uid: evseUid
       });
 
-      // Actualizar último uso del token
-      await token.update({
-        last_used_at: new Date()
-      });
+      // Actualizar último uso del token (solo si es un objeto Sequelize)
+      if (token.update) {
+        await token.update({
+          last_used_at: new Date()
+        });
+      } else {
+        // Para tokens mapeados de emsp_tokens, actualizar directamente en la base de datos
+        await EmspToken.update(
+          { last_used_at: new Date() },
+          { where: { token_uid: tokenUid } }
+        );
+      }
 
       return {
         success: true,

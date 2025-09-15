@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Session, EVSE, Credentials, CDR } = require('../models');
 const logger = require('../utils/logger');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 const axios = require('axios');
 
 /**
@@ -166,53 +167,65 @@ async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
       return;
     }
 
-    // Obtener credenciales del EMSP
-    const emspCredentials = await Credentials.findOne({
-      where: {
-        party_id: 'EPK' // EMSP conectado
-      }
-    });
+    // Obtener todas las credenciales de eMSPs válidas
+    const emspCredentialsList = await EMSPCredentialsHelper.getAllValidCredentials();
 
-    if (!emspCredentials) {
-      logger.error('❌ EMSP credentials not found for EVSE status notification');
+    if (!emspCredentialsList || emspCredentialsList.length === 0) {
+      logger.error('❌ No valid EMSP credentials found for EVSE status notification');
       return;
     }
 
-    // Construir URL del endpoint del EMSP
-    const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+    // Notificar a todos los eMSPs conectados
     const partyId = process.env.OCPI_PARTY_ID || 'IPD';
     const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
-    const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evse.location_id}/${evseUid}`;
+    
+    for (const emspCredentials of emspCredentialsList) {
+      try {
+        // Construir URL del endpoint del EMSP
+        const baseUrl = emspCredentials.url.replace('/ocpi/versions', '');
+        const emspUrl = `${baseUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evse.location_id}/${evseUid}`;
 
-    // Preparar payload PATCH
-    const payload = {
-      status: newStatus,
-      last_updated: new Date().toISOString()
-    };
+        // Preparar payload PATCH
+        const payload = {
+          status: newStatus,
+          last_updated: new Date().toISOString()
+        };
 
-    logger.info('📤 Sending PATCH to EMSP about EVSE status change (session end)', {
-      emsp_url: emspUrl,
-      evse_uid: evseUid,
-      new_status: newStatus,
-      payload
-    });
+        logger.info('📤 Sending PATCH to EMSP about EVSE status change (session end)', {
+          emsp_url: emspUrl,
+          emsp_party_id: emspCredentials.party_id,
+          evse_uid: evseUid,
+          new_status: newStatus,
+          payload
+        });
 
-    // Enviar notificación PATCH
-    const response = await axios.patch(emspUrl, payload, {
-      headers: {
-        'Authorization': `Token ${emspCredentials.token}`,
-        'Content-Type': 'application/json',
-        'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
-      },
-      timeout: 10000
-    });
+        // Enviar notificación PATCH
+        const response = await axios.patch(emspUrl, payload, {
+          headers: {
+            'Authorization': `Token ${emspCredentials.token}`,
+            'Content-Type': 'application/json',
+            'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
+          },
+          timeout: 10000
+        });
 
-    logger.info('✅ EVSE status change notification sent successfully (session end)', {
-      emsp_url: emspUrl,
-      evse_uid: evseUid,
-      new_status: newStatus,
-      status_code: response.status
-    });
+        logger.info('✅ EVSE status change notification sent successfully (session end)', {
+          emsp_url: emspUrl,
+          emsp_party_id: emspCredentials.party_id,
+          evse_uid: evseUid,
+          new_status: newStatus,
+          status_code: response.status
+        });
+      } catch (emspError) {
+        logger.error('❌ Failed to notify specific EMSP about EVSE status change (session end)', {
+          emsp_party_id: emspCredentials.party_id,
+          evse_uid: evseUid,
+          new_status: newStatus,
+          error: emspError.message,
+          status_code: emspError.response?.status
+        });
+      }
+    }
 
   } catch (error) {
     logger.error('❌ Failed to notify EMSP about EVSE status change (session end)', {
@@ -229,15 +242,14 @@ async function notifyEMSPAboutEVSEStatusChange(evseUid, newStatus) {
  */
 async function notifyEMSPAboutSessionEnd(session) {
   try {
-    // Obtener credenciales del EMSP
-    const emspCredentials = await Credentials.findOne({
-      where: {
-        party_id: 'EPK' // EMSP conectado
-      }
-    });
+    // Obtener credenciales del EMSP basándose en la información de la sesión
+    const emspCredentials = await EMSPCredentialsHelper.getCredentialsBySession(session);
 
     if (!emspCredentials) {
-      logger.error('❌ EMSP credentials not found for session end notification');
+      logger.error('❌ EMSP credentials not found for session end notification', {
+        session_party_id: session.party_id,
+        session_country_code: session.country_code
+      });
       return;
     }
 
