@@ -295,6 +295,18 @@ if (refreshEmspTariffs) {
                 console.warn('⚠️ Elemento createLocationBtn no encontrado');
             }
 
+            // Event listener para filtro de búsqueda de Locations
+            const locationSearchFilter = document.getElementById('locationSearchFilter');
+            if (locationSearchFilter) {
+                locationSearchFilter.addEventListener('input', () => {
+                    console.log('🔍 Filtro de búsqueda Location cambiado:', locationSearchFilter.value);
+                    this.applyLocationFilters();
+                });
+                console.log('✅ Event listener para locationSearchFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento locationSearchFilter no encontrado');
+            }
+
 const refreshEmspTokens = document.getElementById('refreshEmspTokens');
 if (refreshEmspTokens) {
     refreshEmspTokens.addEventListener('click', () => {
@@ -671,6 +683,29 @@ if (filterActiveExtSessions) {
                 console.log('✅ Event listener para evsesNextPage agregado');
             } else {
                 console.warn('⚠️ Elemento evsesNextPage no encontrado');
+            }
+
+            // Event listeners para paginado de Locations
+            const locationsPrevPage = document.getElementById('locationsPrevPage');
+            if (locationsPrevPage) {
+                locationsPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Locations clickeado');
+                    this.goToLocationsPrevPage();
+                });
+                console.log('✅ Event listener para locationsPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento locationsPrevPage no encontrado');
+            }
+
+            const locationsNextPage = document.getElementById('locationsNextPage');
+            if (locationsNextPage) {
+                locationsNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Locations clickeado');
+                    this.goToLocationsNextPage();
+                });
+                console.log('✅ Event listener para locationsNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento locationsNextPage no encontrado');
             }
 
             // Tabs - Navegación manual (Bootstrap no funciona por CSP)
@@ -1718,30 +1753,47 @@ if (filterActiveExtSessions) {
         try {
             console.log('🔄 Cargando locations...');
             
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
-                headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+            // Cargar todas las locations haciendo múltiples peticiones
+            this.allLocations = [];
+            let offset = 0;
+            const limit = 1000;
+            let hasMore = true;
+            
+            while (hasMore) {
+                const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations?offset=${offset}&limit=${limit}`, {
+                    headers: { 
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    }
+                });
+                
+                console.log(`📡 Response status (offset ${offset}):`, response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Response error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
-            });
-            
-            console.log('📡 Response status:', response.status);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ Response error:', errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+                
+                const data = await response.json();
+                const locations = data.data || [];
+                
+                this.allLocations = this.allLocations.concat(locations);
+                
+                console.log(`📊 Cargadas ${locations.length} locations (total: ${this.allLocations.length})`);
+                
+                // Verificar si hay más datos
+                hasMore = locations.length === limit;
+                offset += limit;
             }
             
-            const data = await response.json();
-            console.log('📊 Locations data:', data);
+            // Configurar paginado
+            this.currentLocationsPage = 1;
+            this.locationsPerPage = 50;
             
-            // Almacenar locations para uso en tooltips
-            this.allLocations = data.data || [];
-            
-            this.renderLocations(this.allLocations);
+            this.renderLocationsPage();
             this.updateCount('locationsCount', this.allLocations.length);
             
-            console.log('✅ Locations cargadas exitosamente');
+            console.log(`✅ ${this.allLocations.length} locations cargadas exitosamente`);
             
         } catch (error) {
             console.error('❌ Error cargando locations:', error);
@@ -2184,33 +2236,47 @@ if (filterActiveExtSessions) {
         try {
             console.log('🔄 Cargando EVSEs...');
             
-            // Cargar todos los EVSEs para paginado
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?limit=1000`, {
-                headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+            // Cargar todos los EVSEs haciendo múltiples peticiones
+            this.allEvses = [];
+            let offset = 0;
+            const limit = 1000;
+            let hasMore = true;
+            
+            while (hasMore) {
+                const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?offset=${offset}&limit=${limit}`, {
+                    headers: { 
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    }
+                });
+                
+                console.log(`📡 EVSEs response status (offset ${offset}):`, response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ EVSEs response error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
-            });
-            
-            console.log('📡 EVSEs response status:', response.status);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ EVSEs response error:', errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+                
+                const data = await response.json();
+                const evses = data.data || [];
+                
+                this.allEvses = this.allEvses.concat(evses);
+                
+                console.log(`📊 Cargados ${evses.length} EVSEs (total: ${this.allEvses.length})`);
+                
+                // Verificar si hay más datos
+                hasMore = evses.length === limit;
+                offset += limit;
             }
             
-            const data = await response.json();
-            console.log('📊 EVSEs data:', data);
-            
-            // Almacenar todos los EVSEs y configurar paginado
-            this.allEvses = data.data || [];
+            // Configurar paginado
             this.currentEvsesPage = 1;
             this.evsesPerPage = 20;
             
             this.renderEvsesPage();
             this.updateCount('evsesCount', this.allEvses.length);
             
-            console.log('✅ EVSEs cargados exitosamente');
+            console.log(`✅ ${this.allEvses.length} EVSEs cargados exitosamente`);
             
         } catch (error) {
             console.error('❌ Error cargando EVSEs:', error);
@@ -2514,6 +2580,68 @@ if (filterActiveExtSessions) {
         if (this.currentEvsesPage < totalPages) {
             this.currentEvsesPage++;
             this.renderEvsesPage();
+        }
+    }
+
+    // ===== PAGINACIÓN DE LOCATIONS =====
+    
+    // Renderizar página específica de Locations
+    renderLocationsPage() {
+        if (!this.allLocations || this.allLocations.length === 0) {
+            this.renderLocations([]);
+            this.updateLocationsPaginationInfo(0, 0, 0);
+            return;
+        }
+
+        const startIndex = (this.currentLocationsPage - 1) * this.locationsPerPage;
+        const endIndex = startIndex + this.locationsPerPage;
+        const pageLocations = this.allLocations.slice(startIndex, endIndex);
+
+        this.renderLocations(pageLocations);
+        this.updateLocationsPaginationInfo(startIndex + 1, endIndex, this.allLocations.length);
+        this.updateLocationsPaginationButtons();
+    }
+
+    // Actualizar información de paginado de Locations
+    updateLocationsPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('locationsPageInfo');
+        const totalCount = document.getElementById('locationsTotalCount');
+        
+        if (pageInfo) pageInfo.textContent = `${start}-${Math.min(end, total)}`;
+        if (totalCount) totalCount.textContent = total;
+    }
+
+    // Actualizar botones de paginado de Locations
+    updateLocationsPaginationButtons() {
+        const prevButton = document.getElementById('locationsPrevPage');
+        const nextButton = document.getElementById('locationsNextPage');
+        
+        if (prevButton) {
+            prevButton.disabled = this.currentLocationsPage <= 1;
+            prevButton.parentElement.classList.toggle('disabled', this.currentLocationsPage <= 1);
+        }
+        
+        if (nextButton) {
+            const totalPages = Math.ceil(this.allLocations.length / this.locationsPerPage);
+            nextButton.disabled = this.currentLocationsPage >= totalPages;
+            nextButton.parentElement.classList.toggle('disabled', this.currentLocationsPage >= totalPages);
+        }
+    }
+
+    // Ir a página anterior de Locations
+    goToLocationsPrevPage() {
+        if (this.currentLocationsPage > 1) {
+            this.currentLocationsPage--;
+            this.renderLocationsPage();
+        }
+    }
+
+    // Ir a página siguiente de Locations
+    goToLocationsNextPage() {
+        const totalPages = Math.ceil(this.allLocations.length / this.locationsPerPage);
+        if (this.currentLocationsPage < totalPages) {
+            this.currentLocationsPage++;
+            this.renderLocationsPage();
         }
     }
 
@@ -6351,6 +6479,29 @@ if (filterActiveExtSessions) {
         });
 
         console.log(`🔍 Filtros EVSE aplicados: ${visibleCount} filas visibles`);
+    }
+
+    applyLocationFilters() {
+        const searchFilter = document.getElementById('locationSearchFilter')?.value || '';
+
+        const rows = document.querySelectorAll('#locationsTable tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.cells.length < 8) return; // Skip header rows
+
+            const searchText = row.textContent.toLowerCase();
+            const searchMatch = !searchFilter || searchText.includes(searchFilter.toLowerCase());
+
+            if (searchMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        console.log(`🔍 Filtros Location aplicados: ${visibleCount} filas visibles`);
     }
 
     // ===== FUNCIONES PARA CONSULTAR CPOs (ROL EMSP) =====

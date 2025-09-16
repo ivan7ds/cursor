@@ -7,6 +7,56 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [0.17.0] - 2025-09-16
+
+### Added
+- **Paginación de Locations**: Sistema de paginación completo para la pestaña Locations
+  - Paginación de 50 resultados por página
+  - Controles de navegación "Anterior" y "Siguiente"
+  - Información de paginación "Mostrando X-Y de Z Locations"
+  - Carga múltiple para obtener todos los datos respetando límite de 1000
+  - Event listeners para navegación entre páginas
+
+- **Campo de Búsqueda en Locations**: Funcionalidad de búsqueda en tiempo real
+  - Campo de búsqueda con placeholder descriptivo
+  - Búsqueda case-insensitive en todos los campos de la tabla
+  - Filtrado en tiempo real mientras se escribe
+  - Búsqueda global en ID, nombre, país, ciudad, dirección y EVSEs
+
+- **Carga Múltiple de Datos**: Sistema robusto para cargar todos los datos disponibles
+  - Algoritmo de carga múltiple con peticiones de 1000 en 1000
+  - Aplicado tanto a Locations como EVSEs
+  - Manejo de límites de API respetando máximo de 1000 por petición
+  - Logging de progreso durante la carga
+
+### Changed
+- **Límite de EVSEs**: Aumentado de 1000 a todos los resultados disponibles
+  - Ahora muestra los 10,016 EVSEs creados en lugar de solo 1000
+  - Contador actualizado para reflejar el total real
+  - Paginación mantenida en 20 resultados por página
+
+- **Carga de Locations**: Mejorada para manejar todas las 426 locations
+  - Carga completa sin limitaciones de paginación del backend
+  - Paginación frontend de 50 resultados por página
+  - Contador preciso del total de locations
+
+### Fixed
+- **Error HTTP 400 en Locations**: Corregido límite excedido en peticiones
+  - Resuelto error "Invalid limit parameter. Must be between 1 and 1000"
+  - Implementada carga múltiple para respetar límites del backend
+  - Manejo robusto de errores durante la carga
+
+- **Contadores Incorrectos**: Corregidos contadores que mostraban límites en lugar de totales reales
+  - Locations: Ahora muestra 426 en lugar de 1000
+  - EVSEs: Ahora muestra 10,016 en lugar de 1000
+  - Información de paginación actualizada correctamente
+
+### Technical Details
+- **HTML**: Agregado campo de búsqueda en pestaña Locations
+- **JavaScript**: Implementadas funciones de paginación y filtrado para Locations
+- **Algoritmo de Carga**: Sistema while loop con offset/limit para cargar todos los datos
+- **Event Listeners**: Configurados para búsqueda en tiempo real y navegación de páginas
+
 ## [0.16.0] - 2025-09-15
 
 ### Added

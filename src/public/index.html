@@ -16,7 +16,7 @@
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="sparkle.png" alt="Sparkle Chibi" width="50" height="50" class="me-2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); object-fit: contain;">
-                <span class="fw-bold">OCPI Test Application <small class="text-muted">v0.16.0</small></span>
+                <span class="fw-bold">OCPI Test Application <small class="text-muted">v0.17.0</small></span>
             </a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text">
@@ -206,6 +206,13 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <!-- Filtros de búsqueda -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="locationSearchFilter" placeholder="Buscar location por nombre, ciudad, país...">
+                            </div>
+                        </div>
+                        
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="locationsTable">
                                 <thead>
@@ -222,12 +229,33 @@
                                 </thead>
                                 <tbody id="locationsTableBody">
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">
+                                        <td colspan="8" class="text-center text-muted">
                                             <i class="bi bi-hourglass-split"></i> Cargando locations...
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="locationsPageInfo">0-0</span> de <span id="locationsTotalCount">0</span> Locations
+                            </div>
+                            <nav aria-label="Navegación de páginas de Locations">
+                                <ul class="pagination pagination-sm mb-0" id="locationsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="locationsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="locationsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
