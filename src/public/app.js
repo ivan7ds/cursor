@@ -8567,6 +8567,25 @@ ${JSON.stringify(data, null, 2)}`;
                     testLocationEvseErrorCount.textContent = services.testLocationEVSECreationService.errorCount;
                 }
                 
+                // Actualizar estado de Test Session Service
+                const testSessionStatus = document.getElementById('test-session-service-status');
+                const testSessionLastRun = document.getElementById('test-session-last-run');
+                const testSessionErrorCount = document.getElementById('test-session-error-count');
+                
+                if (testSessionStatus) {
+                    testSessionStatus.textContent = services.testSessionService.status === 'active' ? 'Activo' : 'Inactivo';
+                    testSessionStatus.className = services.testSessionService.status === 'active' ? 'badge bg-warning' : 'badge bg-danger';
+                }
+                
+                if (testSessionLastRun) {
+                    testSessionLastRun.textContent = services.testSessionService.lastRun ? 
+                        new Date(services.testSessionService.lastRun).toLocaleString() : '-';
+                }
+                
+                if (testSessionErrorCount) {
+                    testSessionErrorCount.textContent = services.testSessionService.errorCount;
+                }
+                
                 // Actualizar estadísticas de pruebas
                 this.updateTestStatistics(testStatistics);
                 

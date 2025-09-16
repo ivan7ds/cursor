@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [1.0.0] - 2025-09-16
+
+### Added
+- **Test Session Service**: Nuevo servicio de pruebas de sesión de carga
+  - Ejecución periódica configurable (por defecto 1 minuto)
+  - Duración de sesión configurable (por defecto 30 segundos)
+  - Obtención de EVSEs desde la base de datos (tabla `emsp_evses`)
+  - Pruebas con tokens válidos e inválidos
+  - Comunicación con operadores externos via OCPI commands
+  - Monitoreo en tiempo real en la pestaña "Test"
+  - Integración completa con el sistema de logging y errores
+
+### Changed
+- **Configuración de Tiempos**: Variables de entorno para Test Session Service
+  - `TEST_SESSION_INTERVAL_MS`: Intervalo de ejecución (60000ms = 1 minuto)
+  - `TEST_SESSION_DURATION_MS`: Duración de sesión (30000ms = 30 segundos)
+
+### Technical
+- **Flujo de Pruebas**: Modificado para usar EVSEs de base de datos local
+- **Consulta SQL**: Optimizada para buscar EVSEs con `REMOTE_START_STOP_CAPABLE`
+- **Integración**: Completa con sistema de monitoreo y logging existente
+
 ## [0.17.0] - 2025-09-16
 
 ### Added
