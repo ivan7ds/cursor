@@ -7,6 +7,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+### Added
+- **Endpoint POST /ocpi/emsp/2.2/cdrs**: Implementado endpoint para recibir CDRs de EMSPs
+  - Permite recibir y almacenar CDRs enviados por EMSPs externos
+  - Mapea correctamente los campos del payload OCPI a la tabla `emsp_cdrs`
+  - Incluye validación de campos obligatorios (country_code, party_id, id, session_id)
+  - Soporta inserción y actualización de CDRs existentes
+  - Logging detallado para seguimiento de CDRs recibidos
+  - Respuesta OCPI estándar con status_code 1000 para éxito
+
 ## [1.0.1] - 2025-09-16
 
 ### Fixed
