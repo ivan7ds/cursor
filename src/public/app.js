@@ -353,6 +353,17 @@ if (filterActiveExtSessions) {
                 console.warn('⚠️ Elemento getCpoVersions no encontrado');
             }
 
+            const getCpoDetails = document.getElementById('getCpoDetails');
+            if (getCpoDetails) {
+                getCpoDetails.addEventListener('click', () => {
+                    console.log('🌐 Botón getCpoDetails clickeado');
+                    this.getCpoDetails();
+                });
+                console.log('✅ Event listener para getCpoDetails agregado');
+            } else {
+                console.warn('⚠️ Elemento getCpoDetails no encontrado');
+            }
+
             const getCpoLocations = document.getElementById('getCpoLocations');
             if (getCpoLocations) {
                 getCpoLocations.addEventListener('click', () => {
@@ -6094,6 +6105,138 @@ if (filterActiveExtSessions) {
         }
     }
 
+    async viewTariff(tariffId) {
+        try {
+            console.log(`👁️ Viendo detalles de tarifa ${tariffId}...`);
+            
+            // Obtener detalles de la tarifa
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs/${tariffId}`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            const tariff = result.data;
+            
+            // Crear modal para mostrar detalles
+            const modalHtml = `
+                <div class="modal fade" id="viewTariffModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-eye"></i> Detalles de la Tarifa
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Información Básica</h6>
+                                        <table class="table table-sm">
+                                            <tr><td><strong>ID:</strong></td><td><code>${tariff.id}</code></td></tr>
+                                            <tr><td><strong>CPO:</strong></td><td><span class="badge bg-primary">${tariff.party_id}</span> <span class="badge bg-secondary">${tariff.country_code}</span></td></tr>
+                                            <tr><td><strong>Tipo:</strong></td><td><span class="badge bg-info">${tariff.type || 'N/A'}</span></td></tr>
+                                            <tr><td><strong>Moneda:</strong></td><td><span class="badge bg-success">${tariff.currency || 'N/A'}</span></td></tr>
+                                            <tr><td><strong>Válido Desde:</strong></td><td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleString() : 'N/A'}</td></tr>
+                                            <tr><td><strong>Válido Hasta:</strong></td><td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleString() : 'N/A'}</td></tr>
+                                            <tr><td><strong>Última Actualización:</strong></td><td>${new Date(tariff.last_updated).toLocaleString()}</td></tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Elementos de Precio</h6>
+                                        ${tariff.elements && tariff.elements.length > 0 ? 
+                                            `<div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Tipo</th>
+                                                            <th>Precio</th>
+                                                            <th>IVA</th>
+                                                            <th>Paso</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${tariff.elements.map(el => 
+                                                            el.price_components ? el.price_components.map(pc => `
+                                                                <tr>
+                                                                    <td><span class="badge bg-warning">${pc.type}</span></td>
+                                                                    <td>${pc.price}</td>
+                                                                    <td>${pc.vat || 0}%</td>
+                                                                    <td>${pc.step_size || 1}</td>
+                                                                </tr>
+                                                            `).join('') : ''
+                                                        ).join('')}
+                                                    </tbody>
+                                                </table>
+                                            </div>` : 
+                                            '<p class="text-muted">No hay elementos de precio</p>'
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remover modal existente si hay uno
+            const existingModal = document.getElementById('viewTariffModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Agregar modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('viewTariffModal'));
+            modal.show();
+            
+        } catch (error) {
+            console.error('❌ Error viendo tarifa:', error);
+            this.showNotification(`Error al ver tarifa: ${error.message}`, 'error');
+        }
+    }
+
+    async editTariff(tariffId) {
+        try {
+            console.log(`✏️ Editando tarifa ${tariffId}...`);
+            
+            // Obtener detalles de la tarifa
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs/${tariffId}`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            const tariff = result.data;
+            
+            // Mostrar notificación de que la edición no está implementada
+            this.showNotification('La funcionalidad de edición de tarifas no está implementada aún', 'info');
+            
+            // TODO: Implementar modal de edición de tarifas
+            console.log('Tarifa a editar:', tariff);
+            
+        } catch (error) {
+            console.error('❌ Error editando tarifa:', error);
+            this.showNotification(`Error al editar tarifa: ${error.message}`, 'error');
+        }
+    }
+
     validateTariffForm() {
         try {
             const form = document.getElementById('createTariffForm');
@@ -6605,6 +6748,46 @@ if (filterActiveExtSessions) {
             
         } catch (error) {
             console.error('❌ Error consultando CPO:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    // Obtener details del CPO
+    async getCpoDetails() {
+        try {
+            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
+            const cpoToken = document.getElementById('cpoTokenExtActions').value;
+            const cpoVersion = document.getElementById('cpoVersion').value;
+
+            if (!cpoUrl || !cpoToken) {
+                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
+                return;
+            }
+
+            console.log('🌐 Consultando details del CPO:', cpoUrl);
+            
+            // Crear headers con soporte para ngrok
+            const headers = this.createCpoHeaders(cpoToken);
+            if (this.isNgrokUrl(cpoUrl)) {
+                headers['ngrok-skip-browser-warning'] = 'true';
+            }
+
+            const response = await fetch(`${cpoUrl}/ocpi/2.2/details`, {
+                headers: headers
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
+            
+            console.log('✅ Details del CPO obtenidos exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error consultando CPO details:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
@@ -7577,7 +7760,11 @@ if (filterActiveExtSessions) {
                 return; // Solo consultar si hay una sesión activa
             }
 
-            const response = await fetch(`${this.baseUrl}/api/charging-logs?sessionId=${this.currentChargingSession.sessionId}&limit=10`);
+            const response = await fetch(`${this.baseUrl}/api/charging-logs?sessionId=${this.currentChargingSession.sessionId}&limit=10`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
             if (!response.ok) return;
 
             const data = await response.json();
@@ -8443,7 +8630,11 @@ ${JSON.stringify(data, null, 2)}`;
         try {
             console.log('📊 Obteniendo estado de servicios desde el backend...');
             
-            const response = await fetch('/api/test-monitoring/status');
+            const response = await fetch('/api/test-monitoring/status', {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -8653,7 +8844,11 @@ ${JSON.stringify(data, null, 2)}`;
         try {
             console.log('📋 Obteniendo errores desde el backend...');
             
-            const response = await fetch('/api/test-monitoring/errors');
+            const response = await fetch('/api/test-monitoring/errors', {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -8703,7 +8898,10 @@ ${JSON.stringify(data, null, 2)}`;
             console.log('🧹 Limpiando errores de la pestaña Test...');
             
             const response = await fetch('/api/test-monitoring/errors', {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
             });
             
             if (!response.ok) {
@@ -8754,7 +8952,8 @@ ${JSON.stringify(data, null, 2)}`;
             const response = await fetch('/api/test-monitoring/toggle-jobs', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -8819,7 +9018,8 @@ ${JSON.stringify(data, null, 2)}`;
             const response = await fetch('/api/test-monitoring/run-sample-tests', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -8882,7 +9082,11 @@ ${JSON.stringify(data, null, 2)}`;
         try {
             console.log('📋 Cargando historial de pruebas...');
             
-            const response = await fetch('/api/test-monitoring/test-history?limit=20');
+            const response = await fetch('/api/test-monitoring/test-history?limit=20', {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -8935,9 +9139,13 @@ ${JSON.stringify(data, null, 2)}`;
      */
     async loadTariffs() {
         try {
-            console.log('💰 Cargando tarifas sincronizadas...');
+            console.log('💰 Cargando tarifas del CPO...');
             
-            const response = await fetch('/api/emsp/tariffs');
+            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -8971,7 +9179,7 @@ ${JSON.stringify(data, null, 2)}`;
             }
             
             if (!tariffs || tariffs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay tarifas sincronizadas</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted">No hay tarifas del CPO</td></tr>';
                 return;
             }
             
@@ -8979,17 +9187,28 @@ ${JSON.stringify(data, null, 2)}`;
             const sortedTariffs = tariffs.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
             
             tbody.innerHTML = sortedTariffs.map(tariff => {
-                const elements = tariff.elements ? JSON.parse(tariff.elements) : [];
+                const elements = tariff.elements ? (Array.isArray(tariff.elements) ? tariff.elements : JSON.parse(tariff.elements)) : [];
                 const elementsText = elements.length > 0 ? `${elements.length} elemento(s)` : 'Sin elementos';
+                
+                // Calcular precio mínimo y máximo de los elementos
+                let minPrice = 'N/A';
+                let maxPrice = 'N/A';
+                if (elements.length > 0) {
+                    const prices = elements.flatMap(el => 
+                        el.price_components ? el.price_components.map(pc => pc.price || 0) : []
+                    ).filter(price => price > 0);
+                    if (prices.length > 0) {
+                        minPrice = Math.min(...prices).toFixed(2);
+                        maxPrice = Math.max(...prices).toFixed(2);
+                    }
+                }
                 
                 return `
                     <tr>
+                        <td><code>${tariff.id}</code></td>
                         <td>
-                            <span class="badge bg-primary">${tariff.emsp_party_id}</span>
-                            <small class="text-muted d-block">${tariff.emsp_country_code}</small>
-                        </td>
-                        <td>
-                            <code>${tariff.tariff_id}</code>
+                            <span class="badge bg-primary">${tariff.party_id || 'IPD'}</span>
+                            <small class="text-muted d-block">${tariff.country_code || 'ES'}</small>
                         </td>
                         <td>
                             <span class="badge bg-info">${tariff.type || 'N/A'}</span>
@@ -9001,7 +9220,32 @@ ${JSON.stringify(data, null, 2)}`;
                             <small>${elementsText}</small>
                         </td>
                         <td>
+                            <small class="text-muted">${minPrice}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">${maxPrice}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</small>
+                        </td>
+                        <td>
                             <small class="text-muted">${new Date(tariff.last_updated).toLocaleString()}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.dashboardApp.viewTariff('${tariff.id}')" title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="window.dashboardApp.editTariff('${tariff.id}')" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.dashboardApp.deleteTariff('${tariff.id}')" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;

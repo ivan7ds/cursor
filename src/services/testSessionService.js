@@ -221,9 +221,15 @@ class TestSessionService {
 
             // Crear un token inválido
             const invalidToken = {
+                country_code: 'ES',
+                party_id: 'IPD',
                 uid: 'INVALID_TOKEN_' + Date.now(),
-                type: 'RFID',
-                contract_id: 'INVALID_CONTRACT'
+                type: 'APP_USER',
+                contract_id: 'INVALID_CONTRACT',
+                issuer: 'IPD',
+                valid: false,
+                whitelist: 'NEVER',
+                last_updated: new Date().toISOString()
             };
 
             // Intentar iniciar sesión
@@ -260,17 +266,23 @@ class TestSessionService {
             const payload = {
                 response_url: responseUrl,
                 token: {
+                    country_code: token.country_code || 'ES',
+                    party_id: token.party_id || 'IPD',
                     uid: token.uid,
                     type: token.type,
-                    contract_id: token.contract_id || 'DEFAULT_CONTRACT'
+                    contract_id: token.contract_id || 'DEFAULT_CONTRACT',
+                    issuer: token.issuer || 'IPD',
+                    valid: token.valid || true,
+                    whitelist: token.whitelist || 'ALWAYS',
+                    last_updated: token.last_updated || new Date().toISOString()
                 },
-                location_id: evse.location_id || 'LOCATION_ID', // Usar location_id del EVSE o un valor por defecto
+                location_id: evse.location_id || 'LOCATION_ID',
                 evse_uid: evse.uid
             };
 
             logger.info(`📤 Sending START_SESSION to ${operator.party_id} for EVSE ${evse.uid}`);
 
-            const response = await axios.post(`${operator.url}/ocpi/commands/START_SESSION`, payload, {
+            const response = await axios.post(`${operator.url}/ocpi/cpo/2.2/commands/START_SESSION`, payload, {
                 headers: {
                     'Authorization': `Token ${operator.token}`,
                     'Content-Type': 'application/json'
@@ -320,7 +332,7 @@ class TestSessionService {
                 session_id: sessionId
             };
 
-            const response = await axios.post(`${operator.url}/ocpi/commands/STOP_SESSION`, payload, {
+            const response = await axios.post(`${operator.url}/ocpi/cpo/2.2/commands/STOP_SESSION`, payload, {
                 headers: {
                     'Authorization': `Token ${operator.token}`,
                     'Content-Type': 'application/json'

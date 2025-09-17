@@ -7,6 +7,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-09-16
+
+### Fixed
+- **Pestaña Tariffs**: Corregido error 401 de autenticación
+  - Agregado header de autorización a todas las funciones de test-monitoring
+  - Corregido endpoint de carga de tarifas del CPO (`/ocpi/cpo/2.2/tariffs`)
+  - Actualizada visualización de datos para coincidir con estructura de tabla (11 columnas)
+  - Restaurada columna de acciones con botones funcionales
+  - Implementada función `viewTariff()` para mostrar detalles completos de tarifas
+  - Agregada función `editTariff()` (placeholder para implementación futura)
+  - Corregidas referencias de `app.` a `window.dashboardApp` en botones de acción
+
+### Changed
+- **Frontend**: Mejorada consistencia en autenticación de API interna
+  - Todas las funciones que usan endpoints `/api/` ahora incluyen token de autorización
+  - Funciones afectadas: `updateServiceStatus()`, `loadErrorLog()`, `clearTestErrors()`, `toggleJobsStatus()`, `runSampleTests()`, `loadTestHistory()`, `loadChargingLogs()`
+
+### Technical Details
+- **Autenticación**: Patrón `Authorization: Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}` aplicado consistentemente
+- **Endpoints**: Uso correcto de endpoints OCPI vs API interna
+- **UI/UX**: Botones de acción con iconos Bootstrap y tooltips informativos
+- **Modal de Detalles**: Visualización completa de información de tarifas con elementos de precio
+
 ## [1.0.0] - 2025-09-16
 
 ### Added
