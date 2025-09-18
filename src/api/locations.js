@@ -113,22 +113,13 @@ router.get('/', async (req, res) => {
       logger.info(`Location ${index + 1}: ${location.id} has ${location.evseList ? location.evseList.length : 0} EVSEs`);
     });
 
-    // Set OCPI 2.2 pagination headers
-    res.set({
-      'X-Total-Count': totalCount.toString(),
-      'X-Limit': limitInt.toString(),
-      'X-Offset': offsetInt.toString()
-    });
-
     // Calculate pagination info
-    const totalPages = Math.ceil(totalCount / limitInt);
-    const currentPage = Math.floor(offsetInt / limitInt) + 1;
     const hasNextPage = (offsetInt + limitInt) < totalCount;
     const hasPrevPage = offsetInt > 0;
     
     // Debug pagination calculations
     logger.info(`Pagination debug: total=${totalCount}, limit=${limitInt}, offset=${offsetInt}`);
-    logger.info(`Calculated: totalPages=${totalPages}, currentPage=${currentPage}, hasNext=${hasNextPage}, hasPrev=${hasPrevPage}`);
+    logger.info(`Calculated: hasNext=${hasNextPage}, hasPrev=${hasPrevPage}`);
 
     // Clean and map data for OCPI 2.2 compliance
     const cleanedLocations = locations.map(location => {
@@ -277,21 +268,30 @@ router.get('/', async (req, res) => {
     logger.info(`Response structure: cleanedLocations type=${typeof cleanedLocations}, length=${cleanedLocations ? cleanedLocations.length : 'undefined'}`);
     logger.info(`First location sample:`, JSON.stringify(cleanedLocations[0], null, 2));
     
+    // Set OCPI 2.2 pagination headers
+    const headers = {
+      'X-Total-Count': totalCount.toString(),
+      'X-Limit': limitInt.toString()
+    };
+    
+    // Add Link header for next page if there is one
+    if (hasNextPage) {
+      const nextOffset = offsetInt + limitInt;
+      const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
+      const queryParams = new URLSearchParams(req.query);
+      queryParams.set('offset', nextOffset.toString());
+      queryParams.set('limit', limitInt.toString());
+      
+      const nextPageUrl = `${baseUrl}?${queryParams.toString()}`;
+      headers['Link'] = `<${nextPageUrl}>; rel="next"`;
+    }
+    
+    res.set(headers);
+    
     res.status(200).json({
       status_code: 1000,
       data: cleanedLocations,
-      timestamp: new Date().toISOString(),
-      pagination: {
-        total: totalCount,
-        offset: offsetInt,
-        limit: limitInt,
-        total_pages: totalPages,
-        current_page: currentPage,
-        has_next: hasNextPage,
-        has_previous: hasPrevPage,
-        next_offset: hasNextPage ? offsetInt + limitInt : null,
-        previous_offset: hasPrevPage ? Math.max(0, offsetInt - limitInt) : null
-      }
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     logger.error('Error getting locations:', error);

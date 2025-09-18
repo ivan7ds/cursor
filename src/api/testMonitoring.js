@@ -429,6 +429,67 @@ function logJobExecution(service, message = 'Job executed successfully') {
 }
 
 /**
+ * POST /api/test-monitoring/toggle-evse-service
+ * Activa o desactiva el EVSE Notification Service individualmente
+ */
+router.post('/toggle-evse-service', async (req, res) => {
+    try {
+        logger.info('🔧 Toggle EVSE Notification Service request received');
+        
+        // Importar el servicio
+        const evseNotificationService = require('../services/evseNotificationService');
+        
+        // Verificar el estado actual
+        const currentStatus = evseNotificationService.getStatus();
+        const evseServiceActive = currentStatus.isRunning;
+        
+        if (evseServiceActive) {
+            // Pausar el EVSE Notification Service
+            logger.info('⏸️ Pausando EVSE Notification Service...');
+            evseNotificationService.stop();
+            
+            // Actualizar estado en serviceStatus
+            serviceStatus.evseNotificationService.status = 'paused';
+            
+            logger.info('✅ EVSE Notification Service pausado');
+            
+            res.json({
+                success: true,
+                data: {
+                    evseServiceActive: false,
+                    message: 'EVSE Notification Service pausado'
+                }
+            });
+        } else {
+            // Activar el EVSE Notification Service
+            logger.info('▶️ Activando EVSE Notification Service...');
+            evseNotificationService.start();
+            
+            // Actualizar estado en serviceStatus
+            serviceStatus.evseNotificationService.status = 'active';
+            
+            logger.info('✅ EVSE Notification Service activado');
+            
+            res.json({
+                success: true,
+                data: {
+                    evseServiceActive: true,
+                    message: 'EVSE Notification Service activado'
+                }
+            });
+        }
+        
+    } catch (error) {
+        logger.error('❌ Error toggling EVSE service:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            message: error.message
+        });
+    }
+});
+
+/**
  * POST /api/test-monitoring/toggle-jobs
  * Activa o desactiva todos los jobs
  */

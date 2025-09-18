@@ -1,6 +1,6 @@
 {
   "name": "cpo-ocpi-2.2",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "CPO application implementing OCPI 2.2 protocol for managing 10,000 chargers across Spain and Portugal",
   "main": "src/server.js",
   "scripts": {

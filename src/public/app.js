@@ -8553,6 +8553,18 @@ ${JSON.stringify(data, null, 2)}`;
                 console.warn('⚠️ Elemento toggleJobsStatus no encontrado');
             }
             
+            // Botón de activar/desactivar EVSE Notification Service individualmente
+            const toggleEvseService = document.getElementById('toggleEvseService');
+            if (toggleEvseService) {
+                toggleEvseService.addEventListener('click', () => {
+                    console.log('🔧 Botón toggleEvseService clickeado');
+                    this.toggleEvseService();
+                });
+                console.log('✅ Event listener para toggleEvseService agregado');
+            } else {
+                console.warn('⚠️ Elemento toggleEvseService no encontrado');
+            }
+            
             // Botón de ejecutar pruebas de ejemplo
             const runSampleTests = document.getElementById('runSampleTests');
             if (runSampleTests) {
@@ -8721,8 +8733,8 @@ ${JSON.stringify(data, null, 2)}`;
                 const evseErrorCount = document.getElementById('evse-error-count');
                 
                 if (evseStatus) {
-                    evseStatus.textContent = services.evseNotificationService.status === 'active' ? 'Activo' : 'Inactivo';
-                    evseStatus.className = services.evseNotificationService.status === 'active' ? 'badge bg-success' : 'badge bg-danger';
+                    evseStatus.textContent = services.evseNotificationService.status === 'active' ? 'Activo' : 'Pausado';
+                    evseStatus.className = services.evseNotificationService.status === 'active' ? 'badge bg-success' : 'badge bg-warning';
                 }
                 
                 if (evseLastRun) {
@@ -8733,6 +8745,9 @@ ${JSON.stringify(data, null, 2)}`;
                 if (evseErrorCount) {
                     evseErrorCount.textContent = services.evseNotificationService.errorCount;
                 }
+                
+                // Actualizar botón individual del EVSE Service
+                this.updateEvseServiceToggleButton(services.evseNotificationService.status === 'active');
                 
                 // Actualizar estado de Charging Notification Service
                 const chargingStatus = document.getElementById('charging-service-status');
@@ -9075,6 +9090,90 @@ ${JSON.stringify(data, null, 2)}`;
                 toggleButton.className = 'btn btn-outline-success btn-sm';
                 toggleIcon.className = 'bi bi-play-circle';
                 toggleText.textContent = 'Activar Jobs';
+            }
+        }
+    }
+    
+    /**
+     * Activa o desactiva el EVSE Notification Service individualmente
+     */
+    async toggleEvseService() {
+        try {
+            console.log('🔧 Cambiando estado del EVSE Notification Service...');
+            
+            const response = await fetch('/api/test-monitoring/toggle-evse-service', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Actualizar el botón según el nuevo estado
+                this.updateEvseServiceToggleButton(result.data.evseServiceActive);
+                
+                // Actualizar el estado en la interfaz
+                this.updateEvseServiceStatus(result.data.evseServiceActive);
+                
+                // Mostrar mensaje de éxito
+                this.showNotification(
+                    result.data.evseServiceActive ? 'EVSE Notification Service activado' : 'EVSE Notification Service desactivado',
+                    'success'
+                );
+                
+                console.log('✅ Estado del EVSE Notification Service actualizado');
+            } else {
+                throw new Error(result.message || 'Error desconocido');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error toggling EVSE service:', error);
+            this.showNotification(`Error: ${error.message}`, 'error');
+        }
+    }
+    
+    /**
+     * Actualiza el botón de toggle del EVSE Service según el estado actual
+     */
+    updateEvseServiceToggleButton(evseServiceActive) {
+        const toggleButton = document.getElementById('toggleEvseService');
+        const toggleIcon = document.getElementById('toggleEvseIcon');
+        const toggleText = document.getElementById('toggleEvseText');
+        
+        if (toggleButton && toggleIcon && toggleText) {
+            if (evseServiceActive) {
+                // EVSE Service está activo, mostrar opción de pausar
+                toggleButton.className = 'btn btn-outline-warning btn-sm';
+                toggleIcon.className = 'bi bi-pause-circle';
+                toggleText.textContent = 'Pausar';
+            } else {
+                // EVSE Service está pausado, mostrar opción de activar
+                toggleButton.className = 'btn btn-outline-success btn-sm';
+                toggleIcon.className = 'bi bi-play-circle';
+                toggleText.textContent = 'Activar';
+            }
+        }
+    }
+    
+    /**
+     * Actualiza el estado visual del EVSE Service en la interfaz
+     */
+    updateEvseServiceStatus(evseServiceActive) {
+        const statusElement = document.getElementById('evse-service-status');
+        if (statusElement) {
+            if (evseServiceActive) {
+                statusElement.textContent = 'Activo';
+                statusElement.className = 'badge bg-success';
+            } else {
+                statusElement.textContent = 'Pausado';
+                statusElement.className = 'badge bg-warning';
             }
         }
     }

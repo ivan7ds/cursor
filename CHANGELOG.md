@@ -5,7 +5,56 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-01-16
+
+### Added
+- **Control individual de EVSE Notification Service**: Agregado botón individual para activar/desactivar el EVSE Notification Service
+  - Botón individual en la pestaña Test para control granular del servicio
+  - Endpoint `/api/test-monitoring/toggle-evse-service` para manejo individual
+  - Estado visual actualizado en tiempo real (Activo/Pausado)
+  - Funcionalidad independiente del control general de jobs
+  - Interfaz mejorada con botones de acción específicos por servicio
+
 ## [1.1.1] - 2025-09-18
+
+### Added
+- **Backup de base de datos**: Creado backup completo de la base de datos PostgreSQL
+  - Archivo: `database_backup_20250918_165623.sql`
+  - Tamaño: ~4.9 MB
+  - Ubicación: `backups/`
+  - Incluye todos los datos y estructura de la base de datos `cpo_ocpi`
+
+### Fixed
+- **Tipo de datos en connectors**: Corregido el tipo de datos del campo `id` en la columna `connectors` de la tabla `evses`
+  - Convertidos todos los valores numéricos del campo `id` a strings
+  - Migración ejecutada: `migrate_connectors_id_to_string.sql`
+  - Total de registros procesados: 10,017 EVSEs
+  - Verificación: 0 registros con `id` numérico restantes
+
+- **Longitud de coordenadas**: Acortadas las coordenadas en la tabla `locations` para cumplir con los límites OCPI
+  - Latitude: máximo 10 caracteres (antes: hasta 18 caracteres)
+  - Longitude: máximo 11 caracteres (antes: hasta 19 caracteres)
+  - Migración ejecutada: `migrate_coordinates_length.sql`
+  - Total de ubicaciones procesadas: 427 locations
+  - Coordenadas acortadas: 400 locations con coordenadas excesivamente largas
+  - Verificación: 0 ubicaciones con coordenadas que excedan los límites
+  - Precisión mantenida: 6 decimales máximo para mantener precisión geográfica
+
+- **Valores de standard en connectors**: Corregidos los valores del campo `standard` en la columna `connectors` de la tabla `evses`
+  - Valores corregidos: `IEC_62196_T3` → `IEC_62196_T3A`, `OTHER` → `DOMESTIC_A`, `IEC_60309` → `IEC_60309_2_three_32`, `IEC_61851` → `IEC_62196_T2`
+  - Migración ejecutada: `migrate_connectors_standard_values.sql`
+  - Total de EVSEs procesados: 10,017
+  - Valores inválidos corregidos: 1,744 connectors
+  - Verificación: 0 connectors con valores de standard inválidos
+  - Cumplimiento: 100% con estándar OCPI para valores de standard
+
+- **Paginación en endpoint GET /locations**: Corregida la implementación de paginación para cumplir con el estándar OCPI
+  - Eliminada información de paginación del cuerpo de la respuesta JSON
+  - Movida información de paginación a las cabeceras HTTP según OCPI 2.2
+  - Cabeceras implementadas: `X-Total-Count`, `X-Limit`, `Link` (para página siguiente)
+  - Eliminada cabecera `X-Offset` no estándar
+  - Respuesta JSON simplificada: solo `status_code`, `data`, `timestamp`
+  - Cumplimiento: 100% con estándar OCPI para paginación
 
 ### Fixed
 - **Filtro de duplicados en logs**: Deshabilitado temporalmente para permitir visualización de logs de carga
