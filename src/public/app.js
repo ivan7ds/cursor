@@ -2953,7 +2953,7 @@ if (filterActiveExtSessions) {
             
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-muted py-4">
+                    <td colspan="10" class="text-center text-muted py-4">
                         <i class="bi bi-lightning-charge fs-1 d-block mb-2"></i>
                         ${message}
                         ${showOnlyActive && this.allSessions.length > 0 ? 
@@ -2979,6 +2979,7 @@ if (filterActiveExtSessions) {
                 <td>${session.start_date_time ? new Date(session.start_date_time).toLocaleString() : 'N/A'}</td>
                 <td>${session.end_date_time ? new Date(session.end_date_time).toLocaleString() : 'En curso'}</td>
                 <td>${session.kwh ? parseFloat(session.kwh).toFixed(2) : '0.00'}</td>
+                <td>${session.total_cost ? `€${parseFloat(session.total_cost).toFixed(2)}` : 'N/A'}</td>
                 <td><code>${session.country_code}*${session.party_id}</code></td>
                 <td>
                     <div class="btn-group" role="group">

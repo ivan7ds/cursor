@@ -28,6 +28,7 @@ router.get('/', async (req, res) => {
       start_date_time: session.start_datetime,
       end_date_time: session.end_datetime,
       kwh: session.kwh || 0,
+      total_cost: session.total_cost, // Añadir campo total_cost
       country_code: session.country_code,
       party_id: session.party_id
     }));

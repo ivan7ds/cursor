@@ -124,13 +124,7 @@ logger.debug = (message, meta) => {
   return originalDebug.call(logger, message, meta);
 };
 
-// Add some test logs to verify the system is working
-setTimeout(() => {
-  logger.info('Sistema de logs en tiempo real iniciado correctamente');
-  logger.info('Test de logs en tiempo real - mensaje 1');
-  logger.warn('Test de logs en tiempo real - advertencia');
-  logger.error('Test de logs en tiempo real - error de prueba');
-}, 2000);
+// Sistema de logs en tiempo real iniciado correctamente
 
 // Export function to get in-memory logs
 logger.getInMemoryLogs = (limit = 100, level = null) => {
