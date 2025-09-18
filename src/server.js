@@ -9,6 +9,7 @@ require('dotenv').config();
 
 const { sequelize } = require('./database/connection');
 const { redisClient } = require('./database/redis');
+const { Session } = require('./models');
 const rateLimiter = require('./middleware/rateLimiter');
 const { authMiddleware, optionalAuthMiddleware } = require('./middleware/auth');
 const tempTokenAuth = require('./middleware/tempTokenAuth');
@@ -188,6 +189,39 @@ app.use('*', (req, res) => {
   });
 });
 
+/**
+ * Inicia el Charging Notification Service solo si hay sesiones activas
+ */
+async function startChargingNotificationServiceIfNeeded() {
+  try {
+    // Verificar si hay sesiones activas
+    const activeSessions = await Session.count({
+      where: { status: 'ACTIVE' }
+    });
+
+    if (activeSessions > 0) {
+      chargingNotificationService.start();
+      logger.info(`Charging Notification Service started - ${activeSessions} active sessions found`);
+    } else {
+      logger.info('Charging Notification Service not started - no active sessions');
+    }
+  } catch (error) {
+    logger.error('Error checking active sessions:', error);
+    // Por seguridad, iniciar el servicio de todas formas
+    chargingNotificationService.start();
+  }
+}
+
+/**
+ * Activa el Charging Notification Service cuando se inicia una nueva sesión
+ */
+async function activateChargingNotificationService() {
+  if (!chargingNotificationService.isRunning) {
+    chargingNotificationService.start();
+    logger.info('Charging Notification Service activated due to new active session');
+  }
+}
+
 // Database connection and server startup
 async function startServer() {
   try {
@@ -213,33 +247,15 @@ async function startServer() {
       logger.info(`Health Check: http://localhost:${PORT}/health`);
     });
     
-    // Start EVSE Notification Service
-    evseNotificationService.start();
-    logger.info('EVSE Notification Service started');
+    // Solo iniciar el Charging Notification Service por defecto
+    // Los demás jobs se activarán manualmente desde el frontend
     
-    // Start Charging Notification Service
-    chargingNotificationService.start();
-    logger.info('Charging Notification Service started');
+    // Start Charging Notification Service (solo si hay sesiones activas)
+    await startChargingNotificationServiceIfNeeded();
+    logger.info('Charging Notification Service started conditionally');
     
-    // Start EMSP Locations Sync Service
-    emspLocationsSyncService.start();
-    logger.info('EMSP Locations Sync Service started');
-    
-    // Start EMSP Tariffs Sync Service
-    emspTariffsSyncService.start();
-    logger.info('EMSP Tariffs Sync Service started');
-    
-    // Start EMSP Tokens Sync Service
-    emspTokensSyncService.start();
-    logger.info('EMSP Tokens Sync Service started');
-    
-// Start Test Location EVSE Creation Service
-testLocationEVSECreationService.start();
-logger.info('Test Location EVSE Creation Service started');
-
-// Start Test Session Service
-testSessionService.start();
-logger.info('Test Session Service started');
+    // Los demás servicios NO se inician automáticamente
+    logger.info('Other services available for manual activation via frontend');
     
   } catch (error) {
     logger.error('Failed to start server:', error.message || error);
@@ -252,20 +268,37 @@ logger.info('Test Session Service started');
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
-  logger.info('Stopping EVSE Notification Service');
-  evseNotificationService.stop();
-  logger.info('Stopping Charging Notification Service');
-  chargingNotificationService.stop();
-  logger.info('Stopping EMSP Locations Sync Service');
-  emspLocationsSyncService.stop();
-  logger.info('Stopping EMSP Tariffs Sync Service');
-  emspTariffsSyncService.stop();
-  logger.info('Stopping EMSP Tokens Sync Service');
-  emspTokensSyncService.stop();
-  logger.info('Stopping Test Location EVSE Creation Service');
-  testLocationEVSECreationService.stop();
-  logger.info('Stopping Test Session Service');
-  testSessionService.stop();
+  
+  // Solo detener servicios que estén activos
+  if (evseNotificationService.isRunning) {
+    logger.info('Stopping EVSE Notification Service');
+    evseNotificationService.stop();
+  }
+  if (chargingNotificationService.isRunning) {
+    logger.info('Stopping Charging Notification Service');
+    chargingNotificationService.stop();
+  }
+  if (emspLocationsSyncService.isRunning) {
+    logger.info('Stopping EMSP Locations Sync Service');
+    emspLocationsSyncService.stop();
+  }
+  if (emspTariffsSyncService.isRunning) {
+    logger.info('Stopping EMSP Tariffs Sync Service');
+    emspTariffsSyncService.stop();
+  }
+  if (emspTokensSyncService.isRunning) {
+    logger.info('Stopping EMSP Tokens Sync Service');
+    emspTokensSyncService.stop();
+  }
+  if (testLocationEVSECreationService.isRunning) {
+    logger.info('Stopping Test Location EVSE Creation Service');
+    testLocationEVSECreationService.stop();
+  }
+  if (testSessionService.isRunning) {
+    logger.info('Stopping Test Session Service');
+    testSessionService.stop();
+  }
+  
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
@@ -273,25 +306,48 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
-  logger.info('Stopping EVSE Notification Service');
-  evseNotificationService.stop();
-  logger.info('Stopping Charging Notification Service');
-  chargingNotificationService.stop();
-  logger.info('Stopping EMSP Locations Sync Service');
-  emspLocationsSyncService.stop();
-  logger.info('Stopping EMSP Tariffs Sync Service');
-  emspTariffsSyncService.stop();
-  logger.info('Stopping EMSP Tokens Sync Service');
-  emspTokensSyncService.stop();
-  logger.info('Stopping Test Location EVSE Creation Service');
-  testLocationEVSECreationService.stop();
-  logger.info('Stopping Test Session Service');
-  testSessionService.stop();
+  
+  // Solo detener servicios que estén activos
+  if (evseNotificationService.isRunning) {
+    logger.info('Stopping EVSE Notification Service');
+    evseNotificationService.stop();
+  }
+  if (chargingNotificationService.isRunning) {
+    logger.info('Stopping Charging Notification Service');
+    chargingNotificationService.stop();
+  }
+  if (emspLocationsSyncService.isRunning) {
+    logger.info('Stopping EMSP Locations Sync Service');
+    emspLocationsSyncService.stop();
+  }
+  if (emspTariffsSyncService.isRunning) {
+    logger.info('Stopping EMSP Tariffs Sync Service');
+    emspTariffsSyncService.stop();
+  }
+  if (emspTokensSyncService.isRunning) {
+    logger.info('Stopping EMSP Tokens Sync Service');
+    emspTokensSyncService.stop();
+  }
+  if (testLocationEVSECreationService.isRunning) {
+    logger.info('Stopping Test Location EVSE Creation Service');
+    testLocationEVSECreationService.stop();
+  }
+  if (testSessionService.isRunning) {
+    logger.info('Stopping Test Session Service');
+    testSessionService.stop();
+  }
+  
   await sequelize.close();
   await redisClient.quit();
   process.exit(0);
 });
 
 startServer();
+
+// Exportar funciones para uso en otros módulos
+module.exports = {
+  activateChargingNotificationService,
+  startChargingNotificationServiceIfNeeded
+};
 
 

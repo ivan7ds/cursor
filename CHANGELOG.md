@@ -5,6 +5,71 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-09-18
+
+### Added
+- **Sistema de activación condicional de jobs**: Implementado sistema inteligente para gestión de servicios
+  - Jobs desactivados por defecto al arrancar el servidor
+  - Solo el `Charging Notification Service` se activa automáticamente cuando hay sesiones activas
+  - Auto-desactivación del `Charging Notification Service` cuando no hay sesiones activas
+  - Activación automática cuando un eMSP inicia una recarga contra nuestros EVSEs
+  - Control manual de todos los jobs desde el frontend de Test
+
+- **Función de activación condicional**: `startChargingNotificationServiceIfNeeded()`
+  - Verifica si hay sesiones activas antes de iniciar el servicio
+  - Inicia el servicio solo cuando es necesario
+  - Logging detallado del estado de activación
+
+- **Función de activación automática**: `activateChargingNotificationService()`
+  - Se ejecuta automáticamente cuando se inicia una nueva sesión
+  - Evita duplicación de servicios activos
+  - Integración con el endpoint de inicio de sesión
+
+- **Método de auto-desactivación**: `shouldContinueRunning()` en Charging Notification Service
+  - Verifica periódicamente si debe continuar ejecutándose
+  - Se desactiva automáticamente cuando no hay sesiones activas
+  - Optimización de recursos del servidor
+
+### Changed
+- **Arranque del servidor**: Modificado para iniciar solo servicios necesarios
+  - Solo inicia el `Charging Notification Service` si hay sesiones activas
+  - Los demás jobs permanecen desactivados hasta activación manual
+  - Logging mejorado del estado de servicios
+
+- **Sistema de toggle de jobs**: Actualizado para manejar activación condicional
+  - El `Charging Notification Service` se activa automáticamente si hay sesiones activas
+  - Los demás jobs se controlan manualmente desde el frontend
+  - Estado dinámico del `Charging Notification Service` en el sistema de monitoreo
+
+- **Graceful shutdown**: Mejorado para solo detener servicios activos
+  - Verifica el estado de cada servicio antes de detenerlo
+  - Evita errores al intentar detener servicios ya detenidos
+  - Logging condicional de servicios detenidos
+
+### Fixed
+- **Campo total_cost en sesiones**: Corregido cálculo y actualización del costo total
+  - El campo `total_cost` ahora se actualiza correctamente en la tabla `sessions`
+  - Cálculo automático basado en tarifas y consumo de energía
+  - Sincronización entre tabla `sessions` y notificaciones a eMSPs
+
+- **Importación de modelos**: Añadida importación faltante del modelo `Session` en `server.js`
+  - Resuelto error `ReferenceError: Session is not defined`
+  - Funciones de activación condicional ahora funcionan correctamente
+
+### Technical Details
+- **Archivos modificados**:
+  - `src/server.js`: Sistema de activación condicional y graceful shutdown
+  - `src/services/chargingNotificationService.js`: Auto-desactivación y verificación de estado
+  - `src/api/commands.js`: Activación automática al iniciar sesiones
+  - `src/api/testMonitoring.js`: Sistema de toggle actualizado
+  - `package.json`: Versión actualizada a 1.1.0
+
+- **Comportamiento del sistema**:
+  - Al arrancar: Solo servicios necesarios se inician
+  - Al iniciar recarga: `Charging Notification Service` se activa automáticamente
+  - Sin sesiones activas: Servicios se desactivan automáticamente
+  - Control manual: Todos los jobs disponibles desde frontend de Test
+
 ## [Unreleased]
 
 ### Added

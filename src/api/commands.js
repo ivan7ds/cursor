@@ -335,6 +335,10 @@ router.post('/START_SESSION', async (req, res) => {
       last_updated: new Date()
     });
 
+    // Activar el Charging Notification Service si no está activo
+    const { activateChargingNotificationService } = require('../server');
+    await activateChargingNotificationService();
+
     // Crear CDR con los datos del token entrante
     const cdrId = uuidv4();
     const cdr = await CDR.create({

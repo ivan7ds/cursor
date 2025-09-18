@@ -479,24 +479,29 @@ router.post('/toggle-jobs', async (req, res) => {
                 }
             });
         } else {
-            // Activar todos los jobs
+            // Activar todos los jobs EXCEPTO el Charging Notification Service
+            // (que se activa automáticamente cuando hay sesiones activas)
             logger.info('▶️ Activando todos los jobs...');
             evseNotificationService.start();
-            chargingNotificationService.start();
             emspLocationsSyncService.start();
             emspTariffsSyncService.start();
-                emspTokensSyncService.start();
-                testLocationEVSECreationService.start();
-                testSessionService.start();
+            emspTokensSyncService.start();
+            testLocationEVSECreationService.start();
+            testSessionService.start();
+            
+            // El Charging Notification Service se activa automáticamente
+            // si hay sesiones activas
+            const { startChargingNotificationServiceIfNeeded } = require('../server');
+            await startChargingNotificationServiceIfNeeded();
             
             // Actualizar estado en serviceStatus
             serviceStatus.evseNotificationService.status = 'active';
-            serviceStatus.chargingNotificationService.status = 'active';
+            serviceStatus.chargingNotificationService.status = chargingNotificationService.isRunning ? 'active' : 'inactive';
             serviceStatus.emspLocationsSyncService.status = 'active';
             serviceStatus.emspTariffsSyncService.status = 'active';
             serviceStatus.emspTokensSyncService.status = 'active';
-                serviceStatus.testLocationEVSECreationService.status = 'active';
-                serviceStatus.testSessionService.status = 'active';
+            serviceStatus.testLocationEVSECreationService.status = 'active';
+            serviceStatus.testSessionService.status = 'active';
             
             logger.info('✅ Todos los jobs activados');
             

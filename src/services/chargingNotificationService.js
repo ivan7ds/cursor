@@ -58,10 +58,38 @@ class ChargingNotificationService {
   }
 
   /**
+   * Verifica si debe continuar ejecutándose
+   */
+  async shouldContinueRunning() {
+    try {
+      const activeSessions = await Session.count({
+        where: { status: 'ACTIVE' }
+      });
+      
+      if (activeSessions === 0) {
+        logger.info('No active sessions found, stopping Charging Notification Service');
+        this.stop();
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      logger.error('Error checking active sessions:', error);
+      return true; // Continuar en caso de error
+    }
+  }
+
+  /**
    * Procesa todas las sesiones activas y envía notificaciones PATCH
    */
   async processActiveSessions() {
     try {
+      // Verificar si debe continuar ejecutándose
+      const shouldContinue = await this.shouldContinueRunning();
+      if (!shouldContinue) {
+        return;
+      }
+
       // Obtener todas las sesiones activas
       const activeSessions = await Session.findAll({
         where: {
