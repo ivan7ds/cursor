@@ -16,6 +16,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Logging detallado para seguimiento de CDRs recibidos
   - Respuesta OCPI estándar con status_code 1000 para éxito
 
+- **Servicio de envío de CDRs**: Implementado sistema completo para enviar CDRs desde CPO a EMSPs externos
+  - Servicio `cdrSendingService.js` para gestión de envío de CDRs
+  - Construcción automática de payloads OCPI basados en datos de sesión
+  - Almacenamiento de CDRs enviados en tabla `cdrs`
+  - Envío automático a todos los EMSPs configurados al finalizar sesiones
+  - Integración en flujos de finalización de sesión (POST /api/sessions/:id/end y comando STOP_SESSION)
+  - Mapeo completo de datos de sesión, ubicación y EVSE a formato OCPI
+  - Manejo de errores y logging detallado para seguimiento
+  - Soporte para tarifas y períodos de carga en formato OCPI estándar
+
 ## [1.0.1] - 2025-09-16
 
 ### Fixed

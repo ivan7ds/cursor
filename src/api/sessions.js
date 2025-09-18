@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { Session, EVSE, Credentials, CDR } = require('../models');
+const { Session, EVSE, Credentials, CDR, Location } = require('../models');
 const logger = require('../utils/logger');
 const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const cdrSendingService = require('../services/cdrSendingService');
 const axios = require('axios');
 
 /**
@@ -130,6 +131,9 @@ router.post('/:id/end', async (req, res) => {
     setImmediate(async () => {
       await notifyEMSPAboutEVSEStatusChange(session.evse_uid, 'AVAILABLE');
       await notifyEMSPAboutSessionEnd(session);
+      
+      // Enviar CDR a EMSPs externos
+      await sendCDRToEMSPs(session);
     });
 
     res.status(200).json({
@@ -329,6 +333,82 @@ async function notifyEMSPAboutSessionEnd(session) {
       error: error.message,
       status_code: error.response?.status
     });
+  }
+}
+
+/**
+ * Envía CDR a todos los EMSPs configurados
+ * @param {Object} session - Datos de la sesión completada
+ */
+async function sendCDRToEMSPs(session) {
+  try {
+    logger.info(`📤 Enviando CDR para sesión ${session.id} a EMSPs externos`);
+
+    // Obtener datos de la ubicación y EVSE
+    const evse = await EVSE.findByPk(session.evse_uid);
+    if (!evse) {
+      logger.warn(`⚠️ EVSE ${session.evse_uid} no encontrado para CDR`);
+      return;
+    }
+
+    const location = await Location.findByPk(evse.location_id);
+    if (!location) {
+      logger.warn(`⚠️ Location ${evse.location_id} no encontrada para CDR`);
+      return;
+    }
+
+    // Preparar datos de la sesión para el CDR
+    const sessionData = {
+      id: session.id,
+      start_date_time: session.start_datetime,
+      end_date_time: session.end_datetime,
+      kwh: session.kwh || 0.0,
+      currency: 'EUR',
+      total_cost: session.total_cost || 0.0,
+      auth_id: {
+        uid: session.auth_id || session.id,
+        type: 'OTHER',
+        contract_id: 'IPD-001'
+      },
+      auth_method: 'AUTH_REQUEST',
+      connector_id: session.connector_id || '1',
+      charging_periods: session.charging_periods || []
+    };
+
+    // Preparar datos de la ubicación
+    const locationData = {
+      id: location.id,
+      name: location.name,
+      address: location.address,
+      city: location.city,
+      postal_code: location.postal_code,
+      country: location.country,
+      coordinates: location.coordinates
+    };
+
+    // Preparar datos del EVSE
+    const evseData = {
+      uid: evse.id,
+      evse_id: evse.evse_id,
+      connectors: evse.connectors || []
+    };
+
+    // Procesar y enviar CDR
+    const result = await cdrSendingService.processAndSendCDR(sessionData, locationData, evseData);
+    
+    if (result.success) {
+      logger.info(`✅ CDR procesado exitosamente`, {
+        cdr_id: result.cdr_id,
+        sent_to: result.sent_to,
+        successful: result.successful,
+        failed: result.failed
+      });
+    } else {
+      logger.error(`❌ Error procesando CDR:`, result.error);
+    }
+
+  } catch (error) {
+    logger.error('❌ Error enviando CDR a EMSPs:', error);
   }
 }
 

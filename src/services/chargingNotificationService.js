@@ -156,12 +156,13 @@ class ChargingNotificationService {
       }
 
       // Actualizar sesión en base de datos
-      logger.info(`🔄 Updating session ${session.id} with kwh: ${kwh}`);
+      logger.info(`🔄 Updating session ${session.id} with kwh: ${kwh}. Total cost: ${totalCost.excl_vat}`);
       await session.update({
         kwh: kwh,
+        total_cost: totalCost.excl_vat,
         last_updated: now
       });
-      logger.info(`✅ Session ${session.id} updated successfully with kwh: ${kwh}`);
+      logger.info(`✅ Session ${session.id} updated successfully with kwh: ${kwh}. Total cost: ${totalCost.excl_vat}`);
 
       // Enviar notificación PATCH al EMSP
       await this.notifyEMSPAboutChargingUpdate(session, kwh, totalCost, tariffId);
