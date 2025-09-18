@@ -95,8 +95,8 @@ const requestLogger = (req, res, next) => {
     const endTime = Date.now();
     const responseTime = endTime - startTime;
     
-    // Log de la respuesta saliente
-    logger.info('📤 API Response Outgoing', {
+    // Log detallado de la petición completa
+    logger.info(`🌐 ${req.method} ${req.path}`, {
       timestamp: new Date().toISOString(),
       method: req.method,
       url: req.url,
@@ -104,22 +104,28 @@ const requestLogger = (req, res, next) => {
       statusCode: res.statusCode,
       statusMessage: res.statusMessage,
       responseTime: `${responseTime}ms`,
+      requestHeaders: relevantHeaders,
+      requestBody: requestBody,
       responseHeaders: responseHeaders,
       responseBody: responseBody,
       ip: req.ip,
-      userAgent: req.get('User-Agent')
+      userAgent: req.get('User-Agent'),
+      query: Object.keys(req.query).length > 0 ? req.query : undefined
     });
     
-    // Log resumido para debugging rápido
-    logger.info('📊 API Request Summary', {
-      method: req.method,
-      url: req.url,
-      statusCode: res.statusCode,
-      responseTime: `${responseTime}ms`,
-      requestSize: requestBody ? JSON.stringify(requestBody).length : 0,
-      responseSize: responseBody ? JSON.stringify(responseBody).length : 0,
-      ip: req.ip
-    });
+    // Log resumido para debugging rápido (solo si no es una petición del navegador)
+    const userAgent = req.get('User-Agent') || '';
+    if (!userAgent.includes('Mozilla') && !userAgent.includes('Chrome') && !userAgent.includes('Safari')) {
+      logger.info('📊 API Request Summary', {
+        method: req.method,
+        url: req.url,
+        statusCode: res.statusCode,
+        responseTime: `${responseTime}ms`,
+        requestSize: requestBody ? JSON.stringify(requestBody).length : 0,
+        responseSize: responseBody ? JSON.stringify(responseBody).length : 0,
+        ip: req.ip
+      });
+    }
   });
   
   next();

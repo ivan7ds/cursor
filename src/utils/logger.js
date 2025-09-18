@@ -86,6 +86,7 @@ function addToMemory(level, message, meta = {}) {
     meta: meta
   };
   
+  
   inMemoryLogs.push(logEntry);
   
   // Keep only the last MAX_MEMORY_LOGS

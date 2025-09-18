@@ -1332,13 +1332,26 @@ if (filterActiveExtSessions) {
             console.log('🟢 Iniciando streaming de logs...');
             this.logsEventSource = new EventSource(`${this.baseUrl}/logs/stream`);
             
+            this.logsEventSource.onopen = (event) => {
+                console.log('✅ EventSource conectado correctamente');
+                console.log('✅ Estado del EventSource:', this.logsEventSource.readyState);
+            };
+
             this.logsEventSource.onmessage = (event) => {
-                const logData = JSON.parse(event.data);
-                this.addLogEntry(logData);
+                console.log('📨 Mensaje SSE recibido:', event.data);
+                try {
+                    const logData = JSON.parse(event.data);
+                    console.log('📨 Datos parseados:', logData);
+                    this.addLogEntry(logData);
+                } catch (error) {
+                    console.error('❌ Error parseando mensaje SSE:', error, 'Data:', event.data);
+                }
             };
 
             this.logsEventSource.onerror = (error) => {
                 console.error('❌ Error en EventSource:', error);
+                console.error('❌ Estado del EventSource:', this.logsEventSource.readyState);
+                console.error('❌ URL del EventSource:', this.logsEventSource.url);
                 this.showNotification('Error en la conexión de logs', 'error');
                 this.stopLogsStreaming();
             };
@@ -1351,14 +1364,17 @@ if (filterActiveExtSessions) {
                 this.showNotification('Streaming de logs iniciado', 'success');
             };
             
-            // Verificar el estado después de 3 segundos
+            // Verificar el estado después de 5 segundos
             setTimeout(() => {
-                if (this.logsEventSource && this.logsEventSource.readyState === 0) {
-                    console.log('⚠️ EventSource no se conecta - iniciando polling seguro...');
+                if (this.logsEventSource && this.logsEventSource.readyState === 2) {
+                    console.log('⚠️ EventSource se cerró inesperadamente - iniciando polling seguro...');
+                    this.startSafePolling();
+                } else if (this.logsEventSource && this.logsEventSource.readyState === 0) {
+                    console.log('⚠️ EventSource aún conectando después de 5 segundos - iniciando polling seguro...');
                     this.logsEventSource.close();
                     this.startSafePolling();
                 }
-            }, 3000);
+            }, 5000);
 
         } catch (error) {
             console.error('❌ Error al iniciar streaming:', error);
@@ -1444,23 +1460,23 @@ if (filterActiveExtSessions) {
         // Filtrar logs de peticiones HTTP del navegador
         const message = logData.message || '';
         
-        // Patrones a filtrar
+        // Patrones a filtrar (solo logs del navegador, no logs de API importantes)
         const filterPatterns = [
-            /API Request Incoming/,
-            /API Response Outgoing/,
-            /API Request Summary/,
             /Mozilla\/5\.0/,
             /Chrome\/\d+/,
             /Safari\/\d+/,
             /AppleWebKit/,
             /DELETE \/api\/delete-connection/,
-            /GET \/api\//,
-            /POST \/api\//,
-            /PUT \/api\//,
-            /PATCH \/api\//,
-            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*200/,
-            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*404/,
-            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*500/
+            /GET \/api\/connections/,
+            /GET \/api\/config/,
+            /GET \/health/,
+            /GET \/styles\.css/,
+            /GET \/bootstrap\.bundle\.min\.js/,
+            /GET \/app\.js/,
+            /GET \/sparkle\.png/,
+            /GET \/easter-egg\.js/,
+            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*200.*Mozilla/,
+            /::ffff:172\.18\.0\.1.*HTTP\/1\.1.*304.*Mozilla/
         ];
         
         // Verificar si el mensaje coincide con algún patrón de filtro
@@ -1548,6 +1564,43 @@ if (filterActiveExtSessions) {
         return (matches / shorter.length) > 0.8;
     }
 
+    formatApiLog(logData) {
+        // Debug: ver qué datos estamos recibiendo
+        console.log('🔍 Formateando log de API:', logData);
+        
+        // Los datos están en logData.meta (segundo parámetro del logger.info)
+        const meta = logData.meta || {};
+        const method = meta.method || 'UNKNOWN';
+        const path = meta.path || meta.url || 'unknown';
+        const statusCode = meta.statusCode || 'unknown';
+        const responseTime = meta.responseTime || 'unknown';
+        
+        let formatted = `<strong>${method} ${path}</strong> - ${statusCode} (${responseTime})`;
+        
+        // Añadir detalles del request body si existe
+        if (meta.requestBody) {
+            const requestBodyStr = typeof meta.requestBody === 'string' 
+                ? meta.requestBody 
+                : JSON.stringify(meta.requestBody, null, 2);
+            formatted += `<br><details><summary>📥 Request Body</summary><pre>${this.escapeHtml(requestBodyStr)}</pre></details>`;
+        }
+        
+        // Añadir detalles del response body si existe
+        if (meta.responseBody) {
+            const responseBodyStr = typeof meta.responseBody === 'string' 
+                ? meta.responseBody 
+                : JSON.stringify(meta.responseBody, null, 2);
+            formatted += `<br><details><summary>📤 Response Body</summary><pre>${this.escapeHtml(responseBodyStr)}</pre></details>`;
+        }
+        
+        // Añadir headers si existen
+        if (meta.requestHeaders && Object.keys(meta.requestHeaders).length > 0) {
+            formatted += `<br><details><summary>📋 Request Headers</summary><pre>${this.escapeHtml(JSON.stringify(meta.requestHeaders, null, 2))}</pre></details>`;
+        }
+        
+        return formatted;
+    }
+
     addLogEntry(logData) {
         console.log('📝 Nuevo log recibido:', logData);
         
@@ -1582,18 +1635,27 @@ if (filterActiveExtSessions) {
             // Log normal del sistema
             timestamp = new Date(logData.timestamp || Date.now()).toLocaleTimeString();
             level = logData.level || 'INFO';
-            message = logData.message || JSON.stringify(logData);
-            source = logData.source || 'system';
+            
+            // Formatear mensaje según el tipo de log
+            if (logData.message && logData.message.includes('🌐')) {
+                // Log de API detallado - usar los metadatos del log
+                message = this.formatApiLog(logData);
+                source = 'api';
+            } else {
+                message = logData.message || JSON.stringify(logData);
+                source = logData.source || 'system';
+            }
         }
         
         // Aplicar clase CSS según el tipo de log
-        const logClass = source === 'charging' ? 'charging-log' : 'system-log';
+        const logClass = source === 'charging' ? 'charging-log' : 
+                        source === 'api' ? 'api-log' : 'system-log';
         
         logEntry.innerHTML = `
             <span class="log-timestamp">${timestamp}</span>
             <span class="log-level ${level.toLowerCase()}">${level}</span>
             <span class="log-source ${logClass}">[${source.toUpperCase()}]</span>
-            <span class="log-message">${this.escapeHtml(message)}</span>
+            <span class="log-message">${source === 'api' ? message : this.escapeHtml(message)}</span>
         `;
         
         container.insertBefore(logEntry, container.firstChild);

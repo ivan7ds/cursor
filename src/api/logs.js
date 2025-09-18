@@ -21,18 +21,29 @@ const activeConnections = new Set();
  *               description: Server-Sent Events stream
  */
 router.get('/stream', (req, res) => {
+    logger.info('📡 Nueva conexión SSE recibida', { 
+        ip: req.ip, 
+        userAgent: req.get('User-Agent'),
+        headers: req.headers 
+    });
+    
     // Configurar headers para Server-Sent Events
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Cache-Control'
+        'Access-Control-Allow-Headers': 'Cache-Control',
+        'X-Accel-Buffering': 'no'  // Deshabilitar buffering de nginx
     });
 
     // Enviar heartbeat cada 30 segundos para mantener la conexión
     const heartbeat = setInterval(() => {
-        res.write('data: {"type": "heartbeat", "timestamp": "' + new Date().toISOString() + '"}\n\n');
+        const heartbeatData = JSON.stringify({
+            type: "heartbeat", 
+            timestamp: new Date().toISOString()
+        });
+        res.write(`data: ${heartbeatData}\n\n`);
     }, 30000);
 
     // Función para enviar logs a este cliente
@@ -42,16 +53,47 @@ router.get('/stream', (req, res) => {
         try {
             const eventData = JSON.stringify(logData);
             res.write(`data: ${eventData}\n\n`);
+            // Forzar el flush del buffer
+            if (res.flush) {
+                res.flush();
+            }
         } catch (error) {
-            logger.error('Error sending log to client:', error);
+            // Solo registrar como error si no es una desconexión normal
+            if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
+                logger.error('Error sending log to client:', error);
+            }
+            // Marcar la conexión como terminada para evitar más intentos
+            res.writableEnded = true;
         }
     };
 
     // Agregar esta conexión a las activas
     activeConnections.add(sendLog);
 
-    // Enviar mensaje de conexión establecida
-    res.write(`data: {"type": "connection", "message": "Conexión establecida", "timestamp": "${new Date().toISOString()}"}\n\n`);
+    // Enviar mensaje de conexión establecida inmediatamente
+    const connectionData = JSON.stringify({
+        type: "connection", 
+        message: "Conexión establecida", 
+        timestamp: new Date().toISOString()
+    });
+    const connectionMessage = `data: ${connectionData}\n\n`;
+    logger.info('📤 Enviando mensaje de conexión:', connectionMessage.trim());
+    res.write(connectionMessage);
+    
+    // Enviar un mensaje de prueba inmediato
+    const testData = JSON.stringify({
+        type: "test", 
+        message: "Stream de logs funcionando correctamente", 
+        timestamp: new Date().toISOString()
+    });
+    const testMessage = `data: ${testData}\n\n`;
+    logger.info('📤 Enviando mensaje de prueba:', testMessage.trim());
+    res.write(testMessage);
+    
+    // Forzar el flush del buffer
+    if (res.flush) {
+        res.flush();
+    }
 
     // Manejar desconexión del cliente
     req.on('close', () => {
@@ -63,7 +105,13 @@ router.get('/stream', (req, res) => {
     req.on('error', (error) => {
         clearInterval(heartbeat);
         activeConnections.delete(sendLog);
-        logger.error('Error en conexión del cliente:', error);
+        
+        // Solo registrar como error si no es una desconexión normal
+        if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
+            logger.error('Error en conexión del cliente:', error);
+        } else {
+            logger.debug('Cliente desconectado normalmente del stream de logs');
+        }
     });
 
     logger.info('Nuevo cliente conectado al stream de logs');
@@ -79,7 +127,8 @@ function broadcastLog(logData) {
         timestamp: new Date().toISOString(),
         level: logData.level || 'INFO',
         message: logData.message || logData,
-        source: logData.source || 'system'
+        source: logData.source || 'system',
+        meta: logData.meta || {}  // Incluir los metadatos
     };
 
     // Enviar a todas las conexiones activas
@@ -87,6 +136,10 @@ function broadcastLog(logData) {
         try {
             sendLog(logEvent);
         } catch (error) {
+            // Solo registrar como error si no es una desconexión normal
+            if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
+                logger.debug('Error broadcasting log to client:', error.message);
+            }
             // Si hay error, remover la conexión
             activeConnections.delete(sendLog);
         }
@@ -125,6 +178,10 @@ function broadcastChargingLog(logData) {
         try {
             sendLog(logEvent);
         } catch (error) {
+            // Solo registrar como error si no es una desconexión normal
+            if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
+                logger.debug('Error broadcasting log to client:', error.message);
+            }
             // Si hay error, remover la conexión
             activeConnections.delete(sendLog);
         }
@@ -318,20 +375,14 @@ function shouldExcludeLog(message) {
         return true;
     }
     
-    // Excluir logs del middleware de logging
-    if (messageLower.includes('api request incoming') ||
-        messageLower.includes('api response outgoing') ||
-        messageLower.includes('api request summary') ||
-        messageLower.includes('🚀') ||
-        messageLower.includes('📤') ||
-        messageLower.includes('📊')) {
+    // Excluir logs del middleware de logging (solo los muy verbosos)
+    if (messageLower.includes('api request summary')) {
         return true;
     }
     
     // Excluir logs del sistema de logs
     if (messageLower.includes('logs procesados') ||
-        messageLower.includes('archivo de logs') ||
-        messageLower.includes('📊')) {
+        messageLower.includes('archivo de logs')) {
         return true;
     }
     
