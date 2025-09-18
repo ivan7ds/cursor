@@ -5,6 +5,22 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-09-18
+
+### Fixed
+- **Filtro de duplicados en logs**: Deshabilitado temporalmente para permitir visualización de logs de carga
+- **Filtro de ping/heartbeat**: Eliminados logs de mantenimiento SSE que saturaban la interfaz
+  - Filtrados automáticamente los mensajes `{"type":"ping"}`
+  - Filtrados automáticamente los mensajes `{"type":"heartbeat"}`
+  - Mejorada la experiencia de usuario en el dashboard de logs
+
+### Technical Details
+- **Frontend**: Modificado `addLogEntry()` en `src/public/app.js`
+  - Comentado temporalmente el filtro de duplicados (líneas 1619-1622)
+  - Añadido filtro específico para ping/heartbeat (líneas 1608-1612)
+- **Logs de carga**: Ahora se muestran correctamente en tiempo real
+- **Interfaz limpia**: Eliminados logs de mantenimiento innecesarios
+
 ## [1.1.0] - 2025-09-18
 
 ### Added

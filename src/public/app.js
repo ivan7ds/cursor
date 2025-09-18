@@ -1565,9 +1565,6 @@ if (filterActiveExtSessions) {
     }
 
     formatApiLog(logData) {
-        // Debug: ver qué datos estamos recibiendo
-        console.log('🔍 Formateando log de API:', logData);
-        
         // Los datos están en logData.meta (segundo parámetro del logger.info)
         const meta = logData.meta || {};
         const method = meta.method || 'UNKNOWN';
@@ -1575,7 +1572,11 @@ if (filterActiveExtSessions) {
         const statusCode = meta.statusCode || 'unknown';
         const responseTime = meta.responseTime || 'unknown';
         
-        let formatted = `<strong>${method} ${path}</strong> - ${statusCode} (${responseTime})`;
+        
+        // Usar la URL completa si está disponible, sino usar el path
+        const displayUrl = meta.url || path;
+        
+        let formatted = `<strong>${method} ${displayUrl}</strong> - ${statusCode} (${responseTime})`;
         
         // Añadir detalles del request body si existe
         if (meta.requestBody) {
@@ -1604,6 +1605,12 @@ if (filterActiveExtSessions) {
     addLogEntry(logData) {
         console.log('📝 Nuevo log recibido:', logData);
         
+        // Filtrar logs de ping y heartbeat
+        if (logData.type === 'ping' || logData.type === 'heartbeat') {
+            console.log('🚫 Log filtrado (ping/heartbeat)');
+            return;
+        }
+        
         // Filtrar logs de peticiones HTTP del navegador
         if (this.shouldFilterLog(logData)) {
             console.log('🚫 Log filtrado (petición del navegador)');
@@ -1614,10 +1621,11 @@ if (filterActiveExtSessions) {
         if (!container) return;
 
         // Verificar si ya existe un log similar para evitar duplicados
-        if (this.isDuplicateLog(logData)) {
-            console.log('🚫 Log duplicado, omitiendo');
-            return;
-        }
+        // TEMPORALMENTE DESHABILITADO para permitir logs de carga
+        // if (this.isDuplicateLog(logData)) {
+        //     console.log('🚫 Log duplicado, omitiendo');
+        //     return;
+        // }
 
         const logEntry = document.createElement('div');
         logEntry.className = 'log-entry fade-in';
