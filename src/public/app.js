@@ -4040,6 +4040,9 @@ if (filterActiveExtSessions) {
             
             // Event listeners para el modal de cambio de estado
             this.setupChangeEvseStatusModalEventListeners();
+            
+            // Configurar event listeners para el conector inicial
+            this.setupConnectorEventListeners(0);
 
             console.log('✅ Event listeners del modal de EVSEs configurados');
         } catch (error) {
@@ -4318,8 +4321,12 @@ if (filterActiveExtSessions) {
                 throw new Error('Contenedor de conectores no encontrado');
             }
             
+            // Obtener el siguiente índice de conector
+            const existingConnectors = container.querySelectorAll('.evse-connector');
+            const nextConnectorIndex = existingConnectors.length;
+            
             const connectorHtml = `
-                <div class="evse-connector border rounded p-3 mb-2">
+                <div class="evse-connector border rounded p-3 mb-2" data-connector-index="${nextConnectorIndex}">
                     <div class="row">
                         <div class="col-md-3">
                             <label class="form-label">ID del Conector</label>
@@ -4377,17 +4384,37 @@ if (filterActiveExtSessions) {
                         </div>
                     </div>
                     <div class="row mt-2">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Voltaje (V)</label>
                             <input type="number" class="form-control connector-voltage" value="230" min="0" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Amperaje (A)</label>
                             <input type="number" class="form-control connector-amperage" value="32" min="0" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Potencia Máxima (W)</label>
-                            <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                            <div class="input-group">
+                                <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                                <button type="button" class="btn btn-outline-secondary btn-sm calculate-power" title="Calcular automáticamente">
+                                    <i class="bi bi-calculator"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Potencia Calculada</label>
+                            <input type="text" class="form-control connector-calculated-power" readonly placeholder="0 W">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <label class="form-label">Tarifas Asociadas</label>
+                            <div class="connector-tariffs-container border rounded p-2 mb-2" style="min-height: 50px;">
+                                <div class="text-muted">No hay tarifas asignadas</div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm add-tariff-to-connector">
+                                <i class="bi bi-plus"></i> Agregar Tarifa
+                            </button>
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -4408,6 +4435,9 @@ if (filterActiveExtSessions) {
             if (idField) {
                 idField.value = this.generateConnectorId();
             }
+            
+            // Configurar event listeners para el nuevo conector
+            this.setupConnectorEventListeners(nextConnectorIndex);
             
             // Event listener para el botón de generar ID
             const generateBtn = newConnector.querySelector('.generate-connector-id');
@@ -4598,7 +4628,17 @@ if (filterActiveExtSessions) {
             const connectors = Array.from(document.querySelectorAll('.evse-connector')).map(connector => {
                 const voltage = parseFloat(connector.querySelector('.connector-voltage').value) || 0;
                 const amperage = parseFloat(connector.querySelector('.connector-amperage').value) || 0;
-                const maxPower = voltage * amperage;
+                const maxPowerInput = connector.querySelector('.connector-max-power');
+                const maxPower = maxPowerInput.value ? parseFloat(maxPowerInput.value) : (voltage * amperage);
+                
+                // Recopilar tarifas del conector
+                const tariffIds = [];
+                const tariffSelects = connector.querySelectorAll('.connector-tariff-select');
+                tariffSelects.forEach(select => {
+                    if (select.value && select.value.trim() !== '') {
+                        tariffIds.push(select.value.trim());
+                    }
+                });
                 
                 return {
                     id: connector.querySelector('.connector-id').value,
@@ -4608,7 +4648,7 @@ if (filterActiveExtSessions) {
                     max_voltage: voltage,
                     max_amperage: amperage,
                     max_electric_power: maxPower,
-                    tariff_ids: [],
+                    tariff_ids: tariffIds,
                     last_updated: new Date().toISOString()
                 };
             });

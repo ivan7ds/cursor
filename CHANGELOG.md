@@ -40,6 +40,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
     - Corregida función `loadTariffs()` duplicada que no asignaba `this.allTariffs`
     - Agregada asignación correcta de `this.allTariffs = result.data || []`
     - Eliminada notificación incorrecta "No hay tarifas disponibles" cuando sí hay tarifas
+- **Funcionalidad de tarifas en creación de EVSE**: Implementada gestión completa de tarifas por conector en el modal de crear EVSE
+  - Agregada sección "Tarifas Asociadas" en cada conector del formulario de creación
+  - Implementado botón "Agregar Tarifa" con dropdown dinámico de tarifas disponibles
+  - Agregado botón "Eliminar Tarifa" para remover tarifas asignadas
+  - Incluida funcionalidad de cálculo automático de potencia máxima con botón calculadora
+  - Campo de solo lectura para mostrar potencia calculada en tiempo real
+  - Recopilación correcta de `tariff_ids` en la función `collectEvseFormData()`
+  - Configuración automática de event listeners para conectores nuevos y existentes
+  - Persistencia de tarifas en la base de datos al crear EVSE
 
 ## [1.1.1] - 2025-09-18
 

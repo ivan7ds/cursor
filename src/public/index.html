@@ -1998,7 +1998,7 @@
                         <div class="mb-3">
                             <label class="form-label">Conectores *</label>
                             <div id="evseConnectorsContainer">
-                                <div class="evse-connector border rounded p-3 mb-2">
+                                <div class="evse-connector border rounded p-3 mb-2" data-connector-index="0">
                                     <div class="row">
                                         <div class="col-md-3">
                                             <label class="form-label">ID del Conector</label>
@@ -2056,17 +2056,37 @@
                                         </div>
                                     </div>
                                     <div class="row mt-2">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Voltaje (V)</label>
                                             <input type="number" class="form-control connector-voltage" value="230" min="0" required>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Amperaje (A)</label>
                                             <input type="number" class="form-control connector-amperage" value="32" min="0" required>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Potencia Máxima (W)</label>
-                                            <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm calculate-power" title="Calcular automáticamente">
+                                                    <i class="bi bi-calculator"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Potencia Calculada</label>
+                                            <input type="text" class="form-control connector-calculated-power" readonly placeholder="0 W">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <label class="form-label">Tarifas Asociadas</label>
+                                            <div class="connector-tariffs-container border rounded p-2 mb-2" style="min-height: 50px;">
+                                                <div class="text-muted">No hay tarifas asignadas</div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm add-tariff-to-connector">
+                                                <i class="bi bi-plus"></i> Agregar Tarifa
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
