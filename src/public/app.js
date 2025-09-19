@@ -2983,7 +2983,7 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 Sessions data:', data);
+            console.log('📊 Sessions data:', data.data ? `Array[${data.data.length}]` : data);
             console.log('📊 Sessions count:', data.data ? data.data.length : 0);
             
             // Almacenar todas las sesiones para filtrado
@@ -3003,7 +3003,7 @@ if (filterActiveExtSessions) {
 
     renderSessions(sessions) {
         console.log('🎨 Renderizando sesiones:', sessions.length);
-        console.log('🎨 Sessions data:', sessions);
+        console.log('🎨 Sessions data:', Array.isArray(sessions) ? `Array[${sessions.length}]` : sessions);
         
         const tbody = document.getElementById('sessionsTableBody');
         if (!tbody) {
@@ -3199,8 +3199,8 @@ if (filterActiveExtSessions) {
             const locationsData = await locationsResponse.json();
             const evsesData = await evsesResponse.json();
             
-            console.log('📊 EMSP Locations data:', locationsData);
-            console.log('📊 EMSP EVSEs data:', evsesData);
+            console.log('📊 EMSP Locations data:', locationsData.data ? `Array[${locationsData.data.length}]` : locationsData);
+            console.log('📊 EMSP EVSEs data:', evsesData.data ? `Array[${evsesData.data.length}]` : evsesData);
             
             // Crear un mapa de conteo de EVSEs por location
             const evseCountMap = {};
@@ -3278,7 +3278,7 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP EVSEs data:', data);
+            console.log('📊 EMSP EVSEs data:', data.data ? `Array[${data.data.length}]` : data);
             
             this.renderEmspEvses(data.data || []);
             this.updateCount('emspEvsesCount', data.data?.length || 0);
@@ -3378,7 +3378,7 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP Tariffs data:', data);
+            console.log('📊 EMSP Tariffs data:', data.data ? `Array[${data.data.length}]` : data);
             
             this.renderEmspTariffs(data.data || []);
             this.updateCount('emspTariffsCount', data.data?.length || 0);
@@ -3470,7 +3470,7 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 Tariffs data:', data);
+            console.log('📊 Tariffs data:', data.data ? `Array[${data.data.length}]` : data);
             
             // Almacenar tarifas para uso en tooltips
             this.allTariffs = data.data || [];
@@ -6878,7 +6878,7 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP Tokens data:', data);
+            console.log('📊 EMSP Tokens data:', data.data ? `Array[${data.data.length}]` : data);
             
             this.renderEmspTokens(data.data || []);
             this.updateCount('emspTokensCount', data.data?.length || 0);

@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { Location, EVSE } = require('../models');
 const logger = require('../utils/logger');
 const emspNotificationService = require('../services/emspNotificationService');
+const { logLocationData, logArrayData } = require('../utils/loggingUtils');
 
 /**
  * @swagger
@@ -127,9 +128,7 @@ router.get('/', async (req, res) => {
       
       // Debug: log the evseList before processing
       logger.info(`Processing location ${cleanLocation.id}: evseList length=${cleanLocation.evseList ? cleanLocation.evseList.length : 'undefined'}`);
-      logger.info(`Location data: country_code=${cleanLocation.country_code}, party_id=${cleanLocation.party_id}`);
-      logger.info(`Full location object keys: ${Object.keys(cleanLocation).join(', ')}`);
-      logger.info(`Location raw data: ${JSON.stringify(cleanLocation, null, 2)}`);
+      logLocationData(logger.info, cleanLocation);
       
       // Map evseList to evses and transform EVSE fields for OCPI 2.2 compliance
       if (cleanLocation.evseList && Array.isArray(cleanLocation.evseList) && cleanLocation.evseList.length > 0) {
@@ -266,7 +265,7 @@ router.get('/', async (req, res) => {
     
     // Debug: log the response structure
     logger.info(`Response structure: cleanedLocations type=${typeof cleanedLocations}, length=${cleanedLocations ? cleanedLocations.length : 'undefined'}`);
-    logger.info(`First location sample:`, JSON.stringify(cleanedLocations[0], null, 2));
+    logArrayData(logger.info, cleanedLocations, 'locations');
     
     // Set OCPI 2.2 pagination headers
     const headers = {

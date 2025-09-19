@@ -5,6 +5,16 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-01-16
+
+### Added
+- **Optimización de logging**: Reducido el tamaño de los logs para mejorar la legibilidad y rendimiento
+  - Creado archivo `src/utils/loggingUtils.js` con funciones de logging optimizado
+  - Implementado logging resumido para objetos grandes (locations, evses, arrays de datos)
+  - Reemplazados logs de payloads completos por resúmenes informativos
+  - Optimizados logs del frontend para mostrar solo conteos de arrays en lugar de datos completos
+  - Mejorada la legibilidad de los logs sin perder información crítica
+
 ## [1.2.0] - 2025-01-16
 
 ### Added
@@ -49,6 +59,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Recopilación correcta de `tariff_ids` en la función `collectEvseFormData()`
   - Configuración automática de event listeners para conectores nuevos y existentes
   - Persistencia de tarifas en la base de datos al crear EVSE
+- **Optimización de logging**: Reducido el tamaño de los logs para mejorar la legibilidad y rendimiento
+  - Creado archivo `src/utils/loggingUtils.js` con funciones de logging optimizado
+  - Implementado logging resumido para objetos grandes (locations, evses, arrays de datos)
+  - Reemplazados logs de payloads completos por resúmenes informativos
+  - Optimizados logs del frontend para mostrar solo conteos de arrays en lugar de datos completos
+  - Mejorada la legibilidad de los logs sin perder información crítica
 
 ## [1.1.1] - 2025-09-18
 
