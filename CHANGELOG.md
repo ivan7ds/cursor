@@ -14,6 +14,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Estado visual actualizado en tiempo real (Activo/Pausado)
   - Funcionalidad independiente del control general de jobs
   - Interfaz mejorada con botones de acción específicos por servicio
+- **Gestión de potencia máxima y tarifas por conector**: Implementada funcionalidad completa para gestionar conectores de EVSE
+  - Campo de potencia máxima con cálculo automático (voltaje × amperaje)
+  - Botón de cálculo automático de potencia con icono de calculadora
+  - Campo de solo lectura que muestra la potencia calculada en tiempo real
+  - Sección de tarifas asociadas por conector con selects dinámicos
+  - Botón "Agregar Tarifa" para asignar múltiples tarifas por conector
+  - Botón "Eliminar Tarifa" para remover tarifas asignadas
+  - Carga automática de tarifas disponibles del CPO
+  - Persistencia de tarifas en la base de datos (tabla evses, columna connectors)
+  - Validación y recolección correcta de datos en formularios de edición
 
 ## [1.1.1] - 2025-09-18
 

@@ -289,26 +289,6 @@ class EMSPNotificationService {
             status: evseData.status,
             last_updated: new Date().toISOString()
         };
-
-        // Extraer tariff_ids de los conectores del EVSE
-        if (evseData.connectors && Array.isArray(evseData.connectors)) {
-            // Obtener todos los tariff_ids únicos de todos los conectores
-            const allTariffIds = new Set();
-            
-            evseData.connectors.forEach(connector => {
-                if (connector.tariff_ids && Array.isArray(connector.tariff_ids)) {
-                    connector.tariff_ids.forEach(tariffId => allTariffIds.add(tariffId));
-                }
-            });
-            
-            // Si hay tariff_ids, incluirlos en el payload
-            if (allTariffIds.size > 0) {
-                payload.tariff_ids = Array.from(allTariffIds);
-            }
-        }
-
-        // NOTA: Solo incluir campos que realmente cambiaron
-        // Para actualizaciones de tarifas, solo enviamos tariff_ids y last_updated
         // No incluimos status u otros campos que no han cambiado
 
         logger.info(`📋 Preparando payload PATCH para EVSE ${evseData.id}:`, payload);

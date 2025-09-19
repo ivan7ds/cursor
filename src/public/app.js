@@ -4845,7 +4845,7 @@ if (filterActiveExtSessions) {
             await this.loadLocationsForEvse();
             
             // Llenar el formulario con los datos del EVSE
-            this.fillEditEvseForm(evseData);
+            await this.fillEditEvseForm(evseData);
             
             // Mostrar el modal
             this.showEditEvseModal();
@@ -4882,7 +4882,7 @@ if (filterActiveExtSessions) {
         }
     }
 
-    fillEditEvseForm(evseData) {
+    async fillEditEvseForm(evseData) {
         try {
             console.log('📝 Llenando formulario de edición de EVSE:', evseData);
             
@@ -4900,7 +4900,7 @@ if (filterActiveExtSessions) {
             });
             
             // Conectores
-            this.fillEditEvseConnectors(evseData.connectors || []);
+            await this.fillEditEvseConnectors(evseData.connectors || []);
             
             console.log('✅ Formulario de edición de EVSE llenado exitosamente');
             
@@ -4910,7 +4910,7 @@ if (filterActiveExtSessions) {
         }
     }
 
-    fillEditEvseConnectors(connectors) {
+    async fillEditEvseConnectors(connectors) {
         try {
             const container = document.getElementById('editEvseConnectorsContainer');
             if (!container) {
@@ -4922,9 +4922,13 @@ if (filterActiveExtSessions) {
             container.innerHTML = '';
             
             // Agregar cada conector
-            connectors.forEach((connector, index) => {
+            for (let index = 0; index < connectors.length; index++) {
+                const connector = connectors[index];
                 this.addEditEvseConnectorHtml(connector, index);
-            });
+                
+                // Esperar un poco para que se renderice el HTML antes de cargar las tarifas
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
             
             // Si no hay conectores, agregar uno vacío
             if (connectors.length === 0) {
@@ -5002,17 +5006,37 @@ if (filterActiveExtSessions) {
                     </div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Voltaje (V)</label>
-                        <input type="number" class="form-control connector-voltage" value="${connector.voltage || 230}" min="0" required>
+                        <input type="number" class="form-control connector-voltage" value="${connector.max_voltage || 230}" min="0" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Amperaje (A)</label>
-                        <input type="number" class="form-control connector-amperage" value="${connector.amperage || 32}" min="0" required>
+                        <input type="number" class="form-control connector-amperage" value="${connector.max_amperage || 32}" min="0" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Potencia Máxima (W)</label>
-                        <input type="number" class="form-control connector-max-power" value="${connector.max_power || ''}" min="0" placeholder="Calculado automáticamente">
+                        <div class="input-group">
+                            <input type="number" class="form-control connector-max-power" value="${connector.max_electric_power || ''}" min="0" placeholder="Calculado automáticamente">
+                            <button type="button" class="btn btn-outline-secondary btn-sm calculate-power" title="Calcular automáticamente">
+                                <i class="bi bi-calculator"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Potencia Calculada</label>
+                        <input type="text" class="form-control connector-calculated-power" readonly placeholder="0 W">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <label class="form-label">Tarifas Asociadas</label>
+                        <div class="connector-tariffs-container border rounded p-2 mb-2" style="min-height: 50px;">
+                            <!-- Las tarifas se cargarán dinámicamente aquí -->
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm add-tariff-to-connector">
+                            <i class="bi bi-plus"></i> Agregar Tarifa
+                        </button>
                     </div>
                 </div>
                 ${index > 0 ? `
@@ -5028,6 +5052,216 @@ if (filterActiveExtSessions) {
         `;
         
         container.insertAdjacentHTML('beforeend', connectorHtml);
+        
+        // Cargar tarifas para este conector
+        this.loadConnectorTariffs(connector, index);
+        
+        // Configurar event listeners para este conector
+        this.setupConnectorEventListeners(index);
+    }
+
+    /**
+     * Carga las tarifas disponibles para un conector específico
+     */
+    async loadConnectorTariffs(connector, index) {
+        try {
+            console.log(`🔄 Cargando tarifas para conector ${index}...`);
+            
+            // Cargar todas las tarifas si no están cargadas
+            if (!this.allTariffs || this.allTariffs.length === 0) {
+                await this.loadTariffs();
+            }
+            
+            // Construir selects de tarifas para este conector
+            await this.buildConnectorTariffSelects(connector, index);
+            
+        } catch (error) {
+            console.error(`❌ Error cargando tarifas para conector ${index}:`, error);
+        }
+    }
+
+    /**
+     * Construye los selects de tarifas para un conector específico
+     */
+    async buildConnectorTariffSelects(connector, index) {
+        try {
+            const container = document.querySelector(`[data-connector-index="${index}"] .connector-tariffs-container`);
+            if (!container) return;
+            
+            // Si no hay tarifas disponibles
+            if (!this.allTariffs || this.allTariffs.length === 0) {
+                container.innerHTML = '<div class="text-muted">No hay tarifas disponibles</div>';
+                return;
+            }
+            
+            // Obtener tarifas del conector
+            const connectorTariffIds = connector.tariff_ids || [];
+            
+            // Generar HTML de selects de tarifas
+            let tariffSelectsHtml = '';
+            
+            connectorTariffIds.forEach((tariffId, tariffIndex) => {
+                const tariff = this.allTariffs.find(t => t.id === tariffId);
+                const tariffName = tariff ? `${tariff.name || tariff.id} (${tariff.currency} ${tariff.price})` : tariffId;
+                
+                tariffSelectsHtml += `
+                    <div class="tariff-select-item d-flex align-items-center mb-2" data-tariff-index="${tariffIndex}">
+                        <select class="form-select me-2 connector-tariff-select" data-tariff-index="${tariffIndex}">
+                            <option value="">Seleccionar tarifa...</option>
+                            ${this.allTariffs.map(tariff => 
+                                `<option value="${tariff.id}" ${tariff.id === tariffId ? 'selected' : ''}>
+                                    ${tariff.name || tariff.id} (${tariff.currency} ${tariff.price})
+                                </option>`
+                            ).join('')}
+                        </select>
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-tariff-from-connector" title="Eliminar tarifa">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            
+            // Si no hay tarifas, mostrar mensaje
+            if (tariffSelectsHtml === '') {
+                tariffSelectsHtml = '<div class="text-muted">No hay tarifas asignadas</div>';
+            }
+            
+            container.innerHTML = tariffSelectsHtml;
+            
+        } catch (error) {
+            console.error(`❌ Error construyendo selects de tarifas para conector ${index}:`, error);
+        }
+    }
+
+    /**
+     * Agrega una nueva tarifa a un conector
+     */
+    async addTariffToConnector(connectorIndex) {
+        try {
+            const container = document.querySelector(`[data-connector-index="${connectorIndex}"] .connector-tariffs-container`);
+            if (!container) return;
+            
+            // Cargar tarifas si no están cargadas
+            if (!this.allTariffs || this.allTariffs.length === 0) {
+                await this.loadTariffs();
+            }
+            
+            if (!this.allTariffs || this.allTariffs.length === 0) {
+                this.showNotification('No hay tarifas disponibles', 'warning');
+                return;
+            }
+            
+            // Obtener el siguiente índice de tarifa
+            const existingTariffs = container.querySelectorAll('.tariff-select-item');
+            const nextTariffIndex = existingTariffs.length;
+            
+            // Crear nuevo select de tarifa
+            const tariffSelectHtml = `
+                <div class="tariff-select-item d-flex align-items-center mb-2" data-tariff-index="${nextTariffIndex}">
+                    <select class="form-select me-2 connector-tariff-select" data-tariff-index="${nextTariffIndex}">
+                        <option value="">Seleccionar tarifa...</option>
+                        ${this.allTariffs.map(tariff => 
+                            `<option value="${tariff.id}">
+                                ${tariff.name || tariff.id} (${tariff.currency} ${tariff.price})
+                            </option>`
+                        ).join('')}
+                    </select>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-tariff-from-connector" title="Eliminar tarifa">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Si es el primer select, limpiar el mensaje de "no hay tarifas"
+            if (container.innerHTML.includes('No hay tarifas asignadas')) {
+                container.innerHTML = '';
+            }
+            
+            container.insertAdjacentHTML('beforeend', tariffSelectHtml);
+            
+        } catch (error) {
+            console.error(`❌ Error agregando tarifa a conector ${connectorIndex}:`, error);
+        }
+    }
+
+    /**
+     * Configura los event listeners para un conector específico
+     */
+    setupConnectorEventListeners(connectorIndex) {
+        try {
+            const connectorElement = document.querySelector(`[data-connector-index="${connectorIndex}"]`);
+            if (!connectorElement) return;
+            
+            // Event listener para calcular potencia automáticamente
+            const calculateBtn = connectorElement.querySelector('.calculate-power');
+            if (calculateBtn) {
+                calculateBtn.addEventListener('click', () => {
+                    this.calculateConnectorPower(connectorIndex);
+                });
+            }
+            
+            // Event listeners para actualizar potencia calculada cuando cambian voltaje o amperaje
+            const voltageInput = connectorElement.querySelector('.connector-voltage');
+            const amperageInput = connectorElement.querySelector('.connector-amperage');
+            
+            if (voltageInput) {
+                voltageInput.addEventListener('input', () => {
+                    this.calculateConnectorPower(connectorIndex);
+                });
+            }
+            
+            if (amperageInput) {
+                amperageInput.addEventListener('input', () => {
+                    this.calculateConnectorPower(connectorIndex);
+                });
+            }
+            
+            // Event listener para agregar tarifa
+            const addTariffBtn = connectorElement.querySelector('.add-tariff-to-connector');
+            if (addTariffBtn) {
+                addTariffBtn.addEventListener('click', () => {
+                    this.addTariffToConnector(connectorIndex);
+                });
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error configurando event listeners para conector ${connectorIndex}:`, error);
+        }
+    }
+
+    /**
+     * Calcula la potencia del conector basada en voltaje y amperaje
+     */
+    calculateConnectorPower(connectorIndex) {
+        try {
+            const connectorElement = document.querySelector(`[data-connector-index="${connectorIndex}"]`);
+            if (!connectorElement) return;
+            
+            const voltageInput = connectorElement.querySelector('.connector-voltage');
+            const amperageInput = connectorElement.querySelector('.connector-amperage');
+            const calculatedPowerInput = connectorElement.querySelector('.connector-calculated-power');
+            
+            if (!voltageInput || !amperageInput || !calculatedPowerInput) return;
+            
+            const voltage = parseFloat(voltageInput.value) || 0;
+            const amperage = parseFloat(amperageInput.value) || 0;
+            
+            if (voltage > 0 && amperage > 0) {
+                const calculatedPower = voltage * amperage;
+                calculatedPowerInput.value = `${calculatedPower} W`;
+                
+                // Si el campo de potencia máxima está vacío, llenarlo automáticamente
+                const maxPowerInput = connectorElement.querySelector('.connector-max-power');
+                if (maxPowerInput && !maxPowerInput.value) {
+                    maxPowerInput.value = calculatedPower;
+                }
+            } else {
+                calculatedPowerInput.value = '0 W';
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error calculando potencia del conector ${connectorIndex}:`, error);
+        }
     }
 
     showEditEvseModal() {
@@ -5193,6 +5427,22 @@ if (filterActiveExtSessions) {
                     }
                 }
                 
+                // Eliminar tarifa de conector
+                if (event.target.closest('.remove-tariff-from-connector')) {
+                    const button = event.target.closest('.remove-tariff-from-connector');
+                    const tariffItem = button.closest('.tariff-select-item');
+                    if (tariffItem) {
+                        tariffItem.remove();
+                        
+                        // Si no quedan tarifas, mostrar mensaje
+                        const container = tariffItem.closest('.connector-tariffs-container');
+                        const remainingTariffs = container.querySelectorAll('.tariff-select-item');
+                        if (remainingTariffs.length === 0) {
+                            container.innerHTML = '<div class="text-muted">No hay tarifas asignadas</div>';
+                        }
+                    }
+                }
+                
                 // Cerrar modal con botón Cancelar
                 if (event.target.closest('#editEvseModal .btn-secondary')) {
                     this.closeEditEvseModal();
@@ -5298,6 +5548,15 @@ if (filterActiveExtSessions) {
             const connectorElements = document.querySelectorAll('#editEvseConnectorsContainer .evse-connector');
             
             for (const connectorElement of connectorElements) {
+                // Recopilar tarifas del conector
+                const tariffIds = [];
+                const tariffSelects = connectorElement.querySelectorAll('.connector-tariff-select');
+                tariffSelects.forEach(select => {
+                    if (select.value && select.value.trim() !== '') {
+                        tariffIds.push(select.value.trim());
+                    }
+                });
+                
                 const connector = {
                     id: connectorElement.querySelector('.connector-id').value.trim(),
                     standard: connectorElement.querySelector('.connector-standard').value.trim(),
@@ -5306,7 +5565,7 @@ if (filterActiveExtSessions) {
                     max_voltage: parseInt(connectorElement.querySelector('.connector-voltage').value) || 230,
                     max_amperage: parseInt(connectorElement.querySelector('.connector-amperage').value) || 32,
                     max_electric_power: parseInt(connectorElement.querySelector('.connector-max-power').value) || null,
-                    tariff_ids: [],
+                    tariff_ids: tariffIds,
                     last_updated: new Date().toISOString()
                 };
                 
