@@ -174,6 +174,94 @@ router.post('/', async (req, res) => {
 });
 
 /**
+ * Detecta cambios en conectores comparando datos anteriores y actuales
+ * @param {Array} previousConnectors - Conectores anteriores
+ * @param {Array} currentConnectors - Conectores actuales
+ * @returns {Array} Array de conectores que han cambiado
+ */
+function detectConnectorChanges(previousConnectors, currentConnectors) {
+  const changes = [];
+  
+  // Crear mapas para facilitar la comparación
+  const previousMap = new Map();
+  const currentMap = new Map();
+  
+  previousConnectors.forEach(connector => {
+    if (connector.id) {
+      previousMap.set(connector.id, connector);
+    }
+  });
+  
+  currentConnectors.forEach(connector => {
+    if (connector.id) {
+      currentMap.set(connector.id, connector);
+    }
+  });
+  
+  // Verificar conectores modificados o nuevos
+  for (const [connectorId, currentConnector] of currentMap) {
+    const previousConnector = previousMap.get(connectorId);
+    
+    if (!previousConnector) {
+      // Conector nuevo
+      changes.push({
+        ...currentConnector,
+        changeType: 'created'
+      });
+    } else {
+      // Verificar si el conector ha cambiado
+      const hasChanged = hasConnectorChanged(previousConnector, currentConnector);
+      if (hasChanged) {
+        changes.push({
+          ...currentConnector,
+          changeType: 'updated'
+        });
+      }
+    }
+  }
+  
+  return changes;
+}
+
+/**
+ * Verifica si un conector ha cambiado comparando campos relevantes
+ * @param {Object} previous - Conector anterior
+ * @param {Object} current - Conector actual
+ * @returns {boolean} True si ha cambiado
+ */
+function hasConnectorChanged(previous, current) {
+  // Campos a comparar para detectar cambios
+  const fieldsToCompare = [
+    'standard',
+    'format', 
+    'power_type',
+    'max_voltage',
+    'max_amperage',
+    'max_electric_power',
+    'tariff_ids'
+  ];
+  
+  for (const field of fieldsToCompare) {
+    const prevValue = previous[field];
+    const currValue = current[field];
+    
+    // Comparación especial para arrays (tariff_ids)
+    if (field === 'tariff_ids') {
+      const prevArray = Array.isArray(prevValue) ? prevValue.sort() : [];
+      const currArray = Array.isArray(currValue) ? currValue.sort() : [];
+      
+      if (JSON.stringify(prevArray) !== JSON.stringify(currArray)) {
+        return true;
+      }
+    } else if (prevValue !== currValue) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
  * @swagger
  * /ocpi/2.2/evses/{id}:
  *   put:
@@ -206,20 +294,47 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    // Guardar datos anteriores para comparar cambios en conectores
+    const previousConnectors = evse.connectors ? JSON.parse(JSON.stringify(evse.connectors)) : [];
+
     await evse.update({
       ...req.body,
       last_updated: new Date()
     });
 
-    // Notificar a los EMSPs sobre la actualización del EVSE (en segundo plano)
-    logger.info(`🔔 Iniciando notificación de EVSE actualizado: ${evse.id}`);
-    emspNotificationService.notifyEVSEUpdated(evse)
-      .then(() => {
-        logger.info(`✅ Notificación de EVSE actualizado completada: ${evse.id}`);
-      })
-      .catch(error => {
-        logger.error(`❌ Error notificando a EMSPs sobre actualización de EVSE ${evse.id}:`, error);
-      });
+    // Obtener datos actualizados del EVSE
+    const updatedEvse = await EVSE.findByPk(id);
+    const currentConnectors = updatedEvse.connectors || [];
+
+    // Detectar cambios en conectores y enviar notificaciones específicas
+    logger.info(`🔍 Analizando cambios en conectores del EVSE ${evse.id}`);
+    
+    // Comparar conectores anteriores con los actuales
+    const connectorChanges = detectConnectorChanges(previousConnectors, currentConnectors);
+    
+    if (connectorChanges.length > 0) {
+      logger.info(`📤 Enviando notificaciones para ${connectorChanges.length} conector(es) modificado(s)`);
+      
+      // Enviar notificaciones para cada conector modificado
+      for (const connectorChange of connectorChanges) {
+        try {
+          await emspNotificationService.notifyConnectorUpdated(updatedEvse, connectorChange);
+          logger.info(`✅ Notificación enviada para conector ${connectorChange.id}`);
+        } catch (error) {
+          logger.error(`❌ Error notificando cambios del conector ${connectorChange.id}:`, error);
+        }
+      }
+    } else {
+      // Si no hay cambios en conectores, enviar notificación estándar del EVSE
+      logger.info(`📡 No hay cambios en conectores, enviando notificación estándar del EVSE`);
+      emspNotificationService.notifyEVSEUpdated(updatedEvse)
+        .then(() => {
+          logger.info(`✅ Notificación de EVSE actualizado completada: ${evse.id}`);
+        })
+        .catch(error => {
+          logger.error(`❌ Error notificando a EMSPs sobre actualización de EVSE ${evse.id}:`, error);
+        });
+    }
 
     res.status(200).json({
       status_code: 1000,

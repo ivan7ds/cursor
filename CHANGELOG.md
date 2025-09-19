@@ -24,6 +24,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Carga automática de tarifas disponibles del CPO
   - Persistencia de tarifas en la base de datos (tabla evses, columna connectors)
   - Validación y recolección correcta de datos en formularios de edición
+- **Notificaciones PATCH por conector**: Implementado sistema de notificaciones específicas para cambios en conectores
+  - Detección automática de cambios en conectores al actualizar EVSE desde frontend
+  - Envío de PATCH individual por conector modificado con URL correcta: `/ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}`
+  - Payload específico del conector con campos actualizados (tariff_ids, max_voltage, max_amperage, etc.)
+  - Comparación inteligente de datos anteriores vs actuales para detectar cambios reales
+  - Notificación selectiva: solo se envían PATCHs para conectores que realmente cambiaron
+  - Fallback a notificación estándar del EVSE si no hay cambios en conectores
+- **Corrección de event listeners en frontend**: Solucionado problema con botón "Agregar Tarifa" en conectores
+  - Eliminado conflicto entre event listeners específicos y event delegation global
+  - Implementado event delegation unificado para botones dinámicos de tarifas
+  - Corregido error "Cannot read properties of null (reading 'dataset')"
+  - Mejorada estabilidad de la interfaz de gestión de tarifas por conector
+  - **Corrección de carga de tarifas**: Solucionado problema con asignación de `this.allTariffs`
+    - Corregida función `loadTariffs()` duplicada que no asignaba `this.allTariffs`
+    - Agregada asignación correcta de `this.allTariffs = result.data || []`
+    - Eliminada notificación incorrecta "No hay tarifas disponibles" cuando sí hay tarifas
 
 ## [1.1.1] - 2025-09-18
 

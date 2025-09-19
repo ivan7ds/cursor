@@ -5216,13 +5216,8 @@ if (filterActiveExtSessions) {
                 });
             }
             
-            // Event listener para agregar tarifa
-            const addTariffBtn = connectorElement.querySelector('.add-tariff-to-connector');
-            if (addTariffBtn) {
-                addTariffBtn.addEventListener('click', () => {
-                    this.addTariffToConnector(connectorIndex);
-                });
-            }
+            // Event listener para agregar tarifa - manejado por event delegation global
+            // No necesitamos agregar event listeners específicos aquí
             
         } catch (error) {
             console.error(`❌ Error configurando event listeners para conector ${connectorIndex}:`, error);
@@ -5424,6 +5419,16 @@ if (filterActiveExtSessions) {
                     const connectorDiv = button.closest('.evse-connector');
                     if (connectorDiv) {
                         connectorDiv.remove();
+                    }
+                }
+                
+                // Agregar tarifa a conector
+                if (event.target.closest('.add-tariff-to-connector')) {
+                    const button = event.target.closest('.add-tariff-to-connector');
+                    const connectorElement = button.closest('.evse-connector');
+                    if (connectorElement) {
+                        const connectorIndex = parseInt(connectorElement.dataset.connectorIndex);
+                        this.addTariffToConnector(connectorIndex);
                     }
                 }
                 
@@ -9583,6 +9588,8 @@ ${JSON.stringify(data, null, 2)}`;
             const result = await response.json();
             
             if (result.status_code === 1000) {
+                // Almacenar tarifas para uso en conectores
+                this.allTariffs = result.data || [];
                 this.displayTariffs(result.data);
                 console.log('✅ Tarifas cargadas');
             } else {

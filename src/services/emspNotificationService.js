@@ -211,6 +211,119 @@ class EMSPNotificationService {
     }
 
     /**
+     * Notificar a todas las organizaciones sobre un conector actualizado
+     * @param {Object} evseData - Datos del EVSE
+     * @param {Object} connectorData - Datos del conector actualizado
+     */
+    async notifyConnectorUpdated(evseData, connectorData) {
+        try {
+            logger.info('🔌 Notificando a organizaciones sobre conector actualizado:', {
+                evseId: evseData.id,
+                connectorId: connectorData.id,
+                changeType: connectorData.changeType
+            });
+            
+            // Obtener todas las organizaciones configuradas (excluyendo nuestro CPO)
+            const organizations = await this.getConfiguredOrganizations();
+            
+            if (organizations.length === 0) {
+                logger.info('📭 No hay organizaciones configuradas para notificar');
+                return;
+            }
+            
+            logger.info(`📤 Notificando a ${organizations.length} organización(es) sobre conector actualizado ${connectorData.id}`);
+            
+            // Notificar cada conector individualmente
+            const notificationPromises = organizations.map(org => 
+                this.notifyOrganizationAboutConnector(org, evseData, connectorData)
+            );
+            
+            await Promise.allSettled(notificationPromises);
+            
+            logger.info('✅ Notificaciones de conector actualizado enviadas a todas las organizaciones');
+            
+        } catch (error) {
+            logger.error('❌ Error notificando a organizaciones sobre conector actualizado:', error);
+        }
+    }
+
+    /**
+     * Notificar a una organización específica sobre un conector
+     * @param {Object} organization - Datos de la organización
+     * @param {Object} evseData - Datos del EVSE
+     * @param {Object} connectorData - Datos del conector
+     */
+    async notifyOrganizationAboutConnector(organization, evseData, connectorData) {
+        try {
+            // Construir la URL correcta según OCPI 2.2: /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
+            const partyId = process.env.OCPI_PARTY_ID || 'IPD';
+            const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
+            const sanitizedUrl = this.sanitizeUrl(organization.url);
+            const endpoint = `${sanitizedUrl}/ocpi/emsp/2.2/locations/${countryCode}/${partyId}/${evseData.location_id}/${evseData.id}/${connectorData.id}`;
+            
+            logger.info(`📤 Notificando conector ${connectorData.id} del EVSE ${evseData.id} a organización ${organization.party_id} en ${endpoint}`);
+            
+            // Preparar payload específico del conector
+            const payload = this.prepareConnectorPatchPayload(connectorData);
+            
+            const response = await fetch(endpoint, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${organization.token}`,
+                    'X-Request-ID': `connector-notify-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (response.ok) {
+                logger.info(`✅ Conector ${connectorData.id} del EVSE ${evseData.id} notificado exitosamente a organización ${organization.party_id}`);
+            } else {
+                const errorText = await response.text();
+                logger.warn(`⚠️ Error notificando conector a organización ${organization.party_id}: HTTP ${response.status} - ${errorText}`);
+            }
+            
+        } catch (error) {
+            logger.error(`❌ Error notificando conector a organización ${organization.party_id}:`, error);
+        }
+    }
+
+    /**
+     * Preparar payload de PATCH para conector específico según OCPI 2.2
+     * @param {Object} connectorData - Datos del conector
+     * @returns {Object} Payload de PATCH para el conector
+     */
+    prepareConnectorPatchPayload(connectorData) {
+        const payload = {
+            tariff_ids: connectorData.tariff_ids || [],
+            last_updated: new Date().toISOString()
+        };
+
+        // Agregar otros campos si han cambiado
+        if (connectorData.max_voltage !== undefined) {
+            payload.max_voltage = connectorData.max_voltage;
+        }
+        if (connectorData.max_amperage !== undefined) {
+            payload.max_amperage = connectorData.max_amperage;
+        }
+        if (connectorData.max_electric_power !== undefined) {
+            payload.max_electric_power = connectorData.max_electric_power;
+        }
+        if (connectorData.standard !== undefined) {
+            payload.standard = connectorData.standard;
+        }
+        if (connectorData.format !== undefined) {
+            payload.format = connectorData.format;
+        }
+        if (connectorData.power_type !== undefined) {
+            payload.power_type = connectorData.power_type;
+        }
+
+        logger.info(`📋 Preparando payload PATCH para conector ${connectorData.id}:`, payload);
+        return payload;
+    }
+
+    /**
      * Notificar a una organización específica sobre un EVSE
      * @param {Object} organization - Datos de la organización
      * @param {Object} evseData - Datos del EVSE
