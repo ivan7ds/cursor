@@ -32,7 +32,7 @@ const { logLocationData, logArrayData } = require('../utils/loggingUtils');
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Pagination limit (max 1000, default 100)
+ *         description: Pagination limit (max 1000, default 25)
  *     responses:
  *       200:
  *         description: Successfully retrieved locations
@@ -58,7 +58,7 @@ router.get('/', async (req, res) => {
   try {
     logger.ocpi('/locations', 'GET', { query: req.query });
     
-    const { country_code, party_id, offset = 0, limit = 100 } = req.query;
+    const { country_code, party_id, offset = 0, limit = 25 } = req.query;
     
     // Validate pagination parameters
     const offsetInt = parseInt(offset);
