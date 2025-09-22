@@ -2,22 +2,28 @@
 
 Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 para gestionar infraestructura de carga de vehículos eléctricos en España y Portugal. La aplicación incluye funcionalidades completas para actuar tanto como CPO como eMSP, con un dashboard frontend integrado para gestión y monitoreo.
 
+**Versión Actual:** 1.2.2  
+**Última Actualización:** 2025-01-16
+
 ## 🚀 Características
 
 - **Protocolo OCPI 2.2**: Implementación completa del estándar
 - **Configuración Dinámica**: Variables de entorno para party_id, country_code y versión OCPI
-- **Distribución Geográfica**: 75 ubicaciones distribuidas por España y Portugal
-- **Infraestructura de Carga**: Máximo 50 EVSEs por ubicación
-- **Paginación OCPI 2.2**: Endpoints con paginación estándar
+- **Distribución Geográfica**: 10,000+ EVSEs distribuidos por España y Portugal
+- **Infraestructura de Carga**: Máximo 25 EVSEs por ubicación
+- **Paginación OCPI 2.2**: Endpoints con paginación estándar (límite configurable)
 - **Base de Datos Limpia**: Sin sincronización automática de Sequelize
 - **Datos Persistentes**: Información mantenida entre reinicios
 - **Autenticación por Tokens**: Sistema de tokens OCPI 2.2 con Real-time Authorization
-- **Logging Detallado**: Monitoreo completo de peticiones y respuestas
+- **Logging Optimizado**: Sistema de logging mejorado para mejor rendimiento
 - **Dashboard Frontend**: Interfaz web integrada para gestión y monitoreo
 - **Funcionalidad eMSP**: Capacidad para actuar como eMSP y conectar con CPOs externos
-- **Gestión de Conectores**: Información detallada de conectores por EVSE
+- **Gestión de Conectores**: Información detallada de conectores por EVSE con tarifas
 - **Notificaciones Automáticas**: Sistema de notificaciones para cambios de estado de EVSEs
 - **Configuración Flexible**: Adaptable a diferentes países y operadores mediante variables de entorno
+- **Validación de Payloads**: Sistema de validación de datos de entrada
+- **Gestión de Tarifas por Conector**: Asignación de tarifas específicas por conector
+- **Corrección de Datos**: Sistema de corrección automática de country_code
 
 ## 🏗️ Arquitectura
 
@@ -30,19 +36,21 @@ Aplicación CPO (Charge Point Operator) que implementa el protocolo OCPI 2.2 par
 - **Frontend**: HTML5 + Bootstrap 5.3 + JavaScript vanilla
 - **Tiempo Real**: Server-Sent Events (SSE) para streaming de logs
 
-## 📊 Distribución de Ubicaciones
+## 📊 Distribución de Infraestructura
 
-### España
-- **Madrid**: 20 ubicaciones
-- **Barcelona**: 15 ubicaciones  
-- **Valencia**: 10 ubicaciones
-- **Sevilla**: 8 ubicaciones
+### España (90% de la infraestructura)
+- **Madrid**: ~1,800 EVSEs
+- **Barcelona**: ~1,350 EVSEs  
+- **Valencia**: ~900 EVSEs
+- **Sevilla**: ~720 EVSEs
+- **Otras ciudades**: ~4,230 EVSEs
 
-### Portugal
-- **Lisboa**: 12 ubicaciones
-- **Porto**: 10 ubicaciones
+### Portugal (10% de la infraestructura)
+- **Lisboa**: ~540 EVSEs
+- **Porto**: ~450 EVSEs
+- **Otras ciudades**: ~510 EVSEs
 
-**Total**: 75 ubicaciones con infraestructura de carga distribuida
+**Total**: 10,000+ EVSEs distribuidos en 400+ ubicaciones
 
 ## ⚙️ Configuración
 
@@ -117,6 +125,12 @@ docker exec -it cursor-app-1 ./scripts/setup_database.sh
 # Ejecutar scripts individualmente
 docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi -f /app/scripts/init_database.sql
 docker exec -i cursorconcepto-postgres-1 psql -U cpo_user -d cpo_ocpi -f /app/scripts/complete_database_setup.sql
+```
+
+#### Opción D: Restaurar desde backup
+```bash
+# Restaurar desde un backup existente
+PGPASSWORD=cpo_password psql -h localhost -U cpo_user -d cpo_ocpi < backups/backup_YYYYMMDD_HHMMSS.sql
 ```
 
 **⚠️ Importante**: La aplicación debe estar ejecutándose **antes** de configurar la base de datos.
@@ -324,6 +338,47 @@ El dashboard está organizado en pestañas para facilitar la navegación:
 5. **🔗 Connections**: Conexiones eMSP activas
 6. **📝 Logs**: Sistema de logs en tiempo real
 7. **🔄 EMSP Actions**: Funcionalidades eMSP
+
+## 💾 Gestión de Backups
+
+### Crear Backup de Base de Datos
+```bash
+# Crear backup completo de la base de datos
+PGPASSWORD=cpo_password pg_dump -h localhost -U cpo_user -d cpo_ocpi > backups/backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Verificar que el backup se creó correctamente
+ls -la backups/backup_*.sql | tail -1
+```
+
+### Restaurar desde Backup
+```bash
+# Restaurar desde un backup específico
+PGPASSWORD=cpo_password psql -h localhost -U cpo_user -d cpo_ocpi < backups/backup_YYYYMMDD_HHMMSS.sql
+
+# Verificar la restauración
+PGPASSWORD=cpo_password psql -h localhost -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM locations;"
+```
+
+### Gestión de Backups
+```bash
+# Listar todos los backups disponibles
+ls -la backups/backup_*.sql
+
+# Ver el tamaño de los backups
+du -h backups/backup_*.sql
+
+# Limpiar backups antiguos (mantener solo los últimos 10)
+ls -t backups/backup_*.sql | tail -n +11 | xargs rm -f
+```
+
+### Scripts de Corrección de Datos
+```bash
+# Aplicar corrección de country_code
+PGPASSWORD=cpo_password psql -h localhost -U cpo_user -d cpo_ocpi -f scripts/fix_country_code_pt_to_es.sql
+
+# Verificar corrección aplicada
+PGPASSWORD=cpo_password psql -h localhost -U cpo_user -d cpo_ocpi -c "SELECT country_code, COUNT(*) FROM evses GROUP BY country_code;"
+```
 
 ## 🔍 Monitoreo y Logs
 
@@ -725,19 +780,38 @@ docker-compose logs -f app | grep -E "(SSE|EventSource|streaming)"
 ./scripts/logs follow
 ```
 
+## 🆕 Mejoras Recientes (v1.2.2)
+
+### Correcciones de Datos
+- **Corrección de country_code**: Eliminados valores hardcodeados, ahora usa variables de entorno
+- **Consistencia de datos**: 1,000+ registros de EVSEs y 40+ locations corregidos
+- **Scripts de corrección**: Herramientas automáticas para mantener integridad de datos
+
+### Optimizaciones de Rendimiento
+- **Logging optimizado**: Reducido tamaño de logs para mejor rendimiento
+- **Validación mejorada**: Sistema de validación de payloads más robusto
+- **Gestión de tarifas**: Asignación de tarifas específicas por conector
+
+### Mejoras de Configuración
+- **Variables de entorno**: Uso consistente de configuración desde .env
+- **Flexibilidad**: Fácil adaptación a diferentes países y operadores
+- **Mantenibilidad**: Código más limpio y mantenible
+
 ## 📊 Estadísticas
 
-- **Ubicaciones**: 75
-- **EVSEs**: ~2,500 (distribuidos uniformemente)
-- **Tarifas**: 6 (3 por país)
-- **Cobertura**: España y Portugal
+- **Ubicaciones**: 400+
+- **EVSEs**: 10,000+ (distribuidos geográficamente)
+- **Tarifas**: 6+ (3 por país)
+- **Cobertura**: España (90%) y Portugal (10%)
 - **Protocolo**: OCPI 2.2 completo con Real-time Authorization 2.2.1
 - **Conectores por EVSE**: 1-2 (IEC_62196_T2, DOMESTIC_F)
 - **Tipos de Conectores**: SOCKET, CABLE
-- **Potencia**: 16A-32A (AC_1_PHASE, AC_3_PHASE)
-- **Voltaje**: 40V-230V
+- **Potencia**: 16A-250A (AC_1_PHASE, AC_3_PHASE, DC)
+- **Voltaje**: 230V-1000V
 - **Autorización**: Real-time Authorization implementada
 - **Tokens eMSP**: 20 tokens predefinidos para funcionalidad eMSP
+- **Validación**: Sistema de validación de payloads implementado
+- **Logging**: Sistema optimizado para mejor rendimiento
 
 ## 🤝 Contribuir
 
