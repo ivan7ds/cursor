@@ -5,7 +5,24 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-01-16
+
+### Fixed
+- **Eliminación de valores hardcodeados de country_code**: Corregidos todos los valores hardcodeados de country_code para usar variables de entorno del archivo .env
+  - Actualizado `src/api/credentials.js`: Reemplazados valores hardcodeados "ES" por `process.env.OCPI_COUNTRY_CODE`
+  - Actualizado `src/services/testSessionService.js`: Reemplazado valor hardcodeado en token inválido por variable de entorno
+  - Actualizado `scripts/create_10000_evses.js`: Reemplazado uso de parámetros hardcodeados por `process.env.OCPI_COUNTRY_CODE`
+  - Mejorada consistencia en el uso de variables de entorno en toda la aplicación
+  - El country_code ahora se obtiene exclusivamente del archivo .env, eliminando dependencias de valores fijos
+
 ## [1.2.1] - 2025-01-16
+
+### Fixed
+- **Corrección de country_code en base de datos**: Corregido error donde country_code tenía valores incorrectos (PT) en lugar del código de país de la empresa (ES)
+  - Actualizados 1,000 registros en tabla `evses` cambiando country_code de PT a ES
+  - Actualizados 40 registros en tabla `locations` cambiando country_code de PT a ES
+  - Creado script `scripts/fix_country_code_pt_to_es.sql` para la corrección
+  - El country_code ahora representa correctamente el código del país de la empresa (ES) en lugar del país de las localizaciones individuales
 
 ### Added
 - **Optimización de logging**: Reducido el tamaño de los logs para mejorar la legibilidad y rendimiento

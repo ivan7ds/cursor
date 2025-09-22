@@ -429,18 +429,18 @@ router.put('/', async (req, res) => {
           {
             role: "CPO",
             business_details: {
-              name: "IPD"
+              name: process.env.OCPI_PARTY_ID
             },
-            party_id: "IPD",
-            country_code: "ES"
+            party_id: process.env.OCPI_PARTY_ID,
+            country_code: process.env.OCPI_COUNTRY_CODE
           },
           {
             role: "EMSP",
             business_details: {
-              name: "IPD"
+              name: process.env.OCPI_PARTY_ID
             },
-            party_id: "IPD",
-            country_code: "ES"
+            party_id: process.env.OCPI_PARTY_ID,
+            country_code: process.env.OCPI_COUNTRY_CODE
           }
         ]
       },

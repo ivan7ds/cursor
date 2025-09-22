@@ -131,7 +131,7 @@ async function createLocation(countryCode, countryName, coord, locationNumber) {
   const locationData = {
     id: locationId,
     party_id: process.env.OCPI_PARTY_ID || 'IPD',
-    country_code: countryCode,
+    country_code: process.env.OCPI_COUNTRY_CODE,
     name: `Estación de Carga ${cityName} ${locationNumber}`,
     address: `Calle Principal ${Math.floor(Math.random() * 999) + 1}, ${cityName}`,
     city: cityName,
@@ -182,7 +182,7 @@ async function createEVSE(locationId, countryCode, evseNumber) {
   const evseData = {
     id: evseId,
     party_id: process.env.OCPI_PARTY_ID || 'IPD',
-    country_code: countryCode,
+    country_code: process.env.OCPI_COUNTRY_CODE,
     location_id: locationId,
     evse_id: evseUid,
     status: EVSE_STATUSES[Math.floor(Math.random() * EVSE_STATUSES.length)],

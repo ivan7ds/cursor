@@ -221,12 +221,12 @@ class TestSessionService {
 
             // Crear un token inválido
             const invalidToken = {
-                country_code: 'ES',
-                party_id: 'IPD',
+                country_code: process.env.OCPI_COUNTRY_CODE,
+                party_id: process.env.OCPI_PARTY_ID,
                 uid: 'INVALID_TOKEN_' + Date.now(),
                 type: 'APP_USER',
                 contract_id: 'INVALID_CONTRACT',
-                issuer: 'IPD',
+                issuer: process.env.OCPI_PARTY_ID,
                 valid: false,
                 whitelist: 'NEVER',
                 last_updated: new Date().toISOString()
@@ -266,12 +266,12 @@ class TestSessionService {
             const payload = {
                 response_url: responseUrl,
                 token: {
-                    country_code: token.country_code || 'ES',
-                    party_id: token.party_id || 'IPD',
+                    country_code: token.country_code || process.env.OCPI_COUNTRY_CODE,
+                    party_id: token.party_id || process.env.OCPI_PARTY_ID,
                     uid: token.uid,
                     type: token.type,
                     contract_id: token.contract_id || 'DEFAULT_CONTRACT',
-                    issuer: token.issuer || 'IPD',
+                    issuer: token.issuer || process.env.OCPI_PARTY_ID,
                     valid: token.valid || true,
                     whitelist: token.whitelist || 'ALWAYS',
                     last_updated: token.last_updated || new Date().toISOString()
