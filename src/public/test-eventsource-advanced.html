@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test EventSource Avanzado - Diagnóstico Completo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        #logs { background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
+        .log-entry { margin: 5px 0; padding: 5px; border-left: 3px solid #007bff; }
+        .test-section { border: 1px solid #ddd; margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .test-section h3 { margin-top: 0; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test EventSource Avanzado - Diagnóstico Completo</h1>
+    
+    <div class="status info">
+        <strong>Estado:</strong> <span id="status">Preparado para diagnosticar EventSource</span>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔍 Test 1: EventSource Básico</h3>
+        <button onclick="testBasicEventSource()">🚀 Test EventSource Básico</button>
+        <div id="test1-logs"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔍 Test 2: EventSource con Timeout</h3>
+        <button onclick="testEventSourceWithTimeout()">⏱️ Test con Timeout</button>
+        <div id="test2-logs"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔍 Test 3: Fetch vs EventSource</h3>
+        <button onclick="testFetchVsEventSource()">📡 Comparar Fetch vs EventSource</button>
+        <div id="test3-logs"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔍 Test 4: WebSocket (Alternativa)</h3>
+        <button onclick="testWebSocket()">🔌 Test WebSocket</button>
+        <div id="test4-logs"></div>
+    </div>
+    
+    <button onclick="clearAllLogs()">🧹 Limpiar Todos los Logs</button>
+    
+    <script>
+        function addLog(message, type = 'info', testId = '') {
+            const logs = document.getElementById(testId + '-logs') || document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.parentElement.className = `status ${type}`;
+        }
+        
+        function testBasicEventSource() {
+            const testId = 'test1';
+            addLog('🔄 Iniciando test básico de EventSource...', 'info', testId);
+            
+            try {
+                const eventSource = new EventSource('http://localhost:3000/logs/stream');
+                
+                addLog(`📡 EventSource creado: ${eventSource.url}`, 'info', testId);
+                addLog(`🔍 Estado inicial: ${eventSource.readyState}`, 'info', testId);
+                
+                // Event listeners
+                eventSource.onopen = function(event) {
+                    addLog('✅ EventSource conectado (onopen)', 'success', testId);
+                };
+                
+                eventSource.onmessage = function(event) {
+                    addLog(`📨 Mensaje recibido: ${event.data}`, 'success', testId);
+                };
+                
+                eventSource.onerror = function(event) {
+                    addLog(`❌ Error en EventSource: ${event.type}`, 'error', testId);
+                    addLog(`🔍 Error details: ${JSON.stringify(event)}`, 'error', testId);
+                };
+                
+                // Verificar estado cada segundo
+                let checkCount = 0;
+                const interval = setInterval(() => {
+                    checkCount++;
+                    addLog(`🔍 Estado después de ${checkCount}s: ${eventSource.readyState}`, 'info', testId);
+                    
+                    if (eventSource.readyState === 1) {
+                        addLog('✅ EventSource en estado OPEN (1)', 'success', testId);
+                        clearInterval(interval);
+                        eventSource.close();
+                        addLog('🔒 EventSource cerrado exitosamente', 'info', testId);
+                    } else if (checkCount >= 10) {
+                        addLog('⚠️ Timeout: EventSource no se conectó en 10s', 'warning', testId);
+                        clearInterval(interval);
+                        eventSource.close();
+                        addLog('🔒 EventSource cerrado por timeout', 'info', testId);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                addLog(`❌ Error al crear EventSource: ${error.message}`, 'error', testId);
+                addLog(`🔍 Error stack: ${error.stack}`, 'error', testId);
+            }
+        }
+        
+        function testEventSourceWithTimeout() {
+            const testId = 'test2';
+            addLog('🔄 Iniciando test con timeout personalizado...', 'info', testId);
+            
+            try {
+                const eventSource = new EventSource('http://localhost:3000/logs/stream');
+                
+                addLog(`📡 EventSource creado con timeout de 5s`, 'info', testId);
+                
+                // Timeout personalizado
+                const timeout = setTimeout(() => {
+                    addLog('⏰ Timeout de 5s alcanzado', 'warning', testId);
+                    if (eventSource.readyState === 0) {
+                        addLog('⚠️ EventSource aún conectando - forzando cierre', 'warning', testId);
+                        eventSource.close();
+                        addLog('🔒 EventSource cerrado por timeout', 'info', testId);
+                    }
+                }, 5000);
+                
+                eventSource.onopen = function(event) {
+                    addLog('✅ EventSource conectado antes del timeout', 'success', testId);
+                    clearTimeout(timeout);
+                    eventSource.close();
+                    addLog('🔒 EventSource cerrado exitosamente', 'info', testId);
+                };
+                
+                eventSource.onerror = function(event) {
+                    addLog(`❌ Error en EventSource: ${event.type}`, 'error', testId);
+                };
+                
+            } catch (error) {
+                addLog(`❌ Error al crear EventSource: ${error.message}`, 'error', testId);
+            }
+        }
+        
+        function testFetchVsEventSource() {
+            const testId = 'test3';
+            addLog('🔄 Comparando Fetch vs EventSource...', 'info', testId);
+            
+            // Test Fetch
+            addLog('📡 Probando Fetch...', 'info', testId);
+            fetch('http://localhost:3000/logs/stream', {
+                method: 'HEAD',
+                headers: {
+                    'Accept': 'text/event-stream',
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => {
+                addLog(`✅ Fetch exitoso: ${response.status} ${response.statusText}`, 'success', testId);
+                addLog(`📋 Content-Type: ${response.headers.get('content-type')}`, 'info', testId);
+                addLog(`📋 Access-Control-Allow-Origin: ${response.headers.get('access-control-allow-origin')}`, 'info', testId);
+                
+                // Ahora probar EventSource
+                addLog('🔄 Ahora probando EventSource...', 'info', testId);
+                const eventSource = new EventSource('http://localhost:3000/logs/stream');
+                
+                eventSource.onopen = function(event) {
+                    addLog('✅ EventSource conectado exitosamente', 'success', testId);
+                    eventSource.close();
+                };
+                
+                eventSource.onerror = function(event) {
+                    addLog(`❌ EventSource falló: ${event.type}`, 'error', testId);
+                };
+                
+                // Timeout para EventSource
+                setTimeout(() => {
+                    if (eventSource.readyState === 0) {
+                        addLog('⚠️ EventSource no se conectó en 3s', 'warning', testId);
+                        eventSource.close();
+                    }
+                }, 3000);
+                
+            })
+            .catch(error => {
+                addLog(`❌ Error en Fetch: ${error.message}`, 'error', testId);
+            });
+        }
+        
+        function testWebSocket() {
+            const testId = 'test4';
+            addLog('🔄 Probando WebSocket como alternativa...', 'info', testId);
+            
+            try {
+                // Intentar WebSocket en el mismo puerto (aunque no esté implementado)
+                const ws = new WebSocket('ws://localhost:3000/logs/stream');
+                
+                ws.onopen = function(event) {
+                    addLog('✅ WebSocket conectado exitosamente', 'success', testId);
+                    ws.close();
+                };
+                
+                ws.onerror = function(event) {
+                    addLog('❌ WebSocket falló (esperado)', 'error', testId);
+                    addLog('💡 WebSocket no está implementado en el backend', 'info', testId);
+                };
+                
+                ws.onclose = function(event) {
+                    addLog('🔒 WebSocket cerrado', 'info', testId);
+                };
+                
+            } catch (error) {
+                addLog(`❌ Error al crear WebSocket: ${error.message}`, 'error', testId);
+            }
+        }
+        
+        function clearAllLogs() {
+            document.querySelectorAll('[id$="-logs"]').forEach(el => el.innerHTML = '');
+            addLog('🧹 Todos los logs limpiados', 'info');
+        }
+        
+        // Log inicial
+        addLog('🚀 Página de test avanzado cargada', 'info');
+        addLog('💡 Usa los diferentes tests para diagnosticar EventSource', 'info');
+    </script>
+</body>
+</html>

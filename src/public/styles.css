@@ -1,0 +1,458 @@
+/* Estilos generales */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+
+/* Contenedor de logs */
+.logs-container {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    height: 500px;
+    overflow-y: auto;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+}
+
+.logs-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.logs-container::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.logs-container::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.logs-container::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+/* Estilos para las entradas de log */
+.log-entry {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-timestamp {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.log-level {
+    font-weight: bold;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.log-level.ERROR {
+    background-color: #dc3545;
+    color: white;
+}
+
+.log-level.WARN {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.log-level.INFO {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.log-level.DEBUG {
+    background-color: #6c757d;
+    color: white;
+}
+
+.log-message {
+    margin-left: 0.5rem;
+    word-break: break-word;
+}
+
+/* Estilos para las tablas */
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Badges de estado */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.status-AVAILABLE {
+    background-color: #198754;
+}
+
+.status-CHARGING {
+    background-color: #0d6efd;
+}
+
+.status-INOPERATIVE {
+    background-color: #6c757d;
+}
+
+.status-OUTOFORDER {
+    background-color: #dc3545;
+}
+
+.status-PLANNED {
+    background-color: #fd7e14;
+}
+
+.status-RESERVED {
+    background-color: #6f42c1;
+}
+
+.status-UNKNOWN {
+    background-color: #6c757d;
+}
+
+/* Estilos para los filtros */
+.form-select, .form-control {
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Botones */
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: #0d6efd;
+    color: #0d6efd;
+    background-color: transparent;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logs-container {
+        height: 300px;
+        font-size: 0.8rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
+
+/* Animaciones */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estados de conexión */
+.connection-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.connection-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.connection-indicator.connected {
+    background-color: #198754;
+    animation: pulse 2s infinite;
+}
+
+.connection-indicator.disconnected {
+    background-color: #dc3545;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tooltips personalizados */
+.tooltip-inner {
+    background-color: #212529;
+    color: #fff;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+
+/* Estilos para datos JSON */
+.json-data {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Estilos para el contador de elementos */
+.count-badge {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+}
+
+/* Estilos para los filtros de búsqueda */
+.search-highlight {
+    background-color: #fff3cd;
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.25rem;
+}
+
+/* Estilos para las notificaciones del sistema */
+.system-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+}
+
+.notification-enter {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.notification-enter-active {
+    transform: translateX(0);
+    opacity: 1;
+    transition: all 0.3s ease-out;
+}
+
+.notification-exit {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-exit-active {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease-in;
+}
+
+/* Estilos para tooltips informativos */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.tooltip {
+    font-size: 0.875rem;
+}
+
+.tooltip-inner {
+    max-width: 400px;
+    text-align: left;
+    background-color: #2c3e50;
+    border: 1px solid #34495e;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-start .tooltip-arrow::before {
+    border-left-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-end .tooltip-arrow::before {
+    border-right-color: #2c3e50;
+}
+
+/* Estilo para el badge de conectores con tooltip */
+.badge.bg-info.cursor-pointer {
+    transition: all 0.2s ease;
+}
+
+.badge.bg-info.cursor-pointer:hover {
+    background-color: #0dcaf0 !important;
+    transform: scale(1.05);
+}
+
+/* Estilos para tooltips de locations */
+.location-name-tooltip {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.location-name-tooltip:hover {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.badge.bg-secondary.cursor-pointer {
+    transition: all 0.2s ease;
+}
+
+.badge.bg-secondary.cursor-pointer:hover {
+    background-color: #6c757d !important;
+    transform: scale(1.05);
+}
+
+/* Estilos para logs de recarga vs logs del sistema */
+.log-source {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+}
+
+.log-source.charging-log {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.log-source.system-log {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.log-source.api-log {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Mejorar la visualización de logs de recarga */
+.log-entry .charging-log {
+    border-left: 3px solid #ffc107;
+    padding-left: 0.5rem;
+}
+
+.log-entry .system-log {
+    border-left: 3px solid #6c757d;
+    padding-left: 0.5rem;
+}
+
+.log-entry .api-log {
+    border-left: 3px solid #007bff;
+    padding-left: 0.5rem;
+}
+
+/* Estilos para detalles expandibles en logs de API */
+.log-entry details {
+    margin-top: 0.5rem;
+}
+
+.log-entry details summary {
+    cursor: pointer;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.log-entry details summary:hover {
+    color: #0056b3;
+}
+
+.log-entry details pre {
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    max-height: 200px;
+    overflow-y: auto;
+}

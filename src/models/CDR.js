@@ -24,17 +24,17 @@ const CDR = sequelize.define('CDR', {
     comment: 'Session ID that was started by this token'
   },
   evse_uid: {
-    type: DataTypes.STRING(39),
+    type: DataTypes.STRING(36),
     allowNull: false,
     comment: 'Uniquely identifies the EVSE within the CPOs platform'
   },
   connector_id: {
     type: DataTypes.STRING(36),
-    allowNull: false,
+    allowNull: true,
     comment: 'Uniquely identifies the connector within the EVSE'
   },
   id_token: {
-    type: DataTypes.JSONB,
+    type: DataTypes.STRING(36),
     allowNull: false,
     comment: 'Identification token used to start this charging session'
   },
@@ -49,19 +49,18 @@ const CDR = sequelize.define('CDR', {
     comment: 'End date and time of the charging session'
   },
   total_energy: {
-    type: DataTypes.DECIMAL(10, 3),
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
     comment: 'Total energy delivered in kWh'
   },
   total_cost: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
+    allowNull: true,
     comment: 'Total cost of the charging session'
   },
   currency: {
     type: DataTypes.STRING(3),
-    allowNull: false,
-    defaultValue: 'EUR',
+    allowNull: true,
     comment: 'ISO 4217 code of the currency used for this CDR'
   },
   total_parking_time: {
@@ -77,12 +76,11 @@ const CDR = sequelize.define('CDR', {
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: DataTypes.NOW,
     comment: 'Timestamp when this CDR was last updated'
   }
 }, {
   tableName: 'cdrs',
-  timestamps: false,
+  timestamps: true,
   indexes: [
     {
       fields: ['country_code', 'party_id']
@@ -104,6 +102,19 @@ const CDR = sequelize.define('CDR', {
     }
   ]
 });
+
+// Define associations
+CDR.associate = (models) => {
+  CDR.belongsTo(models.Session, {
+    foreignKey: 'session_id',
+    as: 'session'
+  });
+  
+  CDR.belongsTo(models.EVSE, {
+    foreignKey: 'evse_uid',
+    as: 'evse'
+  });
+};
 
 module.exports = CDR;
 

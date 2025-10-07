@@ -77,6 +77,11 @@ const EVSE = sequelize.define('EVSE', {
     type: DataTypes.DATE,
     allowNull: false,
     comment: 'Timestamp when this EVSE was last updated'
+  },
+  deleted_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Timestamp when this EVSE was soft deleted'
   }
 }, {
   tableName: 'evses',
@@ -96,6 +101,9 @@ const EVSE = sequelize.define('EVSE', {
     },
     {
       fields: ['last_updated']
+    },
+    {
+      fields: ['deleted_at']
     }
   ]
 });

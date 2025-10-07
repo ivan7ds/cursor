@@ -1,0 +1,2504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ OCPI Test Application v1.2.1 - OCPI 2.2</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="sparkle.png" alt="Sparkle Chibi" width="50" height="50" class="me-2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); object-fit: contain;">
+                <span class="fw-bold">OCPI Test Application <small class="text-muted">v1.2.1</small></span>
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <i class="bi bi-circle-fill text-success"></i>
+                    <span id="connection-status">Conectado</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Tabs de navegación -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">
+                    <i class="bi bi-terminal"></i> Logs en Tiempo Real
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="locations-tab" data-bs-toggle="tab" data-bs-target="#locations" type="button" role="tab">
+                    <i class="bi bi-geo-alt"></i> Locations
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="evses-tab" data-bs-toggle="tab" data-bs-target="#evses" type="button" role="tab">
+                    <i class="bi bi-ev-station"></i> EVSEs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="connections-tab" data-bs-toggle="tab" data-bs-target="#connections" type="button" role="tab">
+                    <i class="bi bi-hdd-network"></i> Conexiones
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tariffs-tab" data-bs-toggle="tab" data-bs-target="#tariffs" type="button" role="tab">
+                    <i class="bi bi-currency-dollar"></i> Tariffs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tokens-tab" data-bs-toggle="tab" data-bs-target="#tokens" type="button" role="tab">
+                    <i class="bi bi-key"></i> Tokens
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">
+                    <i class="bi bi-lightning-charge"></i> Sessions
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-locations-tab" data-bs-toggle="tab" data-bs-target="#emsp-locations" type="button" role="tab">
+                    <i class="bi bi-geo-alt-fill"></i> Ext Locations
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-evses-tab" data-bs-toggle="tab" data-bs-target="#emsp-evses" type="button" role="tab">
+                    <i class="bi bi-ev-station-fill"></i> Ext EVSEs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-tariffs-tab" data-bs-toggle="tab" data-bs-target="#emsp-tariffs" type="button" role="tab">
+                    <i class="bi bi-currency-exchange"></i> Ext Tariffs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-tokens-tab" data-bs-toggle="tab" data-bs-target="#emsp-tokens" type="button" role="tab">
+                    <i class="bi bi-key-fill"></i> Ext Tokens
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ext-sessions-tab" data-bs-toggle="tab" data-bs-target="#ext-sessions" type="button" role="tab">
+                    <i class="bi bi-cloud-download"></i> Ext Sessions
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="emsp-actions-tab" data-bs-toggle="tab" data-bs-target="#emsp-actions" type="button" role="tab">
+                    <i class="bi bi-play-circle-fill"></i> Ext Actions
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test" type="button" role="tab">
+                    <i class="bi bi-bug-fill"></i> Test
+                    <span class="badge bg-danger ms-1" id="test-error-badge" style="display: none;">!</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Contenido de las tabs -->
+        <div class="tab-content mt-3" id="dashboardTabsContent">
+            <!-- Tab de Logs -->
+            <div class="tab-pane fade show active" id="logs" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-terminal"></i> Logs en Tiempo Real
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="startLogs">
+                                <i class="bi bi-play-circle"></i> Iniciar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="stopLogs" disabled>
+                                <i class="bi bi-stop-circle"></i> Parar
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="clearLogs">
+                                <i class="bi bi-trash"></i> Limpiar
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" id="removeDuplicates">
+                                <i class="bi bi-funnel"></i> Quitar Duplicados
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros de logs -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="logLevelFilter">
+                                    <option value="">Todos los niveles</option>
+                                    <option value="ERROR">Error</option>
+                                    <option value="WARN">Warning</option>
+                                    <option value="INFO">Info</option>
+                                    <option value="DEBUG">Debug</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="logTypeFilter">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="Charging">Charging</option>
+                                    <option value="System">System</option>
+                                    <option value="API">API</option>
+                                    <option value="OCPI">OCPI</option>
+                                    <option value="Database">Database</option>
+                                    <option value="Notification">Notification</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" id="logSearchFilter" placeholder="Buscar en logs...">
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoScroll" checked>
+                                    <label class="form-check-label" for="autoScroll">
+                                        Auto-scroll
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filterBrowserLogs" checked>
+                                    <label class="form-check-label" for="filterBrowserLogs">
+                                        Ocultar peticiones web
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenedor de logs -->
+                        <div class="logs-container" id="logsContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Locations -->
+            <div class="tab-pane fade" id="locations" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt"></i> Locations
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createLocationBtn">
+                                <i class="bi bi-plus-circle"></i> Crear Location
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshLocations">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="locationsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros de búsqueda -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="locationSearchFilter" placeholder="Buscar location por nombre, ciudad, país...">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="locationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>País</th>
+                                        <th>Ciudad</th>
+                                        <th>Dirección</th>
+                                        <th>EVSEs</th>
+                                        <th>Última Actualización</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="locationsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando locations...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="locationsPageInfo">0-0</span> de <span id="locationsTotalCount">0</span> Locations
+                            </div>
+                            <nav aria-label="Navegación de páginas de Locations">
+                                <ul class="pagination pagination-sm mb-0" id="locationsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="locationsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="locationsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de EVSEs -->
+            <div class="tab-pane fade" id="evses" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-ev-station"></i> EVSEs
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createEvseBtn">
+                                <i class="bi bi-plus-circle"></i> Crear EVSE
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" id="changeEvseStatusBtn">
+                                <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEvses">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="evsesCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros de EVSEs -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="evseStatusFilter">
+                                    <option value="">Todos los estados</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" id="evseSearchFilter" placeholder="Buscar EVSE...">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="evsesTable">
+                                <thead>
+                                    <tr>
+                                        <th>EVSE ID</th>
+                                        <th>UID</th>
+                                        <th>Location</th>
+                                        <th>Referencia Física</th>
+                                        <th>Estado</th>
+                                        <th>Conectores</th>
+                                        <th>Última Actualización</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="evsesTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando EVSEs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="evsesPageInfo">0-0</span> de <span id="evsesTotalCount">0</span> EVSEs
+                            </div>
+                            <nav aria-label="Navegación de páginas de EVSEs">
+                                <ul class="pagination pagination-sm mb-0" id="evsesPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="evsesPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="evsesNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Conexiones -->
+            <div class="tab-pane fade" id="connections" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-hdd-network"></i> Conexiones eMSP
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="initiateHandshakeBtn">
+                                <i class="bi bi-plus-circle"></i> Nueva Conexión
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshConnections">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="deleteConnectionBtn" disabled title="Eliminar conexiones seleccionadas">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <span class="badge bg-primary" id="connectionsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="connectionsTable">
+                                <thead>
+                                    <tr>
+                                        <th width="50">
+                                            <input type="checkbox" id="selectAllConnections" class="form-check-input">
+                                        </th>
+                                        <th>Party ID</th>
+                                        <th>País</th>
+                                        <th>URL</th>
+                                        <th>Token</th>
+                                        <th>Última Actualización</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="connectionsTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando conexiones...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Nueva Conexión -->
+            <div class="modal fade" id="handshakeModal" tabindex="-1" aria-labelledby="handshakeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="handshakeModalLabel">
+                                <i class="bi bi-link-45deg"></i> Nueva Conexión OCPI
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-arrow-right-circle"></i> Conectar a Organización Externa
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted small">Iniciar conexión como EMSP hacia una organización externa (CPO)</p>
+                                            <form id="connectToCpoForm">
+                                                <div class="mb-3">
+                                                    <label for="cpoUrl" class="form-label">URL de la Organización</label>
+                                                    <input type="url" class="form-control" id="cpoUrl" placeholder="https://organization.example.com" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="cpoToken" class="form-label">Token de la Organización</label>
+                                                    <input type="text" class="form-control" id="cpoToken" placeholder="Token proporcionado por la organización" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="cpoPartyId" class="form-label">Party ID de la Organización</label>
+                                                    <input type="text" class="form-control" id="cpoPartyId" placeholder="ABC" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="cpoCountryCode" class="form-label">Código de País</label>
+                                                    <input type="text" class="form-control" id="cpoCountryCode" placeholder="ES" maxlength="2" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100">
+                                                    <i class="bi bi-arrow-right"></i> Conectar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-arrow-left-circle"></i> Recibir Conexión de Organización Externa
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted small">Generar credenciales para que una organización externa (EMSP) se conecte a nosotros (CPO)</p>
+                                            <form id="generateCredentialsForm">
+                                                <div class="mb-3">
+                                                    <label for="emspPartyId" class="form-label">Party ID de la Organización</label>
+                                                    <input type="text" class="form-control" id="emspPartyId" placeholder="XYZ" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="emspCountryCode" class="form-label">Código de País</label>
+                                                    <input type="text" class="form-control" id="emspCountryCode" placeholder="ES" maxlength="2" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="emspUrl" class="form-label">URL de la Organización</label>
+                                                    <input type="url" class="form-control" id="emspUrl" placeholder="https://organization.example.com" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-success w-100">
+                                                    <i class="bi bi-key"></i> Generar Credenciales
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Tokens -->
+            <div class="tab-pane fade" id="tokens" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-key"></i> Tokens de Acceso
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createTokenBtn">
+                                <i class="bi bi-plus-circle"></i> Crear Token
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTokens">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="tokensCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="tokensTable">
+                                <thead>
+                                    <tr>
+                                        <th>UID</th>
+                                        <th>Party ID</th>
+                                        <th>País</th>
+                                        <th>Estado</th>
+                                        <th>Tipo</th>
+                                        <th>Whitelist</th>
+                                        <th>Creado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tokensTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando tokens...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext Locations -->
+            <div class="tab-pane fade" id="emsp-locations" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt-fill"></i> Ext Locations
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspLocations">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspLocationsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspLocationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>eMSP</th>
+                                        <th>Nombre</th>
+                                        <th>País</th>
+                                        <th>Ciudad</th>
+                                        <th>Dirección</th>
+                                        <th>EVSEs</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspLocationsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando Ext locations...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext EVSEs -->
+            <div class="tab-pane fade" id="emsp-evses" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-ev-station-fill"></i> Ext EVSEs
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspEvses">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspEvsesCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros de Ext EVSEs -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="emspEvseStatusFilter">
+                                    <option value="">Todos los estados</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="emspEvsePartyFilter">
+                                    <option value="">Todos los eMSPs</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" id="emspEvseSearchFilter" placeholder="Buscar Ext EVSE...">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspEvsesTable">
+                                <thead>
+                                    <tr>
+                                        <th>EVSE ID</th>
+                                        <th>UID</th>
+                                        <th>eMSP</th>
+                                        <th>Location</th>
+                                        <th>Estado</th>
+                                        <th>Conectores</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspEvsesTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando Ext EVSEs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext Tariffs -->
+            <div class="tab-pane fade" id="emsp-tariffs" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-currency-exchange"></i> Ext Tariffs
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspTariffs">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspTariffsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspTariffsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>eMSP</th>
+                                        <th>Tipo</th>
+                                        <th>Moneda</th>
+                                        <th>Elementos</th>
+                                        <th>Válido Desde</th>
+                                        <th>Válido Hasta</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspTariffsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando Ext tariffs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Tariffs -->
+            <div class="tab-pane fade" id="tariffs" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-currency-dollar"></i> Tariffs del CPO
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-success btn-sm" id="createTariffBtn">
+                                <i class="bi bi-plus-circle"></i> Crear Tarifa
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTariffs">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="tariffsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="tariffsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>CPO</th>
+                                        <th>Tipo</th>
+                                        <th>Moneda</th>
+                                        <th>Elementos</th>
+                                        <th>Precio Mín</th>
+                                        <th>Precio Máx</th>
+                                        <th>Válido Desde</th>
+                                        <th>Válido Hasta</th>
+                                        <th>Última Actualización</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tariffsTableBody">
+                                    <tr>
+                                        <td colspan="11" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando tariffs...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Sessions -->
+            <div class="tab-pane fade" id="sessions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning-charge"></i> Sesiones de Carga
+                        </h5>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="filterActiveSessions" checked>
+                                <label class="form-check-label" for="filterActiveSessions">
+                                    Solo Activas
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshSessions">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="sessionsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID Sesión</th>
+                                        <th>Token UID</th>
+                                        <th>EVSE ID</th>
+                                        <th>Estado</th>
+                                        <th>Inicio</th>
+                                        <th>Fin</th>
+                                        <th>Energía (kWh)</th>
+                                        <th>Costo Total</th>
+                                        <th>Ext</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessionsTableBody">
+                                    <tr>
+                                        <td colspan="10" class="text-center text-muted py-4">
+                                            <i class="bi bi-lightning-charge fs-1 d-block mb-2"></i>
+                                            No hay sesiones de carga disponibles
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext Tokens -->
+            <div class="tab-pane fade" id="emsp-tokens" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-key-fill"></i> Ext Tokens
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshEmspTokens">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="emspTokensCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="emspTokensTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>eMSP</th>
+                                        <th>UID</th>
+                                        <th>Tipo</th>
+                                        <th>Método Auth</th>
+                                        <th>Emisor</th>
+                                        <th>Válido</th>
+                                        <th>Whitelist</th>
+                                        <th>Última Actualización</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="emspTokensTableBody">
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i> Cargando Ext tokens...
+                                        </td>
+                                    </tbody>
+                                </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext Sessions -->
+            <div class="tab-pane fade" id="ext-sessions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cloud-download"></i> Sesiones Externas
+                        </h5>
+                        <div class="d-flex gap-2 align-items-center">
+                                                            <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filterActiveExtSessions" checked>
+                                    <label class="form-check-label" for="filterActiveExtSessions">
+                                        Solo Activas/Pendientes
+                                    </label>
+                                </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshExtSessions">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <span class="badge bg-primary" id="extSessionsCount">0</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID Sesión</th>
+                                        <th>Organización</th>
+                                        <th>Token UID</th>
+                                        <th>EVSE UID</th>
+                                        <th>Estado</th>
+                                        <th>Inicio</th>
+                                        <th>Fin</th>
+                                        <th>Energía (kWh)</th>
+                                        <th>Costo</th>
+                                        <th>Moneda</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="extSessionsTableBody">
+                                    <tr>
+                                        <td colspan="11" class="text-center text-muted py-4">
+                                            <i class="bi bi-cloud-download fs-1 d-block mb-2"></i>
+                                            No hay sesiones externas disponibles
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Ext Actions -->
+            <div class="tab-pane fade" id="emsp-actions" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-play-circle-fill"></i> Ext Actions - Consultar CPOs
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Configuración de conexión CPO -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Configuración de Conexión CPO</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="cpoConnection" class="form-label">Conexión CPO</label>
+                                        <select class="form-select" id="cpoConnection" required>
+                                            <option value="">Seleccionar conexión...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="cpoUrlExtActions" class="form-label">URL del CPO</label>
+                                        <input type="url" class="form-control" id="cpoUrlExtActions" readonly>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="cpoTokenExtActions" class="form-label">Token de Acceso</label>
+                                        <input type="text" class="form-control" id="cpoTokenExtActions" readonly>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-4">
+                                        <label for="cpoVersion" class="form-label">Versión OCPI</label>
+                                        <select class="form-select" id="cpoVersion">
+                                            <option value="2.2">2.2</option>
+                                            <option value="2.1">2.1</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones disponibles -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Acciones Disponibles</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-primary" id="getCpoVersions">
+                                        <i class="bi bi-info-circle"></i> Obtener Versiones
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="getCpoDetails">
+                                        <i class="bi bi-list-ul"></i> Obtener Details
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="getCpoLocations">
+                                        <i class="bi bi-geo-alt"></i> Obtener Locations
+                                    </button>
+                                    <button type="button" class="btn btn-info" id="getCpoSessions">
+                                        <i class="bi bi-lightning-charge"></i> Obtener Sessions
+                                    </button>
+                                    <button type="button" class="btn btn-warning" id="getCpoTariffs">
+                                        <i class="bi bi-currency-exchange"></i> Obtener Tariffs
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="getCpoTokens">
+                                        <i class="bi bi-key"></i> Obtener Tokens
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="startCpoCharging">
+                                        <i class="bi bi-lightning-charge"></i> <span id="chargingButtonText">Iniciar Recarga</span>
+                                    </button>
+                                    <button type="button" class="btn btn-dark" id="getCpoCdrs">
+                                        <i class="bi bi-receipt"></i> Obtener CDRs
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resultado de la acción -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6>Resultado de la Acción</h6>
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <span>Respuesta del CPO</span>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearCpoResponse">
+                                            <i class="bi bi-trash"></i> Limpiar
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <pre id="cpoResponse" class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;">Haz clic en una acción para consultar al CPO...</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Test -->
+            <div class="tab-pane fade" id="test" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bug-fill"></i> Test - Monitoreo de Jobs
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTestStatus">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" id="toggleJobsStatus">
+                                <i class="bi bi-pause-circle" id="toggleJobsIcon"></i> <span id="toggleJobsText">Pausar Jobs</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" id="runSampleTests">
+                                <i class="bi bi-play-circle"></i> Ejecutar Pruebas
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" id="viewTestHistory">
+                                <i class="bi bi-list-ul"></i> Ver Historial
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="clearTestErrors">
+                                <i class="bi bi-trash"></i> Limpiar Errores
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Estado de los Jobs -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Estado de los Jobs</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-success mb-0">
+                                                        <i class="bi bi-check-circle-fill"></i> EVSE Notification Service
+                                                    </h6>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm" id="toggleEvseService">
+                                                        <i class="bi bi-play-circle" id="toggleEvseIcon"></i> <span id="toggleEvseText">Activar</span>
+                                                    </button>
+                                                </div>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="evse-service-status" class="badge bg-success">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="evse-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="evse-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> Charging Notification Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="charging-service-status" class="badge bg-success">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="charging-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="charging-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> EMSP Locations Sync Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="emsp-locations-service-status" class="badge bg-success">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="emsp-locations-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="emsp-locations-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> EMSP Tariffs Sync Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="emsp-tariffs-service-status" class="badge bg-success">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="emsp-tariffs-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="emsp-tariffs-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="card border-success">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> EMSP Tokens Sync Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="emsp-tokens-service-status" class="badge bg-success">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="emsp-tokens-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="emsp-tokens-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-info">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-info">
+                                                    <i class="bi bi-bug-fill"></i> Test Location EVSE Creation Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="test-location-evse-service-status" class="badge bg-info">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="test-location-evse-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="test-location-evse-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-warning">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-warning">
+                                                    <i class="bi bi-lightning-charge-fill"></i> Test Session Service
+                                                </h6>
+                                                <p class="card-text mb-1">
+                                                    <strong>Estado:</strong> <span id="test-session-service-status" class="badge bg-warning">Activo</span>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <strong>Última ejecución:</strong> <span id="test-session-last-run">-</span>
+                                                </p>
+                                                <p class="card-text mb-0">
+                                                    <strong>Errores:</strong> <span id="test-session-error-count" class="badge bg-danger">0</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Log de Errores -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Log de Errores Recientes</h6>
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <span>Errores de Jobs</span>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleErrorLog">
+                                                <i class="bi bi-eye"></i> <span id="toggleErrorLogText">Mostrar</span>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" id="clearErrorLog">
+                                                <i class="bi bi-trash"></i> Limpiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" id="errorLogContainer" style="display: none;">
+                                        <div id="errorLog" class="bg-dark text-light p-3 rounded" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9em;">
+                                            <div class="text-muted">No hay errores registrados</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tarifas Sincronizadas Recientemente -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h6>Tarifas Sincronizadas Recientemente</h6>
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <span>Últimas Tarifas de EMSPs</span>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTariffs">
+                                                <i class="bi bi-arrow-clockwise"></i> Actualizar
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info btn-sm" id="toggleTariffsView">
+                                                <i class="bi bi-eye"></i> <span id="toggleTariffsViewText">Mostrar</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" id="tariffsContainer" style="display: none;">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover" id="tariffsTable">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th>EMSP</th>
+                                                        <th>ID Tarifa</th>
+                                                        <th>Tipo</th>
+                                                        <th>Moneda</th>
+                                                        <th>Elementos</th>
+                                                        <th>Última Actualización</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tariffsTableBody">
+                                                    <tr>
+                                                        <td colspan="6" class="text-center text-muted">Cargando tarifas...</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas de Pruebas -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6>Estadísticas de Pruebas</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary" id="total-tests">0</h5>
+                                                <p class="card-text">Total de Pruebas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-success" id="passed-tests">0</h5>
+                                                <p class="card-text">Exitosas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-danger" id="failed-tests">0</h5>
+                                                <p class="card-text">Fallidas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-warning" id="running-tests">0</h5>
+                                                <p class="card-text">En Ejecución</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Historial de Pruebas -->
+                        <div class="row" id="testHistorySection" style="display: none;">
+                            <div class="col-md-12">
+                                <h6>Historial de Pruebas</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Prueba</th>
+                                                <th>Estado</th>
+                                                <th>Mensaje</th>
+                                                <th>Duración (ms)</th>
+                                                <th>Timestamp</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="testHistoryTable">
+                                            <!-- Los datos se cargarán dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear tarifa -->
+    <div class="modal fade" id="createTariffModal" tabindex="-1" aria-labelledby="createTariffModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTariffModalLabel">
+                        <i class="bi bi-currency-dollar"></i> Crear Nueva Tarifa
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTariffForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffId" class="form-label">ID de Tarifa *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="tariffId" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateTariffIdBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">ID único autogenerado (UUID)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffType" class="form-label">Tipo de Tarifa *</label>
+                                <select class="form-select" id="tariffType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="REGULAR">REGULAR</option>
+                                    <option value="AD_HOC_PAYMENT">AD_HOC_PAYMENT</option>
+                                    <option value="PROFILE_CHEAP">PROFILE_CHEAP</option>
+                                    <option value="PROFILE_FAST">PROFILE_FAST</option>
+                                    <option value="PROFILE_GREEN">PROFILE_GREEN</option>
+                                    <option value="REGULAR_1">REGULAR_1</option>
+                                    <option value="REGULAR_2">REGULAR_2</option>
+                                    <option value="REGULAR_3">REGULAR_3</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffCurrency" class="form-label">Moneda *</label>
+                                <select class="form-select" id="tariffCurrency" required>
+                                    <option value="">Seleccionar moneda...</option>
+                                    <option value="EUR">EUR (Euro)</option>
+                                    <option value="USD">USD (Dólar)</option>
+                                    <option value="GBP">GBP (Libra)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffLocation" class="form-label">Ubicación *</label>
+                                <select class="form-select" id="tariffLocation" required>
+                                    <option value="">Seleccionar ubicación...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Fechas de validez -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffStartDate" class="form-label">Válido Desde</label>
+                                <input type="datetime-local" class="form-control" id="tariffStartDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffEndDate" class="form-label">Válido Hasta</label>
+                                <input type="datetime-local" class="form-control" id="tariffEndDate">
+                            </div>
+                        </div>
+
+                        <!-- Precios -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffMinPrice" class="form-label">Precio Mínimo</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="tariffMinPrice" step="0.01" min="0" placeholder="0.00">
+                                    <span class="input-group-text" id="tariffMinPriceCurrency"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffMaxPrice" class="form-label">Precio Máximo</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="tariffMaxPrice" step="0.01" min="0" placeholder="0.00">
+                                    <span class="input-group-text" id="tariffMaxPriceCurrency"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Elementos de tarifa -->
+                        <div class="mb-3">
+                            <label class="form-label">Elementos de Tarifa</label>
+                            <div id="tariffElementsContainer">
+                                <div class="tariff-element border rounded p-3 mb-2">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Tipo de Componente</label>
+                                            <select class="form-select tariff-component-type" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="ENERGY">ENERGY</option>
+                                                <option value="FLAT">FLAT</option>
+                                                <option value="PARKING_TIME">PARKING_TIME</option>
+                                                <option value="TIME">TIME</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Precio</label>
+                                            <input type="number" class="form-control tariff-component-price" step="0.001" min="0" required placeholder="0.000">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Paso</label>
+                                            <input type="number" class="form-control tariff-component-step" step="0.1" min="0" placeholder="0.0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addTariffElement">
+                                <i class="bi bi-plus-circle"></i> Agregar Elemento
+                            </button>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tariffAltText" class="form-label">Texto Alternativo</label>
+                                <input type="text" class="form-control" id="tariffAltText" placeholder="Descripción de la tarifa">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tariffAltUrl" class="form-label">URL Alternativa</label>
+                                <input type="url" class="form-control" id="tariffAltUrl" placeholder="https://...">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveTariffBtn">
+                        <i class="bi bi-check-circle"></i> Crear Tarifa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear location -->
+    <div class="modal fade" id="createLocationModal" tabindex="-1" aria-labelledby="createLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createLocationModalLabel">
+                        <i class="bi bi-geo-alt"></i> Crear Nueva Location
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createLocationForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationId" class="form-label">ID de Location *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="locationId" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateLocationIdBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">ID único autogenerado (UUID)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationName" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="locationName" required placeholder="Nombre de la ubicación">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationCountry" class="form-label">País *</label>
+                                <select class="form-select" id="locationCountry" required>
+                                    <option value="">Seleccionar país...</option>
+                                    <option value="ESP">España</option>
+                                    <option value="PRT">Portugal</option>
+                                    <option value="FRA">Francia</option>
+                                    <option value="DEU">Alemania</option>
+                                    <option value="ITA">Italia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationCity" class="form-label">Ciudad *</label>
+                                <input type="text" class="form-control" id="locationCity" required placeholder="Nombre de la ciudad">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationAddress" class="form-label">Dirección *</label>
+                                <input type="text" class="form-control" id="locationAddress" required placeholder="Dirección completa">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationPostalCode" class="form-label">Código Postal</label>
+                                <input type="text" class="form-control" id="locationPostalCode" placeholder="Código postal">
+                            </div>
+                        </div>
+
+                        <!-- Coordenadas -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationLatitude" class="form-label">Latitud *</label>
+                                <input type="number" class="form-control" id="locationLatitude" step="0.000001" required placeholder="40.4168">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationLongitude" class="form-label">Longitud *</label>
+                                <input type="number" class="form-control" id="locationLongitude" step="0.000001" required placeholder="-3.7038">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationParkingType" class="form-label">Tipo de Parking *</label>
+                                <select class="form-select" id="locationParkingType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="ON_STREET">En la calle</option>
+                                    <option value="PARKING_GARAGE">Garaje</option>
+                                    <option value="UNDERGROUND_GARAGE">Garaje subterráneo</option>
+                                    <option value="PARKING_LOT">Aparcamiento</option>
+                                    <option value="ALONG_MOTORWAY">Junto a la autopista</option>
+                                    <option value="ON_DRIVEWAY">En el camino de entrada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationTimeZone" class="form-label">Zona Horaria *</label>
+                                <select class="form-select" id="locationTimeZone" required>
+                                    <option value="">Seleccionar zona horaria...</option>
+                                    <option value="Europe/Madrid">Europe/Madrid (España)</option>
+                                    <option value="Europe/Lisbon">Europe/Lisbon (Portugal)</option>
+                                    <option value="Europe/Paris">Europe/Paris (Francia)</option>
+                                    <option value="Europe/Berlin">Europe/Berlin (Alemania)</option>
+                                    <option value="Europe/Rome">Europe/Rome (Italia)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Información de contacto -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationPhone" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="locationPhone" placeholder="+34 900 123 456">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="locationEmail" placeholder="info@location.com">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="locationWebsite" class="form-label">Sitio Web</label>
+                                <input type="url" class="form-control" id="locationWebsite" placeholder="https://...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="locationOperator" class="form-label">Operador</label>
+                                <input type="text" class="form-control" id="locationOperator" placeholder="Nombre del operador">
+                            </div>
+                        </div>
+
+                        <!-- Horarios -->
+                        <div class="mb-3">
+                            <label class="form-label">Horarios de Operación</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="locationOpen24h" class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="locationOpen24h">
+                                         Abierto 24/7
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="locationAccessPublic" class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="locationAccessPublic" checked>
+                                         Acceso público
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveLocationBtn">
+                        <i class="bi bi-check-circle"></i> Crear Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar location -->
+    <div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editLocationModalLabel">
+                        <i class="bi bi-pencil"></i> Editar Location
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editLocationForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationId" class="form-label">ID de Location *</label>
+                                <input type="text" class="form-control" id="editLocationId" required readonly>
+                                <small class="form-text text-muted">ID único (no editable)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationName" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="editLocationName" required placeholder="Nombre de la ubicación">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationCountry" class="form-label">País *</label>
+                                <select class="form-select" id="editLocationCountry" required>
+                                    <option value="">Seleccionar país...</option>
+                                    <option value="ESP">España</option>
+                                    <option value="PRT">Portugal</option>
+                                    <option value="FRA">Francia</option>
+                                    <option value="DEU">Alemania</option>
+                                    <option value="ITA">Italia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationCity" class="form-label">Ciudad *</label>
+                                <input type="text" class="form-control" id="editLocationCity" required placeholder="Nombre de la ciudad">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationAddress" class="form-label">Dirección *</label>
+                                <input type="text" class="form-control" id="editLocationAddress" required placeholder="Dirección completa">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationPostalCode" class="form-label">Código Postal</label>
+                                <input type="text" class="form-control" id="editLocationPostalCode" placeholder="Código postal">
+                            </div>
+                        </div>
+
+                        <!-- Coordenadas -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationLatitude" class="form-label">Latitud *</label>
+                                <input type="number" class="form-control" id="editLocationLatitude" step="0.000001" required placeholder="40.4168">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationLongitude" class="form-label">Longitud *</label>
+                                <input type="number" class="form-control" id="editLocationLongitude" step="0.000001" required placeholder="-3.7038">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationParkingType" class="form-label">Tipo de Parking *</label>
+                                <select class="form-select" id="editLocationParkingType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="ON_STREET">En la calle</option>
+                                    <option value="PARKING_GARAGE">Garaje</option>
+                                    <option value="UNDERGROUND_GARAGE">Garaje subterráneo</option>
+                                    <option value="PARKING_LOT">Aparcamiento</option>
+                                    <option value="ALONG_MOTORWAY">Junto a la autopista</option>
+                                    <option value="ON_DRIVEWAY">En el camino de entrada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationTimeZone" class="form-label">Zona Horaria *</label>
+                                <select class="form-select" id="editLocationTimeZone" required>
+                                    <option value="">Seleccionar zona horaria...</option>
+                                    <option value="Europe/Madrid">Europe/Madrid (España)</option>
+                                    <option value="Europe/Lisbon">Europe/Lisbon (Portugal)</option>
+                                    <option value="Europe/Paris">Europe/Paris (Francia)</option>
+                                    <option value="Europe/Berlin">Europe/Berlin (Alemania)</option>
+                                    <option value="Europe/Rome">Europe/Rome (Italia)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Información de contacto -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationPhone" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="editLocationPhone" placeholder="+34 900 123 456">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editLocationEmail" placeholder="info@location.com">
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLocationWebsite" class="form-label">Sitio Web</label>
+                                <input type="url" class="form-control" id="editLocationWebsite" placeholder="https://...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editLocationOperator" class="form-label">Operador</label>
+                                <input type="text" class="form-control" id="editLocationOperator" placeholder="Nombre del operador">
+                            </div>
+                        </div>
+
+                        <!-- Horarios -->
+                        <div class="mb-3">
+                            <label class="form-label">Horarios de Operación</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="editLocationOpen24h" class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="editLocationOpen24h">
+                                         Abierto 24/7
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="editLocationAccessPublic" class="form-label">
+                                        <input type="checkbox" class="form-check-input" id="editLocationAccessPublic" checked>
+                                         Acceso público
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateLocationBtn">
+                        <i class="bi bi-check-circle"></i> Actualizar Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar EVSE -->
+    <div class="modal fade" id="editEvseModal" tabindex="-1" aria-labelledby="editEvseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editEvseModalLabel">
+                        <i class="bi bi-pencil"></i> Editar EVSE
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEvseForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editEvseUid" class="form-label">UID *</label>
+                                <input type="text" class="form-control" id="editEvseUid" required readonly>
+                                <small class="form-text text-muted">UID único (no editable)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editEvseLocation" class="form-label">Location *</label>
+                                <select class="form-select" id="editEvseLocation" required>
+                                    <option value="">Seleccionar location...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editEvseStatus" class="form-label">Estado *</label>
+                                <select class="form-select" id="editEvseStatus" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="BLOCKED">Bloqueado</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="REMOVED">Removido</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editEvsePhysicalReference" class="form-label">Referencia Física</label>
+                                <input type="text" class="form-control" id="editEvsePhysicalReference" placeholder="Ej: Zona A - Nivel 1">
+                            </div>
+                        </div>
+
+                        <!-- Capabilities -->
+                        <div class="mb-3">
+                            <label class="form-label">Capabilities *</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CHARGING_PROFILE_CAPABLE" value="CHARGING_PROFILE_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_CHARGING_PROFILE_CAPABLE">
+                                            CHARGING_PROFILE_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CREDIT_CARD_PAYABLE" value="CREDIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="editCapability_CREDIT_CARD_PAYABLE">
+                                            CREDIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_REMOTE_START_STOP_CAPABLE" value="REMOTE_START_STOP_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_REMOTE_START_STOP_CAPABLE">
+                                            REMOTE_START_STOP_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_RESERVABLE" value="RESERVABLE">
+                                        <label class="form-check-label" for="editCapability_RESERVABLE">
+                                            RESERVABLE
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_RFID_READER" value="RFID_READER">
+                                        <label class="form-check-label" for="editCapability_RFID_READER">
+                                            RFID_READER
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_UNLOCK_CAPABLE" value="UNLOCK_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_UNLOCK_CAPABLE">
+                                            UNLOCK_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CHARGING_PREFERENCES_CAPABLE" value="CHARGING_PREFERENCES_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_CHARGING_PREFERENCES_CAPABLE">
+                                            CHARGING_PREFERENCES_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CHIP_CARD_SUPPORT" value="CHIP_CARD_SUPPORT">
+                                        <label class="form-check-label" for="editCapability_CHIP_CARD_SUPPORT">
+                                            CHIP_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_CONTACTLESS_CARD_SUPPORT" value="CONTACTLESS_CARD_SUPPORT">
+                                        <label class="form-check-label" for="editCapability_CONTACTLESS_CARD_SUPPORT">
+                                            CONTACTLESS_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_PED_TERMINAL" value="PED_TERMINAL">
+                                        <label class="form-check-label" for="editCapability_PED_TERMINAL">
+                                            PED_TERMINAL
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_DEBIT_CARD_PAYABLE" value="DEBIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="editCapability_DEBIT_CARD_PAYABLE">
+                                            DEBIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="editCapability_TOKEN_GROUP_CAPABLE" value="TOKEN_GROUP_CAPABLE">
+                                        <label class="form-check-label" for="editCapability_TOKEN_GROUP_CAPABLE">
+                                            TOKEN_GROUP_CAPABLE
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conectores -->
+                        <div class="mb-3">
+                            <label class="form-label">Conectores *</label>
+                            <div id="editEvseConnectorsContainer">
+                                <!-- Los conectores se cargarán dinámicamente -->
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addEditEvseConnector">
+                                <i class="bi bi-plus-circle"></i> Agregar Conector
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateEvseBtn">
+                        <i class="bi bi-check-circle"></i> Actualizar EVSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear EVSE -->
+    <div class="modal fade" id="createEvseModal" tabindex="-1" aria-labelledby="createEvseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createEvseModalLabel">
+                        <i class="bi bi-ev-station"></i> Crear Nuevo EVSE
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createEvseForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="evseUid" class="form-label">UID *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="evseUid" required readonly>
+                                    <button type="button" class="btn btn-outline-secondary" id="generateEvseUidBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">UID único autogenerado (UUID)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="evseLocation" class="form-label">Location *</label>
+                                <select class="form-select" id="evseLocation" required>
+                                    <option value="">Seleccionar location...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="evseStatus" class="form-label">Estado *</label>
+                                <select class="form-select" id="evseStatus" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="AVAILABLE">Disponible</option>
+                                    <option value="BLOCKED">Bloqueado</option>
+                                    <option value="CHARGING">Cargando</option>
+                                    <option value="INOPERATIVE">Inoperativo</option>
+                                    <option value="OUTOFORDER">Fuera de servicio</option>
+                                    <option value="PLANNED">Planificado</option>
+                                    <option value="REMOVED">Removido</option>
+                                    <option value="RESERVED">Reservado</option>
+                                    <option value="UNKNOWN">Desconocido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="evsePhysicalReference" class="form-label">Referencia Física</label>
+                                <input type="text" class="form-control" id="evsePhysicalReference" placeholder="Ej: Zona A - Nivel 1">
+                            </div>
+                        </div>
+
+                        <!-- Capabilities -->
+                        <div class="mb-3">
+                            <label class="form-label">Capabilities *</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CHARGING_PROFILE_CAPABLE" value="CHARGING_PROFILE_CAPABLE">
+                                        <label class="form-check-label" for="capability_CHARGING_PROFILE_CAPABLE">
+                                            CHARGING_PROFILE_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CREDIT_CARD_PAYABLE" value="CREDIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="capability_CREDIT_CARD_PAYABLE">
+                                            CREDIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_REMOTE_START_STOP_CAPABLE" value="REMOTE_START_STOP_CAPABLE">
+                                        <label class="form-check-label" for="capability_REMOTE_START_STOP_CAPABLE">
+                                            REMOTE_START_STOP_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_RESERVABLE" value="RESERVABLE">
+                                        <label class="form-check-label" for="capability_RESERVABLE">
+                                            RESERVABLE
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_RFID_READER" value="RFID_READER">
+                                        <label class="form-check-label" for="capability_RFID_READER">
+                                            RFID_READER
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_UNLOCK_CAPABLE" value="UNLOCK_CAPABLE">
+                                        <label class="form-check-label" for="capability_UNLOCK_CAPABLE">
+                                            UNLOCK_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CHARGING_PREFERENCES_CAPABLE" value="CHARGING_PREFERENCES_CAPABLE">
+                                        <label class="form-check-label" for="capability_CHARGING_PREFERENCES_CAPABLE">
+                                            CHARGING_PREFERENCES_CAPABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CHIP_CARD_SUPPORT" value="CHIP_CARD_SUPPORT">
+                                        <label class="form-check-label" for="capability_CHIP_CARD_SUPPORT">
+                                            CHIP_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_CONTACTLESS_CARD_SUPPORT" value="CONTACTLESS_CARD_SUPPORT">
+                                        <label class="form-check-label" for="capability_CONTACTLESS_CARD_SUPPORT">
+                                            CONTACTLESS_CARD_SUPPORT
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_PED_TERMINAL" value="PED_TERMINAL">
+                                        <label class="form-check-label" for="capability_PED_TERMINAL">
+                                            PED_TERMINAL
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_DEBIT_CARD_PAYABLE" value="DEBIT_CARD_PAYABLE">
+                                        <label class="form-check-label" for="capability_DEBIT_CARD_PAYABLE">
+                                            DEBIT_CARD_PAYABLE
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="capability_TOKEN_GROUP_CAPABLE" value="TOKEN_GROUP_CAPABLE">
+                                        <label class="form-check-label" for="capability_TOKEN_GROUP_CAPABLE">
+                                            TOKEN_GROUP_CAPABLE
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conectores -->
+                        <div class="mb-3">
+                            <label class="form-label">Conectores *</label>
+                            <div id="evseConnectorsContainer">
+                                <div class="evse-connector border rounded p-3 mb-2" data-connector-index="0">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="form-label">ID del Conector</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control connector-id" required readonly>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm generate-connector-id">
+                                                    <i class="bi bi-arrow-clockwise"></i> Generar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Standard</label>
+                                            <select class="form-select connector-standard" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="CHADEMO">CHADEMO (DC)</option>
+                                                <option value="CHAOJI">CHAOJI (DC)</option>
+                                                <option value="DOMESTIC_A">DOMESTIC_A (NEMA 1-15)</option>
+                                                <option value="DOMESTIC_B">DOMESTIC_B (NEMA 5-15)</option>
+                                                <option value="DOMESTIC_C">DOMESTIC_C (CEE 7/17)</option>
+                                                <option value="DOMESTIC_D">DOMESTIC_D (3 pin)</option>
+                                                <option value="DOMESTIC_E">DOMESTIC_E (CEE 7/5)</option>
+                                                <option value="DOMESTIC_F">DOMESTIC_F (Schuko)</option>
+                                                <option value="DOMESTIC_G">DOMESTIC_G (BS 1363)</option>
+                                                <option value="DOMESTIC_H">DOMESTIC_H (SI-32)</option>
+                                                <option value="DOMESTIC_I">DOMESTIC_I (AS 3112)</option>
+                                                <option value="DOMESTIC_J">DOMESTIC_J (SEV 1011)</option>
+                                                <option value="IEC_62196_T1">IEC_62196_T1 (Type 1)</option>
+                                                <option value="IEC_62196_T1_COMBO">IEC_62196_T1_COMBO</option>
+                                                <option value="IEC_62196_T2">IEC_62196_T2 (Type 2)</option>
+                                                <option value="IEC_62196_T2_COMBO">IEC_62196_T2_COMBO</option>
+                                                <option value="IEC_62196_T3A">IEC_62196_T3A</option>
+                                                <option value="IEC_62196_T3C">IEC_62196_T3C</option>
+                                                <option value="TESLA_R">TESLA_R</option>
+                                                <option value="TESLA_S">TESLA_S</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Format</label>
+                                            <select class="form-select connector-format" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="SOCKET">SOCKET (Enchufe)</option>
+                                                <option value="CABLE">CABLE (Cable adjunto)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Power Type</label>
+                                            <select class="form-select connector-power-type" required>
+                                                <option value="">Seleccionar...</option>
+                                                <option value="AC_1_PHASE">AC_1_PHASE (AC monofásico)</option>
+                                                <option value="AC_2_PHASE">AC_2_PHASE (AC bifásico)</option>
+                                                <option value="AC_2_PHASE_SPLIT">AC_2_PHASE_SPLIT (AC bifásico split)</option>
+                                                <option value="AC_3_PHASE">AC_3_PHASE (AC trifásico)</option>
+                                                <option value="DC">DC (Corriente continua)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Voltaje (V)</label>
+                                            <input type="number" class="form-control connector-voltage" value="230" min="0" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Amperaje (A)</label>
+                                            <input type="number" class="form-control connector-amperage" value="32" min="0" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Potencia Máxima (W)</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control connector-max-power" min="0" placeholder="Calculado automáticamente">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm calculate-power" title="Calcular automáticamente">
+                                                    <i class="bi bi-calculator"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Potencia Calculada</label>
+                                            <input type="text" class="form-control connector-calculated-power" readonly placeholder="0 W">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <label class="form-label">Tarifas Asociadas</label>
+                                            <div class="connector-tariffs-container border rounded p-2 mb-2" style="min-height: 50px;">
+                                                <div class="text-muted">No hay tarifas asignadas</div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm add-tariff-to-connector">
+                                                <i class="bi bi-plus"></i> Agregar Tarifa
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addEvseConnector">
+                                <i class="bi bi-plus-circle"></i> Agregar Conector
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="saveEvseBtn">
+                        <i class="bi bi-check-circle"></i> Crear EVSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambiar estado de EVSE -->
+    <div class="modal fade" id="changeEvseStatusModal" tabindex="-1" aria-labelledby="changeEvseStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeEvseStatusModalLabel">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Estado de EVSE
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Información:</strong> Esta acción actualizará el estado del EVSE en la base de datos y enviará una notificación PATCH a todos los Exts conectados.
+                    </div>
+                    
+                    <form id="changeEvseStatusForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="changeEvseLocation" class="form-label">Location *</label>
+                                <select class="form-select" id="changeEvseLocation" required>
+                                    <option value="">Seleccionar location...</option>
+                                </select>
+                                <div class="form-text">Selecciona la location que contiene el EVSE</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="changeEvseSelector" class="form-label">EVSE *</label>
+                                <select class="form-select" id="changeEvseSelector" required disabled>
+                                    <option value="">Primero selecciona una location</option>
+                                </select>
+                                <div class="form-text">Selecciona el EVSE a modificar</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="newEvseStatus" class="form-label">Nuevo Estado *</label>
+                                <select class="form-select" id="newEvseStatus" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="AVAILABLE">AVAILABLE - Disponible</option>
+                                    <option value="BLOCKED">BLOCKED - Bloqueado</option>
+                                    <option value="CHARGING">CHARGING - Cargando</option>
+                                    <option value="INOPERATIVE">INOPERATIVE - Inoperativo</option>
+                                    <option value="OUTOFORDER">OUTOFORDER - Fuera de servicio</option>
+                                    <option value="PLANNED">PLANNED - Planificado</option>
+                                    <option value="REMOVED">REMOVED - Eliminado</option>
+                                    <option value="RESERVED">RESERVED - Reservado</option>
+                                    <option value="UNKNOWN">UNKNOWN - Desconocido</option>
+                                </select>
+                                <div class="form-text">Estado OCPI 2.2 para el EVSE</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="evseStatusReason" class="form-label">Motivo del Cambio (Opcional)</label>
+                                <input type="text" class="form-control" id="evseStatusReason" 
+                                       placeholder="Describe el motivo del cambio...">
+                                <div class="form-text">Información adicional sobre el cambio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-info-circle"></i> Información del EVSE Seleccionado
+                                        </h6>
+                                    </div>
+                                    <div class="card-body" id="selectedEvseInfo">
+                                        <span class="text-muted">Selecciona un EVSE para ver su información</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning" id="confirmChangeEvseStatusBtn">
+                        <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear token -->
+    <div class="modal fade" id="createTokenModal" tabindex="-1" aria-labelledby="createTokenModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTokenModalLabel">
+                        <i class="bi bi-key"></i> Crear Nuevo Token
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTokenForm">
+                        <!-- Información básica -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenUid" class="form-label">UID del Token *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="tokenUid" required placeholder="Escribir UID personalizado o generar automáticamente">
+                                    <button type="button" class="btn btn-outline-secondary" id="generateTokenUidBtn">
+                                        <i class="bi bi-arrow-clockwise"></i> Generar
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Escriba un UID personalizado o use el botón para generar uno automáticamente</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenType" class="form-label">Tipo de Token *</label>
+                                <select class="form-select" id="tokenType" required>
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="RFID">RFID</option>
+                                    <option value="APP_USER">APP_USER</option>
+                                    <option value="AD_HOC_USER">AD_HOC_USER</option>
+                                    <option value="OTHER">OTHER</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenAuthMethod" class="form-label">Método de Autenticación *</label>
+                                <select class="form-select" id="tokenAuthMethod" required>
+                                    <option value="">Seleccionar método...</option>
+                                    <option value="AUTH_REQUEST">AUTH_REQUEST</option>
+                                    <option value="COMMAND">COMMAND</option>
+                                    <option value="WHITELIST">WHITELIST</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenIssuer" class="form-label">Emisor *</label>
+                                <input type="text" class="form-control" id="tokenIssuer" required placeholder="Nombre del emisor">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenContractId" class="form-label">ID de Contrato</label>
+                                <input type="text" class="form-control" id="tokenContractId" placeholder="ID del contrato">
+                            </div>
+                        </div>
+
+                        <!-- Estado y configuración -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenValid" class="form-label">Estado del Token *</label>
+                                <select class="form-select" id="tokenValid" required>
+                                    <option value="true">Válido</option>
+                                    <option value="false">Inválido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenWhitelist" class="form-label">Whitelist *</label>
+                                <select class="form-select" id="tokenWhitelist" required>
+                                    <option value="NEVER">NEVER</option>
+                                    <option value="ALWAYS">ALWAYS</option>
+                                    <option value="ALLOWED">ALLOWED</option>
+                                    <option value="ALLOWED_OFFLINE">ALLOWED_OFFLINE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenVisualNumber" class="form-label">Número Visual</label>
+                                <input type="text" class="form-control" id="tokenVisualNumber" placeholder="Número visible en el token">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenGroupId" class="form-label">ID de Grupo</label>
+                                <input type="text" class="form-control" id="tokenGroupId" placeholder="ID del grupo">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tokenLanguage" class="form-label">Idioma</label>
+                                <select class="form-select" id="tokenLanguage">
+                                    <option value="">Seleccionar idioma...</option>
+                                    <option value="es">Español</option>
+                                    <option value="en">English</option>
+                                    <option value="fr">Français</option>
+                                    <option value="de">Deutsch</option>
+                                    <option value="it">Italiano</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tokenDefaultProfileType" class="form-label">Tipo de Perfil por Defecto</label>
+                                <select class="form-select" id="tokenDefaultProfileType">
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="CHEAP">CHEAP</option>
+                                    <option value="FAST">FAST</option>
+                                    <option value="GREEN">GREEN</option>
+                                    <option value="REGULAR">REGULAR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Contrato de energía -->
+                        <div class="mb-3">
+                            <label for="tokenEnergyContract" class="form-label">Contrato de Energía</label>
+                            <textarea class="form-control" id="tokenEnergyContract" rows="3" placeholder="Información del contrato de energía"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="saveTokenBtn">
+                        <i class="bi bi-check-circle"></i> Crear Token
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para seleccionar EVSE de CPO -->
+    <div class="modal fade" id="selectCpoEvseModal" tabindex="-1" aria-labelledby="selectCpoEvseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selectCpoEvseModalLabel">
+                        <i class="bi bi-lightning-charge"></i> Seleccionar EVSE para Recarga
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Sección de Token Personalizado -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-key"></i> Token para Recarga
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <label for="customTokenInput" class="form-label">Token Personalizado (Opcional)</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="customTokenInput" 
+                                                       placeholder="Introduce un token personalizado para pruebas (ej: TEST123456789)">
+                                                <button type="button" class="btn btn-outline-secondary" id="clearCustomTokenBtn">
+                                                    <i class="bi bi-x-circle"></i> Limpiar
+                                                </button>
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                Si no introduces un token, se usará uno de la base de datos
+                                            </small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="customTokenType" class="form-label">Tipo de Token</label>
+                                            <select class="form-select" id="customTokenType">
+                                                <option value="RFID">RFID</option>
+                                                <option value="APP_USER">APP_USER</option>
+                                                <option value="OTHER">OTHER</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>EVSEs Disponibles del CPO</h6>
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-dark sticky-top">
+                                        <tr>
+                                            <th>EVSE ID</th>
+                                            <th>Estado</th>
+                                            <th>Ubicación</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cpoEvsesTableBody">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">
+                                                <i class="bi bi-arrow-clockwise"></i> Cargando EVSEs...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Consola de Recarga</h6>
+                            <div class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;" id="chargingConsole">
+                                <div class="text-success">[Sistema] Consola de recarga iniciada</div>
+                                <div class="text-muted">[Info] Selecciona un EVSE para comenzar la recarga</div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearChargingConsole">
+                                    <i class="bi bi-trash"></i> Limpiar Consola
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="refreshCpoEvses">
+                                    <i class="bi bi-arrow-clockwise"></i> Actualizar EVSEs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="stopCpoCharging" style="display: none;" disabled>
+                        <i class="bi bi-stop-circle"></i> Finalizar Recarga
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estilos personalizados para la consola de recarga -->
+    <style>
+        #chargingConsole .text-cyan {
+            color: #17a2b8 !important;
+        }
+        #chargingConsole .text-muted {
+            color: #6c757d !important;
+        }
+        #chargingConsole .text-secondary {
+            color: #6c757d !important;
+        }
+        #chargingConsole .text-warning {
+            color: #ffc107 !important;
+        }
+        #chargingConsole .text-info {
+            color: #17a2b8 !important;
+        }
+        #chargingConsole .text-success {
+            color: #28a745 !important;
+        }
+        #chargingConsole .text-danger {
+            color: #dc3545 !important;
+        }
+        #chargingConsole .text-primary {
+            color: #007bff !important;
+        }
+        #chargingConsole .text-light {
+            color: #f8f9fa !important;
+        }
+        
+        /* Efectos de resaltado para diferentes tipos de logs */
+        #chargingConsole .text-system {
+            color: #f8f9fa !important;
+            font-weight: bold;
+        }
+        #chargingConsole .text-token {
+            color: #ffc107 !important;
+            font-weight: 500;
+        }
+        #chargingConsole .text-evse {
+            color: #17a2b8 !important;
+            font-weight: 500;
+        }
+        #chargingConsole .text-session {
+            color: #28a745 !important;
+            font-weight: 500;
+        }
+        #chargingConsole .text-debug {
+            color: #6c757d !important;
+            font-style: italic;
+        }
+        #chargingConsole .text-request {
+            color: #17a2b8 !important;
+            background-color: rgba(23, 162, 184, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        #chargingConsole .text-response {
+            color: #007bff !important;
+            background-color: rgba(0, 123, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- EASTER EGG TEMPORAL - ELIMINAR EN PRODUCCIÓN -->
+    <script src="easter-egg.js"></script>
+</body>
+</html>

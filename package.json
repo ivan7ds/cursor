@@ -1,6 +1,6 @@
 {
   "name": "cpo-ocpi-2.2",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "description": "CPO application implementing OCPI 2.2 protocol for managing 10,000 chargers across Spain and Portugal",
   "main": "src/server.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "setup": "node scripts/setup.js",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
+    "test:monitoring": "node scripts/test-monitoring.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix"
   },
@@ -24,39 +25,39 @@
   "author": "CPO Team",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "bcryptjs": "^2.4.3",
+    "commander": "^14.0.0",
+    "compression": "^1.7.4",
     "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "morgan": "^1.10.0",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
     "pg": "^8.11.3",
+    "rate-limiter-flexible": "^7.2.0",
     "redis": "^4.6.10",
     "sequelize": "^6.35.0",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3",
-    "joi": "^17.11.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "node-cron": "^3.0.3",
-    "axios": "^1.6.0",
     "uuid": "^9.0.1",
-    "moment": "^2.29.4",
-    "compression": "^1.7.4",
-    "rate-limiter-flexible": "^7.2.0"
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
-    "jest": "^29.7.0",
-    "supertest": "^6.3.3",
     "eslint": "^8.54.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1"
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
   },
   "engines": {
     "node": ">=18.0.0"
   }
 }
-
-

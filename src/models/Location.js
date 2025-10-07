@@ -63,7 +63,7 @@ const Location = sequelize.define('Location', {
     allowNull: true,
     comment: 'Type of parking at the location'
   },
-  evse_list: {
+  evses: {
     type: DataTypes.JSON,
     allowNull: true,
     comment: 'List of EVSEs at this location'
@@ -122,6 +122,17 @@ const Location = sequelize.define('Location', {
     type: DataTypes.DATE,
     allowNull: false,
     comment: 'Timestamp when this location was last updated'
+  },
+  publish: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true,
+    comment: 'Whether this location should be published'
+  },
+  deleted_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Timestamp when this location was soft deleted'
   }
 }, {
   tableName: 'locations',
@@ -132,6 +143,9 @@ const Location = sequelize.define('Location', {
     },
     {
       fields: ['last_updated']
+    },
+    {
+      fields: ['deleted_at']
     }
   ]
 });

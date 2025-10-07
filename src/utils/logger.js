@@ -1,102 +1,143 @@
-const fs = require('fs');
+const winston = require('winston');
+const DailyRotateFile = require('winston-daily-rotate-file');
 const path = require('path');
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
 
-// Custom log levels
-const LOG_LEVELS = {
-  ERROR: 0,
-  WARN: 1,
-  INFO: 2,
-  DEBUG: 3
+// Create winston logger with rotation
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL?.toLowerCase() || 'info',
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: 'YYYY-MM-DDTHH:mm:ss.SSSZ'
+    }),
+    winston.format.errors({ stack: true }),
+    winston.format.printf(({ timestamp, level, message, ...meta }) => {
+      const metaStr = Object.keys(meta).length > 0 ? ` | ${JSON.stringify(meta)}` : '';
+      return `[${timestamp}] [${level}] ${message}${metaStr}`;
+    })
+  ),
+  transports: [
+    // Console transport with colors
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    }),
+    
+    // Daily rotate file transport
+    new DailyRotateFile({
+      filename: path.join(logsDir, 'app-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',        // Rotate when file reaches 10MB
+      maxFiles: '7d',        // Keep logs for 7 days
+      zippedArchive: true    // Compress old logs
+    })
+  ]
+});
+
+// Add specialized logging methods
+logger.request = (req, res, responseTime) => {
+  logger.info('HTTP Request', {
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    responseTime: `${responseTime}ms`,
+    statusCode: res.statusCode
+  });
 };
 
-const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] || LOG_LEVELS.INFO;
+logger.database = (operation, table, duration, meta = {}) => {
+  logger.debug('Database Operation', {
+    operation,
+    table,
+    duration: `${duration}ms`,
+    ...meta
+  });
+};
 
-// Format timestamp
-function formatTimestamp() {
-  return new Date().toISOString();
-}
+logger.ocpi = (endpoint, operation, meta = {}) => {
+  logger.info('OCPI Operation', {
+    endpoint,
+    operation,
+    ...meta
+  });
+};
 
-// Format log message
-function formatMessage(level, message, meta = {}) {
-  const timestamp = formatTimestamp();
-  const metaStr = Object.keys(meta).length > 0 ? ` | ${JSON.stringify(meta)}` : '';
-  return `[${timestamp}] [${level}] ${message}${metaStr}`;
-}
+// In-memory log storage for real-time viewing
+const inMemoryLogs = [];
+const MAX_MEMORY_LOGS = 1000; // Keep last 1000 logs in memory
 
-// Write to log file
-function writeToFile(level, message, meta = {}) {
-  const logFile = path.join(logsDir, 'app.log');
-  const formattedMessage = formatMessage(level, message, meta) + '\n';
-  
-  fs.appendFileSync(logFile, formattedMessage);
-}
+// Override the winston logger methods to capture logs in memory
+const originalInfo = logger.info;
+const originalWarn = logger.warn;
+const originalError = logger.error;
+const originalDebug = logger.debug;
 
-// Console output with colors
-function consoleOutput(level, message, meta = {}) {
-  const colors = {
-    ERROR: '\x1b[31m', // Red
-    WARN: '\x1b[33m',  // Yellow
-    INFO: '\x1b[36m',  // Cyan
-    DEBUG: '\x1b[35m', // Magenta
-    RESET: '\x1b[0m'   // Reset
+function addToMemory(level, message, meta = {}) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    level: level,
+    message: typeof message === 'string' ? message : JSON.stringify(message),
+    source: 'application',
+    meta: meta
   };
   
-  const formattedMessage = formatMessage(level, message, meta);
-  console.log(`${colors[level]}${formattedMessage}${colors.RESET}`);
-}
-
-// Main logging function
-function log(level, message, meta = {}) {
-  if (LOG_LEVELS[level] <= currentLogLevel) {
-    // Console output
-    consoleOutput(level, message, meta);
-    
-    // File output
-    writeToFile(level, message, meta);
+  
+  inMemoryLogs.push(logEntry);
+  
+  // Keep only the last MAX_MEMORY_LOGS
+  if (inMemoryLogs.length > MAX_MEMORY_LOGS) {
+    inMemoryLogs.shift();
+  }
+  
+  // Broadcast to connected clients
+  if (global.broadcastLogFunction) {
+    try {
+      global.broadcastLogFunction(logEntry);
+    } catch (error) {
+      // Ignore if broadcast function not available
+    }
   }
 }
 
-// Logger object
-const logger = {
-  error: (message, meta = {}) => log('ERROR', message, meta),
-  warn: (message, meta = {}) => log('WARN', message, meta),
-  info: (message, meta = {}) => log('INFO', message, meta),
-  debug: (message, meta = {}) => log('DEBUG', message, meta),
+// Override logger methods
+logger.info = (message, meta) => {
+  addToMemory('INFO', message, meta);
+  return originalInfo.call(logger, message, meta);
+};
+
+logger.warn = (message, meta) => {
+  addToMemory('WARN', message, meta);
+  return originalWarn.call(logger, message, meta);
+};
+
+logger.error = (message, meta) => {
+  addToMemory('ERROR', message, meta);
+  return originalError.call(logger, message, meta);
+};
+
+logger.debug = (message, meta) => {
+  addToMemory('DEBUG', message, meta);
+  return originalDebug.call(logger, message, meta);
+};
+
+// Sistema de logs en tiempo real iniciado correctamente
+
+// Export function to get in-memory logs
+logger.getInMemoryLogs = (limit = 100, level = null) => {
+  let logs = [...inMemoryLogs];
   
-  // Specialized logging methods
-  request: (req, res, responseTime) => {
-    logger.info('HTTP Request', {
-      method: req.method,
-      url: req.url,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      responseTime: `${responseTime}ms`,
-      statusCode: res.statusCode
-    });
-  },
-  
-  database: (operation, table, duration, meta = {}) => {
-    logger.debug('Database Operation', {
-      operation,
-      table,
-      duration: `${duration}ms`,
-      ...meta
-    });
-  },
-  
-  ocpi: (endpoint, operation, meta = {}) => {
-    logger.info('OCPI Operation', {
-      endpoint,
-      operation,
-      ...meta
-    });
+  if (level) {
+    logs = logs.filter(log => log.level === level);
   }
+  
+  return logs
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, limit);
 };
 
 module.exports = logger;

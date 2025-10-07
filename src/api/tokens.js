@@ -1,8 +1,50 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const { Token } = require('../models');
+const { Token, EmspToken } = require('../models');
 const logger = require('../utils/logger');
+
+/**
+ * Mapea un token de la base de datos al formato OCPI 2.2
+ * @param {Object} token - Token de la base de datos
+ * @returns {Object} Token mapeado según especificación OCPI 2.2
+ */
+function mapTokenToOCPI(token) {
+  const mappedToken = {
+    country_code: token.country_code,
+    party_id: token.party_id,
+    uid: token.uid,
+    type: token.type,
+    contract_id: token.contract_id,
+    issuer: token.issuer,
+    valid: token.valid,
+    whitelist: token.whitelist,
+    last_updated: token.last_updated.toISOString()
+  };
+
+  // Agregar campos opcionales si existen
+  if (token.visual_number) {
+    mappedToken.visual_number = token.visual_number;
+  }
+  
+  if (token.group_id) {
+    mappedToken.group_id = token.group_id;
+  }
+  
+  if (token.language) {
+    mappedToken.language = token.language;
+  }
+  
+  if (token.default_profile_type) {
+    mappedToken.default_profile_type = token.default_profile_type;
+  }
+  
+  if (token.energy_contract) {
+    mappedToken.energy_contract = token.energy_contract;
+  }
+
+  return mappedToken;
+}
 
 /**
  * @swagger
@@ -47,9 +89,12 @@ router.get('/', async (req, res) => {
       order: [['last_updated', 'DESC']]
     });
 
+    // Mapear tokens según especificación OCPI 2.2
+    const mappedTokens = tokens.rows.map(mapTokenToOCPI);
+
     res.status(200).json({
       status_code: 1000,
-      data: tokens.rows,
+      data: mappedTokens,
       timestamp: new Date().toISOString(),
       pagination: {
         total: tokens.count,
@@ -95,9 +140,12 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Mapear token según especificación OCPI 2.2
+    const mappedToken = mapTokenToOCPI(token);
+
     res.status(200).json({
       status_code: 1000,
-      data: token,
+      data: mappedToken,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -131,6 +179,16 @@ router.post('/', async (req, res) => {
 
     const token = await Token.create(tokenData);
 
+    // Notificar a operadores conectados sobre el nuevo token
+    try {
+      const emspNotificationService = require('../services/emspNotificationService');
+      await emspNotificationService.notifyTokenCreated(token);
+      logger.info(`📤 Notificación POST de token ${token.uid} enviada a operadores conectados`);
+    } catch (notificationError) {
+      logger.error('❌ Error notificando token a operadores:', notificationError);
+      // No fallar la creación del token si falla la notificación
+    }
+
     res.status(201).json({
       status_code: 1000,
       data: token,
@@ -148,9 +206,148 @@ router.post('/', async (req, res) => {
 
 /**
  * @swagger
+ * /ocpi/2.2/tokens/{country_code}/{party_id}/{uid}:
+ *   put:
+ *     summary: Create or update OCPI token by country_code, party_id and uid
+ *     tags: [Tokens]
+ *     parameters:
+ *       - in: path
+ *         name: country_code
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: party_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: uid
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.put('/:country_code/:party_id/:uid', async (req, res) => {
+  try {
+    const { country_code, party_id, uid } = req.params;
+    const tokenData = req.body;
+    
+    logger.ocpi('/tokens', 'PUT', { 
+      country_code, 
+      party_id, 
+      uid, 
+      body: tokenData 
+    });
+    
+    // Validar campos obligatorios
+    if (!tokenData.type || !tokenData.issuer) {
+      return res.status(400).json({
+        status_code: 2000,
+        status_message: 'Missing required fields: type and issuer',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Buscar token existente o crear uno nuevo en emsp_tokens
+    let token = await EmspToken.findOne({
+      where: {
+        emsp_country_code: country_code,
+        emsp_party_id: party_id,
+        token_uid: uid
+      }
+    });
+
+    if (token) {
+      // Actualizar token existente
+      await token.update({
+        type: tokenData.type,
+        contract_id: tokenData.contract_id || `${country_code}-${party_id}-${uid}`,
+        issuer: tokenData.issuer,
+        valid: tokenData.valid !== undefined ? tokenData.valid : true,
+        whitelist: tokenData.whitelist || 'NEVER',
+        language: tokenData.language || null,
+        default_profile_type: tokenData.default_profile_type || null,
+        energy_contract: tokenData.energy_contract || null,
+        last_updated: new Date()
+      });
+      logger.info(`EMSP Token ${uid} actualizado para ${party_id}_${country_code}`);
+    } else {
+      // Generar ID único para el nuevo token
+      const tokenId = `${party_id}-${uid}`;
+      
+      // Crear nuevo token en emsp_tokens con mapeo correcto
+      token = await EmspToken.create({
+        id: tokenId,
+        emsp_party_id: party_id,
+        emsp_country_code: country_code,
+        token_uid: uid,
+        type: tokenData.type,
+        contract_id: tokenData.contract_id || `${country_code}-${party_id}-${uid}`,
+        issuer: tokenData.issuer,
+        valid: tokenData.valid !== undefined ? tokenData.valid : true,
+        whitelist: tokenData.whitelist || 'NEVER',
+        language: tokenData.language || null,
+        default_profile_type: tokenData.default_profile_type || null,
+        energy_contract: tokenData.energy_contract || null,
+        last_updated: new Date()
+      });
+      logger.info(`Nuevo EMSP Token ${uid} creado para ${party_id}_${country_code} con ID ${tokenId}`);
+    }
+
+    // Mapear respuesta según especificación OCPI 2.2 para EMSP tokens
+    const mappedToken = {
+      country_code: token.emsp_country_code,
+      party_id: token.emsp_party_id,
+      uid: token.token_uid,
+      type: token.type,
+      contract_id: token.contract_id,
+      issuer: token.issuer,
+      valid: token.valid,
+      whitelist: token.whitelist,
+      last_updated: token.last_updated.toISOString()
+    };
+
+    // Agregar campos opcionales si existen
+    if (token.visual_number) {
+      mappedToken.visual_number = token.visual_number;
+    }
+    
+    if (token.group_id) {
+      mappedToken.group_id = token.group_id;
+    }
+    
+    if (token.language) {
+      mappedToken.language = token.language;
+    }
+    
+    if (token.default_profile_type) {
+      mappedToken.default_profile_type = token.default_profile_type;
+    }
+    
+    if (token.energy_contract) {
+      mappedToken.energy_contract = token.energy_contract;
+    }
+
+    res.status(200).json({
+      status_code: 1000,
+      data: mappedToken,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Error creating/updating token:', error);
+    res.status(500).json({
+      status_code: 2000,
+      status_message: 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
+ * @swagger
  * /ocpi/2.2/tokens/{id}:
  *   put:
- *     summary: Update OCPI token
+ *     summary: Update OCPI token by ID
  *     tags: [Tokens]
  *     parameters:
  *       - in: path

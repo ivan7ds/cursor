@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test EventSource - Diagnóstico</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        #logs { background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
+        .log-entry { margin: 5px 0; padding: 5px; border-left: 3px solid #007bff; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test EventSource - Diagnóstico</h1>
+    
+    <div class="status info">
+        <strong>Estado:</strong> <span id="status">Preparado para probar</span>
+    </div>
+    
+    <button onclick="testEventSource()">🚀 Probar EventSource</button>
+    <button onclick="testFetch()">📡 Probar Fetch</button>
+    <button onclick="clearLogs()">🧹 Limpiar Logs</button>
+    
+    <h3>📋 Logs de Diagnóstico:</h3>
+    <div id="logs"></div>
+    
+    <script>
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.parentElement.className = `status ${type}`;
+        }
+        
+        function testEventSource() {
+            addLog('🔄 Iniciando test de EventSource...', 'info');
+            updateStatus('Probando EventSource...', 'warning');
+            
+            try {
+                const eventSource = new EventSource('http://localhost:3000/logs/stream');
+                
+                addLog(`📡 EventSource creado: ${eventSource.url}`, 'info');
+                addLog(`🔍 Estado inicial: ${eventSource.readyState}`, 'info');
+                
+                // Event listeners
+                eventSource.onopen = function(event) {
+                    addLog('✅ EventSource conectado (onopen)', 'success');
+                    updateStatus('EventSource conectado exitosamente', 'success');
+                };
+                
+                eventSource.onmessage = function(event) {
+                    addLog(`📨 Mensaje recibido: ${event.data}`, 'success');
+                };
+                
+                eventSource.onerror = function(event) {
+                    addLog(`❌ Error en EventSource: ${event.type}`, 'error');
+                    updateStatus('Error en EventSource', 'error');
+                };
+                
+                // Verificar estado después de 3 segundos
+                setTimeout(() => {
+                    addLog(`🔍 Estado después de 3s: ${eventSource.readyState}`, 'info');
+                    
+                    if (eventSource.readyState === 0) {
+                        addLog('⚠️ EventSource aún en estado CONNECTING (0)', 'warning');
+                        updateStatus('EventSource no se conecta', 'error');
+                    } else if (eventSource.readyState === 1) {
+                        addLog('✅ EventSource en estado OPEN (1)', 'success');
+                        updateStatus('EventSource funcionando correctamente', 'success');
+                    } else if (eventSource.readyState === 2) {
+                        addLog('❌ EventSource en estado CLOSED (2)', 'error');
+                        updateStatus('EventSource cerrado', 'error');
+                    }
+                    
+                    // Cerrar conexión de prueba
+                    eventSource.close();
+                    addLog('🔒 EventSource cerrado para la prueba', 'info');
+                }, 3000);
+                
+            } catch (error) {
+                addLog(`❌ Error al crear EventSource: ${error.message}`, 'error');
+                updateStatus('Error al crear EventSource', 'error');
+            }
+        }
+        
+        function testFetch() {
+            addLog('🔄 Iniciando test de Fetch...', 'info');
+            updateStatus('Probando Fetch...', 'warning');
+            
+            fetch('http://localhost:3000/logs/stream', {
+                method: 'HEAD',
+                headers: {
+                    'Accept': 'text/event-stream',
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => {
+                addLog(`✅ Fetch exitoso: ${response.status} ${response.statusText}`, 'success');
+                addLog(`📋 Content-Type: ${response.headers.get('content-type')}`, 'info');
+                addLog(`📋 Access-Control-Allow-Origin: ${response.headers.get('access-control-allow-origin')}`, 'info');
+                updateStatus('Fetch funcionando correctamente', 'success');
+            })
+            .catch(error => {
+                addLog(`❌ Error en Fetch: ${error.message}`, 'error');
+                updateStatus('Error en Fetch', 'error');
+            });
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+            addLog('🧹 Logs limpiados', 'info');
+        }
+        
+        // Log inicial
+        addLog('🚀 Página de test cargada', 'info');
+        addLog('💡 Haz clic en "Probar EventSource" para diagnosticar', 'info');
+    </script>
+</body>
+</html>

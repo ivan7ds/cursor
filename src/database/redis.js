@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 
 const redisClient = redis.createClient({
   socket: {
-    host: process.env.REDIS_HOST || 'localhost',
+    host: process.env.REDIS_HOST || 'redis',
     port: process.env.REDIS_PORT || 6379,
     reconnectStrategy: function(options) {
       if (options.error && options.error.code === 'ECONNREFUSED') {

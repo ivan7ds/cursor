@@ -21,98 +21,69 @@ const Session = sequelize.define('Session', {
   evse_uid: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    comment: 'Reference to the EVSE where this session took place'
+    comment: 'Reference to the EVSE where the session is taking place'
   },
   connector_id: {
     type: DataTypes.STRING(36),
-    allowNull: false,
-    comment: 'Reference to the connector used for this session'
+    allowNull: true,
+    comment: 'Reference to the connector used for the session'
   },
   id_token: {
-    type: DataTypes.JSON,
-    allowNull: false,
-    comment: 'Token used to authorize this charging session'
-  },
-  session_token: {
-    type: DataTypes.JSON,
-    allowNull: false,
-    comment: 'Token used to identify this session'
-  },
-  meter_id: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    comment: 'Identifier of the meter inside the charge point'
-  },
-  authorization_reference: {
-    type: DataTypes.STRING(36),
-    allowNull: true,
-    comment: 'Reference to the authorization given by the eMSP'
-  },
-  location_id: {
     type: DataTypes.STRING(36),
     allowNull: false,
-    comment: 'Reference to the location where this session took place'
+    comment: 'Reference to the token used for the session'
   },
   start_datetime: {
     type: DataTypes.DATE,
     allowNull: false,
-    comment: 'Start timestamp of the session'
+    defaultValue: DataTypes.NOW,
+    comment: 'When the session started'
   },
   end_datetime: {
     type: DataTypes.DATE,
     allowNull: true,
-    comment: 'End timestamp of the session'
-  },
-  kwh: {
-    type: DataTypes.DECIMAL(10, 3),
-    allowNull: true,
-    comment: 'Total energy consumption in kWh'
-  },
-  currency: {
-    type: DataTypes.STRING(3),
-    allowNull: false,
-    comment: 'ISO 4217 currency code'
+    comment: 'When the session ended'
   },
   total_cost: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
     comment: 'Total cost of the session'
   },
+  kwh: {
+    type: DataTypes.DECIMAL(10, 3),
+    allowNull: true,
+    defaultValue: 0.0,
+    comment: 'Energy consumed in kWh'
+  },
   status: {
-    type: DataTypes.ENUM('ACTIVE', 'COMPLETED', 'INVALID', 'PENDING', 'RESERVATION'),
+    type: DataTypes.ENUM('ACTIVE', 'COMPLETED', 'INVALID', 'PENDING'),
     allowNull: false,
-    comment: 'Status of the session'
+    defaultValue: 'ACTIVE',
+    comment: 'Current status of the session'
   },
   last_updated: {
     type: DataTypes.DATE,
     allowNull: false,
-    comment: 'Timestamp when this session was last updated'
+    defaultValue: DataTypes.NOW,
+    comment: 'Last time this session was updated'
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+    comment: 'When this session was created'
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+    comment: 'When this session was last updated'
   }
 }, {
   tableName: 'sessions',
   timestamps: true,
-  indexes: [
-    {
-      fields: ['country_code', 'party_id']
-    },
-    {
-      fields: ['evse_uid']
-    },
-    {
-      fields: ['location_id']
-    },
-    {
-      fields: ['start_datetime']
-    },
-    {
-      fields: ['status']
-    },
-    {
-      fields: ['last_updated']
-    }
-  ]
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
 module.exports = Session;
-
-

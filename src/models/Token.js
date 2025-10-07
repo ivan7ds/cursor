@@ -24,13 +24,18 @@ const Token = sequelize.define('Token', {
     comment: 'Unique identifier for the token'
   },
   type: {
-    type: DataTypes.ENUM('AD_HOC_USER', 'APP_USER', 'OTHER', 'RFID'),
+    type: DataTypes.STRING(50),
     allowNull: false,
     comment: 'Type of token'
   },
+  auth_method: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    comment: 'Authentication method for the token'
+  },
   contract_id: {
     type: DataTypes.STRING(36),
-    allowNull: false,
+    allowNull: true,
     comment: 'Contract identifier'
   },
   visual_number: {
@@ -54,8 +59,8 @@ const Token = sequelize.define('Token', {
     comment: 'Whether the token is valid'
   },
   whitelist: {
-    type: DataTypes.ENUM('ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER'),
-    allowNull: false,
+    type: DataTypes.STRING(50),
+    allowNull: true,
     comment: 'Whitelist type for this token'
   },
   language: {
