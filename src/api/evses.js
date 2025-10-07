@@ -4,6 +4,9 @@ const { v4: uuidv4 } = require('uuid');
 const { EVSE, Location } = require('../models');
 const logger = require('../utils/logger');
 const emspNotificationService = require('../services/emspNotificationService');
+const { getFallbackEvses } = require('../utils/ocpiFallbackData');
+
+const skipExternalDependencies = process.env.SKIP_EXTERNAL_DEPENDENCIES === 'true';
 
 /**
  * @swagger
@@ -34,6 +37,21 @@ router.get('/', async (req, res) => {
     logger.ocpi('/evses', 'GET', { query: req.query });
     
     const { country_code, party_id, location_id, status, offset = 0, limit = 100 } = req.query;
+
+    if (skipExternalDependencies) {
+      const fallbackEvses = getFallbackEvses();
+      logger.info('Returning fallback OCPI EVSE data because external dependencies are disabled');
+      return res.status(200).json({
+        status_code: 1000,
+        data: fallbackEvses,
+        timestamp: new Date().toISOString(),
+        pagination: {
+          total: fallbackEvses.length,
+          offset: 0,
+          limit: fallbackEvses.length,
+        },
+      });
+    }
     
     const where = {};
     if (country_code) where.country_code = country_code;
@@ -93,6 +111,24 @@ router.get('/:id', async (req, res) => {
     logger.ocpi('/evses', 'GET_BY_ID', { id: req.params.id });
     
     const { id } = req.params;
+    if (skipExternalDependencies) {
+      const fallbackEvse = getFallbackEvses().find(item => item.id === id || item.evse_id === id || item.uid === id);
+
+      if (!fallbackEvse) {
+        return res.status(404).json({
+          status_code: 2004,
+          status_message: 'EVSE not found in fallback dataset',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return res.status(200).json({
+        status_code: 1000,
+        data: fallbackEvse,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     const evse = await EVSE.findByPk(id, {
       include: [{
         model: Location,
@@ -100,7 +136,7 @@ router.get('/:id', async (req, res) => {
         attributes: ['id', 'name', 'address', 'city', 'coordinates']
       }]
     });
-    
+
     if (!evse) {
       return res.status(404).json({
         status_code: 2004,

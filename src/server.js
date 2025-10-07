@@ -17,6 +17,8 @@ const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
 const logger = require('./utils/logger');
 
+const skipExternalDependencies = process.env.SKIP_EXTERNAL_DEPENDENCIES === 'true';
+
 // Import EVSE Notification Service
 const evseNotificationService = require('./services/evseNotificationService');
 const chargingNotificationService = require('./services/chargingNotificationService');
@@ -193,6 +195,11 @@ app.use('*', (req, res) => {
  * Inicia el Charging Notification Service solo si hay sesiones activas
  */
 async function startChargingNotificationServiceIfNeeded() {
+  if (skipExternalDependencies) {
+    logger.info('Skipping Charging Notification Service startup because external dependencies are disabled');
+    return;
+  }
+
   try {
     // Verificar si hay sesiones activas
     const activeSessions = await Session.count({
@@ -216,6 +223,11 @@ async function startChargingNotificationServiceIfNeeded() {
  * Activa el Charging Notification Service cuando se inicia una nueva sesión
  */
 async function activateChargingNotificationService() {
+  if (skipExternalDependencies) {
+    logger.info('Skipping Charging Notification Service activation because external dependencies are disabled');
+    return;
+  }
+
   if (!chargingNotificationService.isRunning) {
     chargingNotificationService.start();
     logger.info('Charging Notification Service activated due to new active session');
@@ -225,19 +237,23 @@ async function activateChargingNotificationService() {
 // Database connection and server startup
 async function startServer() {
   try {
-    // Test database connection
-    await sequelize.authenticate();
-    logger.info('Database connection established successfully');
-    
-    // Sync database models (create tables if they don't exist)
-    // await sequelize.sync({ force: false });
-    logger.info('Database models synchronized (skipping sync)');
-    
-    // OCPI routes are already loaded
-    
-    // Test Redis connection
-    await redisClient.ping();
-    logger.info('Redis connection established successfully');
+    if (!skipExternalDependencies) {
+      // Test database connection
+      await sequelize.authenticate();
+      logger.info('Database connection established successfully');
+
+      // Sync database models (create tables if they don't exist)
+      // await sequelize.sync({ force: false });
+      logger.info('Database models synchronized (skipping sync)');
+
+      // OCPI routes are already loaded
+
+      // Test Redis connection
+      await redisClient.ping();
+      logger.info('Redis connection established successfully');
+    } else {
+      logger.warn('SKIP_EXTERNAL_DEPENDENCIES enabled - skipping Postgres and Redis checks');
+    }
     
     // Start server
     app.listen(PORT, () => {
@@ -299,8 +315,12 @@ process.on('SIGTERM', async () => {
     testSessionService.stop();
   }
   
-  await sequelize.close();
-  await redisClient.quit();
+  if (!skipExternalDependencies) {
+    await sequelize.close();
+    await redisClient.quit();
+  } else {
+    logger.info('External dependencies were skipped - nothing to close');
+  }
   process.exit(0);
 });
 
@@ -337,8 +357,12 @@ process.on('SIGINT', async () => {
     testSessionService.stop();
   }
   
-  await sequelize.close();
-  await redisClient.quit();
+  if (!skipExternalDependencies) {
+    await sequelize.close();
+    await redisClient.quit();
+  } else {
+    logger.info('External dependencies were skipped - nothing to close');
+  }
   process.exit(0);
 });
 

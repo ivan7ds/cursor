@@ -5,6 +5,9 @@ const { Location, EVSE } = require('../models');
 const logger = require('../utils/logger');
 const emspNotificationService = require('../services/emspNotificationService');
 const { logLocationData, logArrayData } = require('../utils/loggingUtils');
+const { getFallbackLocations } = require('../utils/ocpiFallbackData');
+
+const skipExternalDependencies = process.env.SKIP_EXTERNAL_DEPENDENCIES === 'true';
 
 /**
  * @swagger
@@ -59,6 +62,21 @@ router.get('/', async (req, res) => {
     logger.ocpi('/locations', 'GET', { query: req.query });
     
     const { country_code, party_id, offset = 0, limit = 25 } = req.query;
+
+    if (skipExternalDependencies) {
+      const fallbackLocations = getFallbackLocations();
+      logger.info('Returning fallback OCPI locations data because external dependencies are disabled');
+      return res.status(200).json({
+        status_code: 1000,
+        data: fallbackLocations,
+        timestamp: new Date().toISOString(),
+        pagination: {
+          total: fallbackLocations.length,
+          offset: 0,
+          limit: fallbackLocations.length,
+        },
+      });
+    }
     
     // Validate pagination parameters
     const offsetInt = parseInt(offset);

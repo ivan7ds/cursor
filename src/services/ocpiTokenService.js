@@ -2,6 +2,8 @@ const { v4: uuidv4 } = require('uuid');
 const { OCPIToken } = require('../models');
 const logger = require('../utils/logger');
 
+const skipExternalDependencies = process.env.SKIP_EXTERNAL_DEPENDENCIES === 'true';
+
 /**
  * Servicio para gestionar tokens OCPI
  */
@@ -69,6 +71,27 @@ class OCPITokenService {
    * @returns {Promise<Object|null>} Información del token si es válido
    */
   static async validateToken(token) {
+    if (skipExternalDependencies) {
+      const fallbackToken = process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
+
+      if (token === fallbackToken) {
+        return {
+          id: fallbackToken,
+          party_id: process.env.OCPI_PARTY_ID || 'IPD',
+          country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
+          type: 'fallback',
+          created_at: new Date().toISOString(),
+          expires_at: null,
+        };
+      }
+
+      logger.warn('Fallback token validation failed while external dependencies are disabled', {
+        providedToken: token ? `${token.substring(0, 8)}...` : 'none'
+      });
+
+      return null;
+    }
+
     try {
       // Primero buscar en la tabla OCPIToken
       let tokenRecord = await OCPIToken.findOne({
