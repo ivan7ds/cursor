@@ -3378,10 +3378,16 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP Tariffs data:', data.data ? `Array[${data.data.length}]` : data);
+            const allTariffs = data.data || [];
+            const activeTariffs = allTariffs.filter(tariff => !tariff.deleted_at);
             
-            this.renderEmspTariffs(data.data || []);
-            this.updateCount('emspTariffsCount', data.data?.length || 0);
+            console.log('📊 EMSP Tariffs data:', {
+                total: allTariffs.length,
+                active: activeTariffs.length
+            });
+            
+            this.renderEmspTariffs(activeTariffs);
+            this.updateCount('emspTariffsCount', activeTariffs.length);
             
             console.log('✅ EMSP Tariffs cargados exitosamente');
             
@@ -3401,7 +3407,7 @@ if (filterActiveExtSessions) {
         if (tariffs.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center text-muted">
+                    <td colspan="9" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay EMSP tariffs disponibles
                     </td>
                 </tr>
@@ -3413,6 +3419,7 @@ if (filterActiveExtSessions) {
             <tr class="fade-in">
                 <td><code>${tariff.id}</code></td>
                 <td><span class="badge bg-info">${tariff.emsp_party_id}</span></td>
+                <td>${tariff.name ? this.escapeHtml(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td>
                 <td>${tariff.type}</td>
                 <td>${tariff.currency}</td>
                 <td>${this.getElementsCount(tariff.elements)} elementos</td>

@@ -188,6 +188,33 @@ router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async 
         }
 
         const nowIso = new Date().toISOString();
+        const extractName = (altText, fallbackName) => {
+            if (fallbackName && typeof fallbackName === 'string' && fallbackName.trim().length > 0) {
+                return fallbackName;
+            }
+
+            if (!altText) {
+                return null;
+            }
+
+            if (typeof altText === 'string') {
+                return altText;
+            }
+
+            if (Array.isArray(altText)) {
+                const entry = altText.find(item => item && typeof item.text === 'string' && item.text.trim().length > 0);
+                return entry ? entry.text : null;
+            }
+
+            if (typeof altText === 'object' && typeof altText.text === 'string') {
+                return altText.text;
+            }
+
+            return null;
+        };
+
+        const tariffName = extractName(tariffData.tariff_alt_text, tariffData.name);
+
         const replacements = [
             tariff_id,
             party_id,
@@ -195,6 +222,7 @@ router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async 
             tariff_id,
             tariffData.currency || 'EUR',
             tariffData.type || 'REGULAR',
+            tariffName,
             JSON.stringify(tariffData.elements || []),
             tariffData.start_date_time || null,
             tariffData.end_date_time || null,
@@ -204,8 +232,8 @@ router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async 
         await sequelize.query(`
             INSERT INTO emsp_tariffs (
                 id, emsp_party_id, emsp_country_code, tariff_id, currency, type,
-                elements, start_date_time, end_date_time, last_updated, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                name, elements, start_date_time, end_date_time, last_updated, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ON CONFLICT (id)
             DO UPDATE SET
                 emsp_party_id = EXCLUDED.emsp_party_id,
@@ -213,6 +241,7 @@ router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async 
                 tariff_id = EXCLUDED.tariff_id,
                 currency = EXCLUDED.currency,
                 type = EXCLUDED.type,
+                name = EXCLUDED.name,
                 elements = EXCLUDED.elements,
                 start_date_time = EXCLUDED.start_date_time,
                 end_date_time = EXCLUDED.end_date_time,
@@ -226,7 +255,8 @@ router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async 
         console.log('✅ Tarifa de eMSP guardada correctamente', {
             tariff_id,
             party_id,
-            country_code
+            country_code,
+            name: tariffName
         });
 
         res.status(200).json({
@@ -236,6 +266,7 @@ router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async 
                 id: tariff_id,
                 party_id,
                 country_code,
+                name: tariffName,
                 last_updated: tariffData.last_updated || nowIso
             },
             timestamp: new Date().toISOString()
