@@ -409,6 +409,33 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
                     continue;
                 }
 
+                const extractName = (altText, fallbackName) => {
+                    if (fallbackName && typeof fallbackName === 'string' && fallbackName.trim().length > 0) {
+                        return fallbackName;
+                    }
+
+                    if (!altText) {
+                        return null;
+                    }
+
+                    if (typeof altText === 'string') {
+                        return altText;
+                    }
+
+                    if (Array.isArray(altText)) {
+                        const entry = altText.find(item => item && typeof item.text === 'string' && item.text.trim().length > 0);
+                        return entry ? entry.text : null;
+                    }
+
+                    if (typeof altText === 'object' && typeof altText.text === 'string') {
+                        return altText.text;
+                    }
+
+                    return null;
+                };
+
+                const tariffName = extractName(tariff.tariff_alt_text, tariff.name);
+
                 // Preparar valores con validación y valores por defecto
                 const values = [
                     tariff.id,
@@ -417,6 +444,7 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
                     tariff.id, // tariff_id es el mismo que id
                     tariff.currency || 'EUR',
                     tariff.type || 'REGULAR', // Campo obligatorio type
+                    tariffName,
                     JSON.stringify(tariff.elements || []),
                     tariff.start_date_time || null,
                     tariff.end_date_time || null,
@@ -429,8 +457,8 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
                 const [result] = await sequelize.query(`
                     INSERT INTO emsp_tariffs (
                         id, emsp_party_id, emsp_country_code, tariff_id, currency, type, 
-                        elements, start_date_time, end_date_time, last_updated, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                        name, elements, start_date_time, end_date_time, last_updated, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
                     ON CONFLICT (id) 
                     DO UPDATE SET
                         emsp_party_id = EXCLUDED.emsp_party_id,
@@ -438,6 +466,7 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
                         tariff_id = EXCLUDED.tariff_id,
                         currency = EXCLUDED.currency,
                         type = EXCLUDED.type,
+                        name = EXCLUDED.name,
                         elements = EXCLUDED.elements,
                         start_date_time = EXCLUDED.start_date_time,
                         end_date_time = EXCLUDED.end_date_time,

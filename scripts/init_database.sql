@@ -287,6 +287,7 @@ CREATE TABLE IF NOT EXISTS emsp_tariffs (
     tariff_id VARCHAR(36) NOT NULL,
     currency VARCHAR(3) NOT NULL,
     type VARCHAR(50) NOT NULL,
+    name VARCHAR(255),
     elements JSON NOT NULL,
     start_date_time TIMESTAMP WITH TIME ZONE,
     end_date_time TIMESTAMP WITH TIME ZONE,

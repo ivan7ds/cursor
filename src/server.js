@@ -96,6 +96,23 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging middleware (detallado)
 app.use(requestLogger);
 
+// Exponer configuración mínima para el frontend (solo se entrega en la app interna)
+app.get('/app-config.js', (req, res) => {
+  const defaultToken = process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
+  res.set('Content-Type', 'application/javascript');
+  res.set('Cache-Control', 'no-store');
+  res.send([
+    `window.DEFAULT_OCPI_TOKEN = ${JSON.stringify(defaultToken)};`,
+    'try {',
+    "  if (!window.localStorage.getItem('ocpi_token')) {",
+    '    window.localStorage.setItem(\'ocpi_token\', window.DEFAULT_OCPI_TOKEN);',
+    '  }',
+    '} catch (error) {',
+    "  console.warn('Could not persist default OCPI token in localStorage:', error);",
+    '}'
+  ].join('\n'));
+});
+
 // Servir archivos estáticos del frontend
 app.use(express.static('src/public'));
 
@@ -349,5 +366,3 @@ module.exports = {
   activateChargingNotificationService,
   startChargingNotificationServiceIfNeeded
 };
-
-
