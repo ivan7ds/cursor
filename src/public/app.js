@@ -13,6 +13,85 @@ class DashboardApp {
         this.cpoEvses = []; // EVSEs del CPO externo
         this.filterActiveExtSessions = true; // Filtro de sesiones externas activas
         this.logPollingInterval = null; // Intervalo para consultar logs
+        this.testServiceToggleConfigs = {
+            evseNotificationService: {
+                buttonId: 'toggleEvseService',
+                iconId: 'toggleEvseIcon',
+                textId: 'toggleEvseText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            },
+            chargingNotificationService: {
+                buttonId: 'toggleChargingService',
+                iconId: 'toggleChargingIcon',
+                textId: 'toggleChargingText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            },
+            emspLocationsSyncService: {
+                buttonId: 'toggleEmspLocationsService',
+                iconId: 'toggleEmspLocationsIcon',
+                textId: 'toggleEmspLocationsText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            },
+            emspTariffsSyncService: {
+                buttonId: 'toggleEmspTariffsService',
+                iconId: 'toggleEmspTariffsIcon',
+                textId: 'toggleEmspTariffsText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            },
+            emspTokensSyncService: {
+                buttonId: 'toggleEmspTokensService',
+                iconId: 'toggleEmspTokensIcon',
+                textId: 'toggleEmspTokensText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            },
+            testLocationEVSECreationService: {
+                buttonId: 'toggleTestLocationEvseService',
+                iconId: 'toggleTestLocationEvseIcon',
+                textId: 'toggleTestLocationEvseText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            },
+            testSessionService: {
+                buttonId: 'toggleTestSessionService',
+                iconId: 'toggleTestSessionIcon',
+                textId: 'toggleTestSessionText',
+                activeClass: 'btn btn-outline-warning btn-sm',
+                inactiveClass: 'btn btn-outline-success btn-sm',
+                activeIcon: 'bi bi-pause-circle',
+                inactiveIcon: 'bi bi-play-circle',
+                activeText: 'Pausar',
+                inactiveText: 'Activar'
+            }
+        };
         
         console.log('✅ Constructor completado');
     }
@@ -8864,17 +8943,29 @@ ${JSON.stringify(data, null, 2)}`;
                 console.warn('⚠️ Elemento toggleJobsStatus no encontrado');
             }
             
-            // Botón de activar/desactivar EVSE Notification Service individualmente
-            const toggleEvseService = document.getElementById('toggleEvseService');
-            if (toggleEvseService) {
-                toggleEvseService.addEventListener('click', () => {
-                    console.log('🔧 Botón toggleEvseService clickeado');
-                    this.toggleEvseService();
-                });
-                console.log('✅ Event listener para toggleEvseService agregado');
-            } else {
-                console.warn('⚠️ Elemento toggleEvseService no encontrado');
-            }
+            const serviceToggleButtons = [
+                { id: 'toggleEvseService', service: 'evseNotificationService', iconId: 'toggleEvseIcon', textId: 'toggleEvseText' },
+                { id: 'toggleChargingService', service: 'chargingNotificationService', iconId: 'toggleChargingIcon', textId: 'toggleChargingText' },
+                { id: 'toggleEmspLocationsService', service: 'emspLocationsSyncService', iconId: 'toggleEmspLocationsIcon', textId: 'toggleEmspLocationsText' },
+                { id: 'toggleEmspTariffsService', service: 'emspTariffsSyncService', iconId: 'toggleEmspTariffsIcon', textId: 'toggleEmspTariffsText' },
+                { id: 'toggleEmspTokensService', service: 'emspTokensSyncService', iconId: 'toggleEmspTokensIcon', textId: 'toggleEmspTokensText' },
+                { id: 'toggleTestLocationEvseService', service: 'testLocationEVSECreationService', iconId: 'toggleTestLocationEvseIcon', textId: 'toggleTestLocationEvseText' },
+                { id: 'toggleTestSessionService', service: 'testSessionService', iconId: 'toggleTestSessionIcon', textId: 'toggleTestSessionText' }
+            ];
+            
+            serviceToggleButtons.forEach(config => this.registerServiceToggleButton(config));
+            
+            const serviceRunButtons = [
+                { id: 'runEvseServiceOnce', service: 'evseNotificationService' },
+                { id: 'runChargingServiceOnce', service: 'chargingNotificationService' },
+                { id: 'runEmspLocationsServiceOnce', service: 'emspLocationsSyncService' },
+                { id: 'runEmspTariffsServiceOnce', service: 'emspTariffsSyncService' },
+                { id: 'runEmspTokensServiceOnce', service: 'emspTokensSyncService' },
+                { id: 'runTestLocationEvseServiceOnce', service: 'testLocationEVSECreationService' },
+                { id: 'runTestSessionServiceOnce', service: 'testSessionService' }
+            ];
+            
+            serviceRunButtons.forEach(({ id, service }) => this.registerTestJobRunButton(id, service));
             
             // Botón de ejecutar pruebas de ejemplo
             const runSampleTests = document.getElementById('runSampleTests');
@@ -8970,6 +9061,186 @@ ${JSON.stringify(data, null, 2)}`;
     }
     
     /**
+     * Registra un botón para ejecutar un job manualmente
+     */
+    registerTestJobRunButton(buttonId, serviceKey) {
+        try {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.addEventListener('click', async () => {
+                    console.log(`▶️ Botón ${buttonId} clickeado para servicio ${serviceKey}`);
+                    await this.runServiceJob(serviceKey, button);
+                });
+                console.log(`✅ Event listener para ${buttonId} agregado`);
+            } else {
+                console.warn(`⚠️ Elemento ${buttonId} no encontrado`);
+            }
+        } catch (error) {
+            console.error(`❌ Error registrando botón ${buttonId}:`, error);
+        }
+    }
+    
+    /**
+     * Registra un botón para alternar la ejecución continua de un servicio
+     */
+    registerServiceToggleButton({ id, service }) {
+        try {
+            const button = document.getElementById(id);
+            if (button) {
+                button.addEventListener('click', async () => {
+                    console.log(`🔁 Botón ${id} clickeado para servicio ${service}`);
+                    await this.toggleServiceLoop(service, button);
+                });
+                console.log(`✅ Event listener para ${id} agregado`);
+            } else {
+                console.warn(`⚠️ Elemento ${id} no encontrado`);
+            }
+        } catch (error) {
+            console.error(`❌ Error registrando botón ${id}:`, error);
+        }
+    }
+    
+    /**
+     * Devuelve un nombre amigable para mostrar del servicio
+     */
+    getServiceFriendlyName(serviceKey) {
+        const serviceLabels = {
+            evseNotificationService: 'EVSE Notification Service',
+            chargingNotificationService: 'Charging Notification Service',
+            emspLocationsSyncService: 'EMSP Locations Sync Service',
+            emspTariffsSyncService: 'EMSP Tariffs Sync Service',
+            emspTokensSyncService: 'EMSP Tokens Sync Service',
+            testLocationEVSECreationService: 'Test Location EVSE Creation Service',
+            testSessionService: 'Test Session Service'
+        };
+        
+        return serviceLabels[serviceKey] || serviceKey;
+    }
+    
+    /**
+     * Ejecuta un servicio específico una sola vez desde la interfaz
+     */
+    async runServiceJob(serviceKey, buttonElement) {
+        const friendlyName = this.getServiceFriendlyName(serviceKey);
+        let originalHtml = null;
+        
+        try {
+            if (buttonElement) {
+                originalHtml = buttonElement.innerHTML;
+                buttonElement.disabled = true;
+                buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Ejecutando';
+            }
+            
+            const response = await fetch('/api/test-monitoring/run-job', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                },
+                body: JSON.stringify({ service: serviceKey })
+            });
+            
+            const result = await response.json().catch(() => ({}));
+            
+            if (!response.ok || !result.success) {
+                throw new Error(result?.message || `No se pudo ejecutar ${friendlyName}`);
+            }
+            
+            this.showNotification(result.message || `${friendlyName} ejecutado correctamente`, 'success');
+            
+            // Refrescar datos para reflejar la ejecución
+            await this.loadTestData();
+            
+            console.log(`✅ Ejecución manual completada para ${friendlyName}`);
+        } catch (error) {
+            console.error(`❌ Error ejecutando job ${serviceKey}:`, error);
+            this.showNotification(`Error ejecutando ${friendlyName}: ${error.message}`, 'error');
+        } finally {
+            if (buttonElement) {
+                buttonElement.disabled = false;
+                if (originalHtml) {
+                    buttonElement.innerHTML = originalHtml;
+                }
+                buttonElement.blur();
+            }
+        }
+    }
+    
+    /**
+     * Alterna la ejecución continua de un servicio específico
+     */
+    async toggleServiceLoop(serviceKey, buttonElement) {
+        const friendlyName = this.getServiceFriendlyName(serviceKey);
+        let originalHtml = null;
+        
+        try {
+            if (buttonElement) {
+                originalHtml = buttonElement.innerHTML;
+                buttonElement.disabled = true;
+                buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Procesando';
+            }
+            
+            const response = await fetch('/api/test-monitoring/toggle-service', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                },
+                body: JSON.stringify({ service: serviceKey })
+            });
+            
+            const result = await response.json().catch(() => ({}));
+            
+            if (!response.ok || !result.success) {
+                throw new Error(result?.message || `No se pudo alternar ${friendlyName}`);
+            }
+            
+            this.showNotification(result.message || `${friendlyName} actualizado`, 'success');
+            
+            await this.loadTestData();
+            
+            console.log(`✅ Estado de ejecución actualizado para ${friendlyName}`);
+        } catch (error) {
+            console.error(`❌ Error alternando servicio ${serviceKey}:`, error);
+            this.showNotification(`Error alternando ${friendlyName}: ${error.message}`, 'error');
+        } finally {
+            if (buttonElement) {
+                buttonElement.disabled = false;
+                if (originalHtml) {
+                    buttonElement.innerHTML = originalHtml;
+                }
+                buttonElement.blur();
+            }
+        }
+    }
+    
+    /**
+     * Actualiza el estado visual de los botones de toggle según el servicio
+     */
+    updateServiceToggleButtonState(serviceKey, isActive) {
+        const config = this.testServiceToggleConfigs[serviceKey];
+        if (!config) {
+            return;
+        }
+        
+        const button = document.getElementById(config.buttonId);
+        const icon = config.iconId ? document.getElementById(config.iconId) : null;
+        const text = config.textId ? document.getElementById(config.textId) : null;
+        
+        if (button) {
+            button.className = isActive ? config.activeClass : config.inactiveClass;
+        }
+        
+        if (icon) {
+            icon.className = isActive ? config.activeIcon : config.inactiveIcon;
+        }
+        
+        if (text) {
+            text.textContent = isActive ? config.activeText : config.inactiveText;
+        }
+    }
+    
+    /**
      * Configura la actualización automática de la pestaña Test
      */
     setupTestAutoRefresh() {
@@ -9058,7 +9329,7 @@ ${JSON.stringify(data, null, 2)}`;
                 }
                 
                 // Actualizar botón individual del EVSE Service
-                this.updateEvseServiceToggleButton(services.evseNotificationService.status === 'active');
+                this.updateServiceToggleButtonState('evseNotificationService', services.evseNotificationService.status === 'active');
                 
                 // Actualizar estado de Charging Notification Service
                 const chargingStatus = document.getElementById('charging-service-status');
@@ -9079,6 +9350,8 @@ ${JSON.stringify(data, null, 2)}`;
                     chargingErrorCount.textContent = services.chargingNotificationService.errorCount;
                 }
                 
+                this.updateServiceToggleButtonState('chargingNotificationService', services.chargingNotificationService.status === 'active');
+                
                 // Actualizar estado de EMSP Locations Sync Service
                 const emspLocationsStatus = document.getElementById('emsp-locations-service-status');
                 const emspLocationsLastRun = document.getElementById('emsp-locations-last-run');
@@ -9097,6 +9370,8 @@ ${JSON.stringify(data, null, 2)}`;
                 if (emspLocationsErrorCount) {
                     emspLocationsErrorCount.textContent = services.emspLocationsSyncService.errorCount;
                 }
+                
+                this.updateServiceToggleButtonState('emspLocationsSyncService', services.emspLocationsSyncService.status === 'active');
                 
                 // Actualizar estado de EMSP Tariffs Sync Service
                 const emspTariffsStatus = document.getElementById('emsp-tariffs-service-status');
@@ -9117,6 +9392,8 @@ ${JSON.stringify(data, null, 2)}`;
                     emspTariffsErrorCount.textContent = services.emspTariffsSyncService.errorCount;
                 }
                 
+                this.updateServiceToggleButtonState('emspTariffsSyncService', services.emspTariffsSyncService.status === 'active');
+                
                 // Actualizar estado de EMSP Tokens Sync Service
                 const emspTokensStatus = document.getElementById('emsp-tokens-service-status');
                 const emspTokensLastRun = document.getElementById('emsp-tokens-last-run');
@@ -9135,6 +9412,8 @@ ${JSON.stringify(data, null, 2)}`;
                 if (emspTokensErrorCount) {
                     emspTokensErrorCount.textContent = services.emspTokensSyncService.errorCount;
                 }
+                
+                this.updateServiceToggleButtonState('emspTokensSyncService', services.emspTokensSyncService.status === 'active');
                 
                 // Actualizar estado de Test Location EVSE Creation Service
                 const testLocationEvseStatus = document.getElementById('test-location-evse-service-status');
@@ -9155,6 +9434,8 @@ ${JSON.stringify(data, null, 2)}`;
                     testLocationEvseErrorCount.textContent = services.testLocationEVSECreationService.errorCount;
                 }
                 
+                this.updateServiceToggleButtonState('testLocationEVSECreationService', services.testLocationEVSECreationService.status === 'active');
+                
                 // Actualizar estado de Test Session Service
                 const testSessionStatus = document.getElementById('test-session-service-status');
                 const testSessionLastRun = document.getElementById('test-session-last-run');
@@ -9173,6 +9454,8 @@ ${JSON.stringify(data, null, 2)}`;
                 if (testSessionErrorCount) {
                     testSessionErrorCount.textContent = services.testSessionService.errorCount;
                 }
+                
+                this.updateServiceToggleButtonState('testSessionService', services.testSessionService.status === 'active');
                 
                 // Actualizar estadísticas de pruebas
                 this.updateTestStatistics(testStatistics);
@@ -9401,90 +9684,6 @@ ${JSON.stringify(data, null, 2)}`;
                 toggleButton.className = 'btn btn-outline-success btn-sm';
                 toggleIcon.className = 'bi bi-play-circle';
                 toggleText.textContent = 'Activar Jobs';
-            }
-        }
-    }
-    
-    /**
-     * Activa o desactiva el EVSE Notification Service individualmente
-     */
-    async toggleEvseService() {
-        try {
-            console.log('🔧 Cambiando estado del EVSE Notification Service...');
-            
-            const response = await fetch('/api/test-monitoring/toggle-evse-service', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Actualizar el botón según el nuevo estado
-                this.updateEvseServiceToggleButton(result.data.evseServiceActive);
-                
-                // Actualizar el estado en la interfaz
-                this.updateEvseServiceStatus(result.data.evseServiceActive);
-                
-                // Mostrar mensaje de éxito
-                this.showNotification(
-                    result.data.evseServiceActive ? 'EVSE Notification Service activado' : 'EVSE Notification Service desactivado',
-                    'success'
-                );
-                
-                console.log('✅ Estado del EVSE Notification Service actualizado');
-            } else {
-                throw new Error(result.message || 'Error desconocido');
-            }
-            
-        } catch (error) {
-            console.error('❌ Error toggling EVSE service:', error);
-            this.showNotification(`Error: ${error.message}`, 'error');
-        }
-    }
-    
-    /**
-     * Actualiza el botón de toggle del EVSE Service según el estado actual
-     */
-    updateEvseServiceToggleButton(evseServiceActive) {
-        const toggleButton = document.getElementById('toggleEvseService');
-        const toggleIcon = document.getElementById('toggleEvseIcon');
-        const toggleText = document.getElementById('toggleEvseText');
-        
-        if (toggleButton && toggleIcon && toggleText) {
-            if (evseServiceActive) {
-                // EVSE Service está activo, mostrar opción de pausar
-                toggleButton.className = 'btn btn-outline-warning btn-sm';
-                toggleIcon.className = 'bi bi-pause-circle';
-                toggleText.textContent = 'Pausar';
-            } else {
-                // EVSE Service está pausado, mostrar opción de activar
-                toggleButton.className = 'btn btn-outline-success btn-sm';
-                toggleIcon.className = 'bi bi-play-circle';
-                toggleText.textContent = 'Activar';
-            }
-        }
-    }
-    
-    /**
-     * Actualiza el estado visual del EVSE Service en la interfaz
-     */
-    updateEvseServiceStatus(evseServiceActive) {
-        const statusElement = document.getElementById('evse-service-status');
-        if (statusElement) {
-            if (evseServiceActive) {
-                statusElement.textContent = 'Activo';
-                statusElement.className = 'badge bg-success';
-            } else {
-                statusElement.textContent = 'Pausado';
-                statusElement.className = 'badge bg-warning';
             }
         }
     }
