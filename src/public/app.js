@@ -58,7 +58,7 @@ class DashboardApp {
         try {
             const response = await fetch(`${this.baseUrl}/api/config/ocpi-settings`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             if (response.ok) {
@@ -867,7 +867,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -925,7 +925,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -1843,7 +1843,7 @@ if (filterActiveExtSessions) {
             while (hasMore) {
                 const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations?offset=${offset}&limit=${limit}`, {
                     headers: { 
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 });
                 
@@ -1985,7 +1985,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -2038,7 +2038,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -2139,7 +2139,7 @@ if (filterActiveExtSessions) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(updatePayload)
             });
@@ -2326,7 +2326,7 @@ if (filterActiveExtSessions) {
             while (hasMore) {
                 const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?offset=${offset}&limit=${limit}`, {
                     headers: { 
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 });
                 
@@ -2732,7 +2732,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/api/connections`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -2865,7 +2865,7 @@ if (filterActiveExtSessions) {
                 const response = await fetch(`${this.baseUrl}/api/delete-connection/${partyId}/${countryCode}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 });
                 
@@ -2897,7 +2897,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tokens`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -2969,7 +2969,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/sessions`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -3102,7 +3102,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
 
@@ -3176,12 +3176,12 @@ if (filterActiveExtSessions) {
             const [locationsResponse, evsesResponse] = await Promise.all([
                 fetch(`${this.baseUrl}/ocpi/emsp/2.2/locations`, {
                     headers: { 
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 }),
                 fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                     headers: { 
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 })
             ]);
@@ -3268,7 +3268,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -3368,7 +3368,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tariffs`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -3460,7 +3460,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -3902,7 +3902,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(locationData)
             });
@@ -4491,7 +4491,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations?limit=1000`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -4555,7 +4555,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(evseData)
             });
@@ -4687,7 +4687,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}&limit=1`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -4715,7 +4715,7 @@ if (filterActiveExtSessions) {
             // Obtener todos los EVSEs de esta location
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses?location_id=${locationId}&limit=1000`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -4740,7 +4740,7 @@ if (filterActiveExtSessions) {
                     const deleteResponse = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evse.id}`, {
                         method: 'DELETE',
                         headers: {
-                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                         }
                     });
                     
@@ -4836,7 +4836,7 @@ if (filterActiveExtSessions) {
                 const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evseId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 });
                 
@@ -4902,7 +4902,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/evses/${evseId}`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -5522,7 +5522,7 @@ if (filterActiveExtSessions) {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(evseData)
             });
@@ -5709,7 +5709,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationId}`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -5889,7 +5889,7 @@ if (filterActiveExtSessions) {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                            'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                         },
                         body: JSON.stringify(locationData)
                     });
@@ -6070,7 +6070,7 @@ if (filterActiveExtSessions) {
                 const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations/${locationId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                     }
                 });
                 
@@ -6264,7 +6264,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/locations`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -6375,7 +6375,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(tariffData)
             });
@@ -6446,7 +6446,7 @@ if (filterActiveExtSessions) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -6487,7 +6487,7 @@ if (filterActiveExtSessions) {
             // Obtener detalles de la tarifa
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs/${tariffId}`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -6589,7 +6589,7 @@ if (filterActiveExtSessions) {
             // Obtener detalles de la tarifa
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs/${tariffId}`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -6775,7 +6775,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify(tokenData)
             });
@@ -6868,7 +6868,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tokens/stored`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -7031,7 +7031,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/api/connections`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -7220,7 +7220,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-sessions`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -7294,7 +7294,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify({
                     cpoUrl,
@@ -7336,7 +7336,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify({
                     tariffs
@@ -7466,7 +7466,7 @@ if (filterActiveExtSessions) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 },
                 body: JSON.stringify({
                     tokens
@@ -7679,7 +7679,7 @@ if (filterActiveExtSessions) {
             // Obtener Sessions del CPO desde nuestra base de datos
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -8137,7 +8137,7 @@ if (filterActiveExtSessions) {
 
             const response = await fetch(`${this.baseUrl}/api/charging-logs?sessionId=${this.currentChargingSession.sessionId}&limit=10`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             if (!response.ok) return;
@@ -8193,7 +8193,7 @@ if (filterActiveExtSessions) {
             // Obtener la URL base desde la configuración del servidor
             const response = await fetch('/api/config/ocpi-settings', {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -8255,7 +8255,7 @@ if (filterActiveExtSessions) {
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -8304,7 +8304,7 @@ if (filterActiveExtSessions) {
         try {
             const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/sessions`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
 
@@ -8424,7 +8424,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             const response = await fetch(`${this.baseUrl}/api/ext-sessions`, {
                 headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -8698,7 +8698,7 @@ ${JSON.stringify(data, null, 2)}`;
             const credentialsResponse = await fetch(`${this.baseUrl}/api/connections`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
 
@@ -8731,7 +8731,7 @@ ${JSON.stringify(data, null, 2)}`;
             const sessionsResponse = await fetch(`${this.baseUrl}/api/ext-sessions`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
 
@@ -8798,7 +8798,7 @@ ${JSON.stringify(data, null, 2)}`;
             const response = await fetch(`${this.baseUrl}/api/ext-sessions/${sessionId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(updateData)
@@ -9019,7 +9019,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             const response = await fetch('/api/test-monitoring/status', {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             if (!response.ok) {
@@ -9236,7 +9236,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             const response = await fetch('/api/test-monitoring/errors', {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             if (!response.ok) {
@@ -9290,7 +9290,7 @@ ${JSON.stringify(data, null, 2)}`;
             const response = await fetch('/api/test-monitoring/errors', {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -9343,7 +9343,7 @@ ${JSON.stringify(data, null, 2)}`;
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -9409,7 +9409,7 @@ ${JSON.stringify(data, null, 2)}`;
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -9493,7 +9493,7 @@ ${JSON.stringify(data, null, 2)}`;
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -9558,7 +9558,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             const response = await fetch('/api/test-monitoring/test-history?limit=20', {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             
@@ -9617,7 +9617,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
                 headers: {
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || 'ocpi_token_ipd_2024_secure_key'}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
             

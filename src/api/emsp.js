@@ -91,6 +91,165 @@ router.get('/tariffs', authMiddleware, async (req, res) => {
     }
 });
 
+// DELETE /ocpi/emsp/2.2/tariffs/:country_code/:party_id/:tariff_id - Soft delete tarifa de eMSP
+router.delete('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async (req, res) => {
+    try {
+        const { country_code, party_id, tariff_id } = req.params;
+
+        console.log('🗑️ DELETE /ocpi/emsp/2.2/tariffs - Soft delete de tarifa de eMSP', {
+            country_code,
+            party_id,
+            tariff_id
+        });
+
+        const [results] = await sequelize.query(`
+            UPDATE emsp_tariffs
+            SET deleted_at = NOW(),
+                updated_at = NOW(),
+                last_updated = NOW()
+            WHERE id = ?
+              AND emsp_country_code = ?
+              AND emsp_party_id = ?
+              AND deleted_at IS NULL
+            RETURNING id, emsp_party_id AS party_id, emsp_country_code AS country_code, deleted_at
+        `, {
+            replacements: [tariff_id, country_code, party_id]
+        });
+
+        if (!results || results.length === 0) {
+            return res.status(404).json({
+                status_code: 2001,
+                status_message: 'Tariff not found or already deleted',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        console.log('✅ Tarifa de eMSP marcada como eliminada', results[0]);
+
+        res.status(200).json({
+            status_code: 1000,
+            status_message: 'Tariff soft-deleted successfully',
+            data: results[0],
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error realizando soft delete de tarifa de eMSP:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error deleting EMSP tariff',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// PUT /ocpi/emsp/2.2/tariffs/:country_code/:party_id/:tariff_id - Crear o actualizar tarifa de eMSP
+router.put('/tariffs/:country_code/:party_id/:tariff_id', authMiddleware, async (req, res) => {
+    try {
+        const { country_code, party_id, tariff_id } = req.params;
+        const tariffData = req.body || {};
+
+        console.log('📝 PUT /ocpi/emsp/2.2/tariffs - Guardando tarifa de eMSP', {
+            country_code,
+            party_id,
+            tariff_id,
+            payload: tariffData
+        });
+
+        if (tariffData.country_code && tariffData.country_code !== country_code) {
+            return res.status(400).json({
+                status_code: 2000,
+                status_message: 'country_code in URL does not match payload',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        if (tariffData.party_id && tariffData.party_id !== party_id) {
+            return res.status(400).json({
+                status_code: 2000,
+                status_message: 'party_id in URL does not match payload',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        if (tariffData.id && tariffData.id !== tariff_id) {
+            return res.status(400).json({
+                status_code: 2000,
+                status_message: 'tariff id in URL does not match payload',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        if (tariffData.elements && !Array.isArray(tariffData.elements)) {
+            return res.status(400).json({
+                status_code: 2000,
+                status_message: 'elements must be an array',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        const nowIso = new Date().toISOString();
+        const replacements = [
+            tariff_id,
+            party_id,
+            country_code,
+            tariff_id,
+            tariffData.currency || 'EUR',
+            tariffData.type || 'REGULAR',
+            JSON.stringify(tariffData.elements || []),
+            tariffData.start_date_time || null,
+            tariffData.end_date_time || null,
+            tariffData.last_updated || nowIso
+        ];
+
+        await sequelize.query(`
+            INSERT INTO emsp_tariffs (
+                id, emsp_party_id, emsp_country_code, tariff_id, currency, type,
+                elements, start_date_time, end_date_time, last_updated, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            ON CONFLICT (id)
+            DO UPDATE SET
+                emsp_party_id = EXCLUDED.emsp_party_id,
+                emsp_country_code = EXCLUDED.emsp_country_code,
+                tariff_id = EXCLUDED.tariff_id,
+                currency = EXCLUDED.currency,
+                type = EXCLUDED.type,
+                elements = EXCLUDED.elements,
+                start_date_time = EXCLUDED.start_date_time,
+                end_date_time = EXCLUDED.end_date_time,
+                last_updated = EXCLUDED.last_updated,
+                deleted_at = NULL,
+                updated_at = NOW()
+        `, {
+            replacements
+        });
+
+        console.log('✅ Tarifa de eMSP guardada correctamente', {
+            tariff_id,
+            party_id,
+            country_code
+        });
+
+        res.status(200).json({
+            status_code: 1000,
+            status_message: 'Tariff stored successfully',
+            data: {
+                id: tariff_id,
+                party_id,
+                country_code,
+                last_updated: tariffData.last_updated || nowIso
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error guardando tarifa de eMSP:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error storing EMSP tariff',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // GET /ocpi/emsp/2.2/sessions - Obtener sesiones de eMSPs
 router.get('/sessions', authMiddleware, async (req, res) => {
     try {
