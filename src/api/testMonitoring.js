@@ -30,16 +30,16 @@ let serviceStatus = {
         lastRun: null,
         errorCount: 0
     },
-        testLocationEVSECreationService: {
-            status: 'active',
-            lastRun: null,
-            errorCount: 0
-        },
-        testSessionService: {
-            status: 'active',
-            lastRun: null,
-            errorCount: 0
-        }
+    testLocationEVSECreationService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
+    },
+    testSessionService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
+    }
 };
 
 // Estadísticas de pruebas (datos reales)
@@ -52,6 +52,103 @@ let testStatistics = {
 
 // Historial de pruebas para estadísticas reales
 let testHistory = [];
+
+/**
+ * Obtiene el estado en tiempo real de un servicio dado
+ * @param {*} serviceInstance Instancia del servicio requerida dinámicamente
+ * @param {string} inactiveStatus Etiqueta a usar cuando el servicio no está activo
+ * @returns {{status: string, metadata?: object}}
+ */
+const getRuntimeServiceStatus = (serviceInstance, inactiveStatus = 'inactive') => {
+    if (!serviceInstance) {
+        return { status: inactiveStatus };
+    }
+
+    try {
+        let isRunning;
+
+        if (typeof serviceInstance.getStatus === 'function') {
+            const runtimeStatus = serviceInstance.getStatus() || {};
+            if (Object.prototype.hasOwnProperty.call(runtimeStatus, 'isRunning')) {
+                isRunning = runtimeStatus.isRunning;
+                return {
+                    status: isRunning ? 'active' : inactiveStatus,
+                    metadata: runtimeStatus
+                };
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(serviceInstance, 'isRunning')) {
+            isRunning = serviceInstance.isRunning;
+            return { status: isRunning ? 'active' : inactiveStatus };
+        }
+
+        return { status: inactiveStatus };
+    } catch (error) {
+        logger.warn(`⚠️ No se pudo determinar el estado del servicio dinámicamente: ${error.message}`);
+        return { status: inactiveStatus };
+    }
+};
+
+/**
+ * Construye un snapshot del estado de los servicios combinando los datos almacenados con el estado runtime real
+ */
+const buildServicesStatusSnapshot = () => {
+    const evseNotificationService = require('../services/evseNotificationService');
+    const chargingNotificationService = require('../services/chargingNotificationService');
+    const emspLocationsSyncService = require('../services/emspLocationsSyncService');
+    const emspTariffsSyncService = require('../services/emspTariffsSyncService');
+    const emspTokensSyncService = require('../services/emspTokensSyncService');
+    const testLocationEVSECreationService = require('../services/testLocationEVSECreationService');
+    const testSessionService = require('../services/testSessionService');
+
+    const servicesSnapshot = {
+        evseNotificationService: {
+            ...serviceStatus.evseNotificationService
+        },
+        chargingNotificationService: {
+            ...serviceStatus.chargingNotificationService
+        },
+        emspLocationsSyncService: {
+            ...serviceStatus.emspLocationsSyncService
+        },
+        emspTariffsSyncService: {
+            ...serviceStatus.emspTariffsSyncService
+        },
+        emspTokensSyncService: {
+            ...serviceStatus.emspTokensSyncService
+        },
+        testLocationEVSECreationService: {
+            ...serviceStatus.testLocationEVSECreationService
+        },
+        testSessionService: {
+            ...serviceStatus.testSessionService
+        }
+    };
+
+    const evseRuntime = getRuntimeServiceStatus(evseNotificationService, 'paused');
+    servicesSnapshot.evseNotificationService.status = evseRuntime.status;
+
+    const chargingRuntime = getRuntimeServiceStatus(chargingNotificationService, 'inactive');
+    servicesSnapshot.chargingNotificationService.status = chargingRuntime.status;
+
+    const emspLocationsRuntime = getRuntimeServiceStatus(emspLocationsSyncService, 'inactive');
+    servicesSnapshot.emspLocationsSyncService.status = emspLocationsRuntime.status;
+
+    const emspTariffsRuntime = getRuntimeServiceStatus(emspTariffsSyncService, 'inactive');
+    servicesSnapshot.emspTariffsSyncService.status = emspTariffsRuntime.status;
+
+    const emspTokensRuntime = getRuntimeServiceStatus(emspTokensSyncService, 'inactive');
+    servicesSnapshot.emspTokensSyncService.status = emspTokensRuntime.status;
+
+    const testLocationRuntime = getRuntimeServiceStatus(testLocationEVSECreationService, 'paused');
+    servicesSnapshot.testLocationEVSECreationService.status = testLocationRuntime.status;
+
+    const testSessionRuntime = getRuntimeServiceStatus(testSessionService, 'paused');
+    servicesSnapshot.testSessionService.status = testSessionRuntime.status;
+
+    return servicesSnapshot;
+};
 
 // Función para actualizar estadísticas basadas en datos reales
 const updateTestStatistics = () => {
@@ -83,11 +180,12 @@ router.get('/status', async (req, res) => {
         
         // Actualizar estadísticas dinámicamente
         updateTestStatistics();
+        const servicesSnapshot = buildServicesStatusSnapshot();
         
         res.json({
             success: true,
             data: {
-                services: serviceStatus,
+                services: servicesSnapshot,
                 testStatistics: testStatistics,
                 lastUpdated: new Date().toISOString()
             }
