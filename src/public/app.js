@@ -8,7 +8,50 @@ class DashboardApp {
         this.logsStreaming = false;
         this.logsEventSource = null;
         this.allSessions = []; // Almacenar todas las sesiones para filtrado
+        this.filteredSessions = [];
+        this.currentSessionsPage = 1;
+        this.sessionsPerPage = 20;
         this.allExtSessions = []; // Almacenar todas las sesiones externas para filtrado
+        this.filteredExtSessions = []; // Sesiones externas filtradas
+        this.currentExtSessionsPage = 1;
+        this.extSessionsPerPage = 20;
+        this.allTokens = []; // Tokens del CPO
+        this.filteredTokens = [];
+        this.currentTokensPage = 1;
+        this.tokensPerPage = 20;
+        this.allEmspLocations = []; // Locations externas
+        this.filteredEmspLocations = [];
+        this.currentEmspLocationsPage = 1;
+        this.emspLocationsPerPage = 20;
+        this.emspLocationsEvseCountMap = {};
+        this.allEmspEvses = []; // EVSEs externos
+        this.filteredEmspEvses = [];
+        this.currentEmspEvsesPage = 1;
+        this.emspEvsesPerPage = 20;
+        this.emspEvsesFilters = {
+            status: '',
+            party: '',
+            search: ''
+        };
+        this.allTariffs = []; // Tariffs del CPO
+        this.filteredTariffs = [];
+        this.currentTariffsPage = 1;
+        this.tariffsPerPage = 20;
+        this.allEmspTariffs = []; // Tariffs externos
+        this.filteredEmspTariffs = [];
+        this.currentEmspTariffsPage = 1;
+        this.emspTariffsPerPage = 20;
+        this.allEmspTokens = []; // Almacenar todos los Ext tokens para paginación
+        this.filteredEmspTokens = []; // Tokens externos filtrados
+        this.currentEmspTokensPage = 1;
+        this.emspTokensPerPage = 20;
+        this.emspTokensFilters = {
+            search: '',
+            issuer: '',
+            type: '',
+            valid: '',
+            whitelist: ''
+        };
         this.currentChargingSession = null; // Sesión de recarga activa
         this.cpoEvses = []; // EVSEs del CPO externo
         this.filterActiveExtSessions = true; // Filtro de sesiones externas activas
@@ -331,15 +374,81 @@ class DashboardApp {
             }
 
             const refreshEmspTariffs = document.getElementById('refreshEmspTariffs');
-if (refreshEmspTariffs) {
-    refreshEmspTariffs.addEventListener('click', () => {
-        console.log('📍 Botón refreshEmspTariffs clickeado');
-        this.loadEmspTariffs();
-    });
-    console.log('✅ Event listener para refreshEmspTariffs agregado');
-} else {
-    console.warn('⚠️ Elemento refreshEmspTariffs no encontrado');
-}
+            if (refreshEmspTariffs) {
+                refreshEmspTariffs.addEventListener('click', () => {
+                    console.log('📍 Botón refreshEmspTariffs clickeado');
+                    this.loadEmspTariffs();
+                });
+                console.log('✅ Event listener para refreshEmspTariffs agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshEmspTariffs no encontrado');
+            }
+
+            const emspLocationsPrevPage = document.getElementById('emspLocationsPrevPage');
+            if (emspLocationsPrevPage) {
+                emspLocationsPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Ext Locations clickeado');
+                    this.goToEmspLocationsPrevPage();
+                });
+                console.log('✅ Event listener para emspLocationsPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspLocationsPrevPage no encontrado');
+            }
+
+            const emspLocationsNextPage = document.getElementById('emspLocationsNextPage');
+            if (emspLocationsNextPage) {
+                emspLocationsNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Ext Locations clickeado');
+                    this.goToEmspLocationsNextPage();
+                });
+                console.log('✅ Event listener para emspLocationsNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspLocationsNextPage no encontrado');
+            }
+
+            const emspEvsesPrevPage = document.getElementById('emspEvsesPrevPage');
+            if (emspEvsesPrevPage) {
+                emspEvsesPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Ext EVSEs clickeado');
+                    this.goToEmspEvsesPrevPage();
+                });
+                console.log('✅ Event listener para emspEvsesPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspEvsesPrevPage no encontrado');
+            }
+
+            const emspEvsesNextPage = document.getElementById('emspEvsesNextPage');
+            if (emspEvsesNextPage) {
+                emspEvsesNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Ext EVSEs clickeado');
+                    this.goToEmspEvsesNextPage();
+                });
+                console.log('✅ Event listener para emspEvsesNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspEvsesNextPage no encontrado');
+            }
+
+            const emspTariffsPrevPage = document.getElementById('emspTariffsPrevPage');
+            if (emspTariffsPrevPage) {
+                emspTariffsPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Ext Tariffs clickeado');
+                    this.goToEmspTariffsPrevPage();
+                });
+                console.log('✅ Event listener para emspTariffsPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTariffsPrevPage no encontrado');
+            }
+
+            const emspTariffsNextPage = document.getElementById('emspTariffsNextPage');
+            if (emspTariffsNextPage) {
+                emspTariffsNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Ext Tariffs clickeado');
+                    this.goToEmspTariffsNextPage();
+                });
+                console.log('✅ Event listener para emspTariffsNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTariffsNextPage no encontrado');
+            }
 
             const refreshTariffs = document.getElementById('refreshTariffs');
             if (refreshTariffs) {
@@ -386,39 +495,143 @@ if (refreshEmspTariffs) {
                 console.warn('⚠️ Elemento locationSearchFilter no encontrado');
             }
 
-const refreshEmspTokens = document.getElementById('refreshEmspTokens');
-if (refreshEmspTokens) {
-    refreshEmspTokens.addEventListener('click', () => {
-        console.log('🔑 Botón refreshEmspTokens clickeado');
-        this.loadEmspTokens();
-    });
-    console.log('✅ Event listener para refreshEmspTokens agregado');
-} else {
-    console.warn('⚠️ Elemento refreshEmspTokens no encontrado');
-}
+            const refreshEmspTokens = document.getElementById('refreshEmspTokens');
+            if (refreshEmspTokens) {
+                refreshEmspTokens.addEventListener('click', () => {
+                    console.log('🔑 Botón refreshEmspTokens clickeado');
+                    this.loadEmspTokens();
+                });
+                console.log('✅ Event listener para refreshEmspTokens agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshEmspTokens no encontrado');
+            }
 
-// Event listeners para Ext Sessions
-const refreshExtSessions = document.getElementById('refreshExtSessions');
-if (refreshExtSessions) {
-    refreshExtSessions.addEventListener('click', () => {
-        console.log('☁️ Botón refreshExtSessions clickeado');
-        this.loadExtSessions();
-    });
-    console.log('✅ Event listener para refreshExtSessions agregado');
-} else {
-    console.warn('⚠️ Elemento refreshExtSessions no encontrado');
-}
+            const emspTokensSearch = document.getElementById('emspTokensSearch');
+            if (emspTokensSearch) {
+                emspTokensSearch.addEventListener('input', () => {
+                    this.emspTokensFilters.search = emspTokensSearch.value;
+                    console.log('🔍 Búsqueda Ext Tokens actualizada:', this.emspTokensFilters.search);
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensSearch agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensSearch no encontrado');
+            }
 
-const filterActiveExtSessions = document.getElementById('filterActiveExtSessions');
-if (filterActiveExtSessions) {
-    filterActiveExtSessions.addEventListener('change', () => {
-        console.log('🔍 Filtro de sesiones externas activas cambiado:', filterActiveExtSessions.checked);
-        this.filterExtSessions();
-    });
-    console.log('✅ Event listener para filterActiveExtSessions agregado');
-} else {
-    console.warn('⚠️ Elemento filterActiveExtSessions no encontrado');
-}
+            const emspTokensIssuerFilter = document.getElementById('emspTokensIssuerFilter');
+            if (emspTokensIssuerFilter) {
+                emspTokensIssuerFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.issuer = emspTokensIssuerFilter.value;
+                    console.log('🏢 Filtro de emisor Ext Tokens cambiado:', this.emspTokensFilters.issuer || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensIssuerFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensIssuerFilter no encontrado');
+            }
+
+            const emspTokensTypeFilter = document.getElementById('emspTokensTypeFilter');
+            if (emspTokensTypeFilter) {
+                emspTokensTypeFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.type = emspTokensTypeFilter.value;
+                    console.log('🏷️ Filtro de tipo Ext Tokens cambiado:', this.emspTokensFilters.type || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensTypeFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensTypeFilter no encontrado');
+            }
+
+            const emspTokensValidFilter = document.getElementById('emspTokensValidFilter');
+            if (emspTokensValidFilter) {
+                emspTokensValidFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.valid = emspTokensValidFilter.value;
+                    console.log('✅ Filtro de válido Ext Tokens cambiado:', this.emspTokensFilters.valid || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensValidFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensValidFilter no encontrado');
+            }
+
+            const emspTokensWhitelistFilter = document.getElementById('emspTokensWhitelistFilter');
+            if (emspTokensWhitelistFilter) {
+                emspTokensWhitelistFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.whitelist = emspTokensWhitelistFilter.value;
+                    console.log('📋 Filtro de whitelist Ext Tokens cambiado:', this.emspTokensFilters.whitelist || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensWhitelistFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensWhitelistFilter no encontrado');
+            }
+
+            const emspTokensPrevPage = document.getElementById('emspTokensPrevPage');
+            if (emspTokensPrevPage) {
+                emspTokensPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Ext Tokens clickeado');
+                    this.goToEmspTokensPrevPage();
+                });
+                console.log('✅ Event listener para emspTokensPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensPrevPage no encontrado');
+            }
+
+            const emspTokensNextPage = document.getElementById('emspTokensNextPage');
+            if (emspTokensNextPage) {
+                emspTokensNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Ext Tokens clickeado');
+                    this.goToEmspTokensNextPage();
+                });
+                console.log('✅ Event listener para emspTokensNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensNextPage no encontrado');
+            }
+
+            // Event listeners para Ext Sessions
+            const refreshExtSessions = document.getElementById('refreshExtSessions');
+            if (refreshExtSessions) {
+                refreshExtSessions.addEventListener('click', () => {
+                    console.log('☁️ Botón refreshExtSessions clickeado');
+                    this.loadExtSessions();
+                });
+                console.log('✅ Event listener para refreshExtSessions agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshExtSessions no encontrado');
+            }
+
+            const filterActiveExtSessions = document.getElementById('filterActiveExtSessions');
+            if (filterActiveExtSessions) {
+                filterActiveExtSessions.addEventListener('change', () => {
+                    console.log('🔍 Filtro de sesiones externas activas cambiado:', filterActiveExtSessions.checked);
+                    this.filterExtSessions();
+                });
+                console.log('✅ Event listener para filterActiveExtSessions agregado');
+            } else {
+                console.warn('⚠️ Elemento filterActiveExtSessions no encontrado');
+            }
+
+            const extSessionsPrevPage = document.getElementById('extSessionsPrevPage');
+            if (extSessionsPrevPage) {
+                extSessionsPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Ext Sessions clickeado');
+                    this.goToExtSessionsPrevPage();
+                });
+                console.log('✅ Event listener para extSessionsPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento extSessionsPrevPage no encontrado');
+            }
+
+            const extSessionsNextPage = document.getElementById('extSessionsNextPage');
+            if (extSessionsNextPage) {
+                extSessionsNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Ext Sessions clickeado');
+                    this.goToExtSessionsNextPage();
+                });
+                console.log('✅ Event listener para extSessionsNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento extSessionsNextPage no encontrado');
+            }
 
             // Botones de acciones EMSP
             const getCpoVersions = document.getElementById('getCpoVersions');
@@ -586,7 +799,7 @@ if (filterActiveExtSessions) {
             if (emspEvseStatusFilter) {
                 emspEvseStatusFilter.addEventListener('change', () => {
                     console.log('🔍 Filtro de estado EMSP EVSE cambiado:', emspEvseStatusFilter.value);
-                    this.applyEmspEvseFilters();
+                    this.applyEmspEvseFilters({ resetPage: true });
                 });
                 console.log('✅ Event listener para emspEvseStatusFilter agregado');
             } else {
@@ -597,7 +810,7 @@ if (filterActiveExtSessions) {
             if (emspEvsePartyFilter) {
                 emspEvsePartyFilter.addEventListener('change', () => {
                     console.log('🔍 Filtro de party EMSP EVSE cambiado:', emspEvsePartyFilter.value);
-                    this.applyEmspEvseFilters();
+                    this.applyEmspEvseFilters({ resetPage: true });
                 });
                 console.log('✅ Event listener para emspEvsePartyFilter agregado');
             } else {
@@ -608,7 +821,7 @@ if (filterActiveExtSessions) {
             if (emspEvseSearchFilter) {
                 emspEvseSearchFilter.addEventListener('input', () => {
                     console.log('🔍 Filtro de búsqueda EMSP EVSE cambiado:', emspEvseSearchFilter.value);
-                    this.applyEmspEvseFilters();
+                    this.applyEmspEvseFilters({ resetPage: true });
                 });
                 console.log('✅ Event listener para emspEvseSearchFilter agregado');
             } else {
@@ -733,7 +946,7 @@ if (filterActiveExtSessions) {
             if (filterActiveSessions) {
                 filterActiveSessions.addEventListener('change', () => {
                     console.log('🔍 Filtro de sesiones activas cambiado:', filterActiveSessions.checked);
-                    this.filterSessions();
+                    this.filterSessions({ resetPage: true });
                 });
                 console.log('✅ Event listener para filterActiveSessions agregado');
             } else {
@@ -750,6 +963,28 @@ if (filterActiveExtSessions) {
                 console.log('✅ Event listener para createTokenBtn agregado');
             } else {
                 console.warn('⚠️ Elemento createTokenBtn no encontrado');
+            }
+
+            const tokensPrevPage = document.getElementById('tokensPrevPage');
+            if (tokensPrevPage) {
+                tokensPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Tokens clickeado');
+                    this.goToTokensPrevPage();
+                });
+                console.log('✅ Event listener para tokensPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento tokensPrevPage no encontrado');
+            }
+
+            const tokensNextPage = document.getElementById('tokensNextPage');
+            if (tokensNextPage) {
+                tokensNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Tokens clickeado');
+                    this.goToTokensNextPage();
+                });
+                console.log('✅ Event listener para tokensNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento tokensNextPage no encontrado');
             }
 
             // Event listeners para paginado de EVSEs
@@ -796,6 +1031,50 @@ if (filterActiveExtSessions) {
                 console.log('✅ Event listener para locationsNextPage agregado');
             } else {
                 console.warn('⚠️ Elemento locationsNextPage no encontrado');
+            }
+
+            const tariffsPrevPage = document.getElementById('tariffsPrevPage');
+            if (tariffsPrevPage) {
+                tariffsPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Tariffs clickeado');
+                    this.goToTariffsPrevPage();
+                });
+                console.log('✅ Event listener para tariffsPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento tariffsPrevPage no encontrado');
+            }
+
+            const tariffsNextPage = document.getElementById('tariffsNextPage');
+            if (tariffsNextPage) {
+                tariffsNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Tariffs clickeado');
+                    this.goToTariffsNextPage();
+                });
+                console.log('✅ Event listener para tariffsNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento tariffsNextPage no encontrado');
+            }
+
+            const sessionsPrevPage = document.getElementById('sessionsPrevPage');
+            if (sessionsPrevPage) {
+                sessionsPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Sessions clickeado');
+                    this.goToSessionsPrevPage();
+                });
+                console.log('✅ Event listener para sessionsPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento sessionsPrevPage no encontrado');
+            }
+
+            const sessionsNextPage = document.getElementById('sessionsNextPage');
+            if (sessionsNextPage) {
+                sessionsNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Sessions clickeado');
+                    this.goToSessionsNextPage();
+                });
+                console.log('✅ Event listener para sessionsNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento sessionsNextPage no encontrado');
             }
 
             // Tabs - Navegación manual (Bootstrap no funciona por CSP)
@@ -2986,16 +3265,26 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 Tokens data:', data);
+            const tokens = Array.isArray(data.data) ? data.data : [];
+            console.log('📊 Tokens data:', tokens.length ? `Array[${tokens.length}]` : data);
             
-            this.renderTokens(data.data || []);
-            this.updateCount('tokensCount', data.data?.length || 0);
+            this.allTokens = tokens;
+            this.filteredTokens = [...tokens];
+            this.currentTokensPage = 1;
+            this.renderTokensPage();
+            this.updateCount('tokensCount', tokens.length);
             
             console.log('✅ Tokens cargados exitosamente');
             
         } catch (error) {
             console.error('❌ Error cargando tokens:', error);
             this.showTableError('tokensTableBody', `Error al cargar tokens: ${error.message}`);
+            this.allTokens = [];
+            this.filteredTokens = [];
+            this.currentTokensPage = 1;
+            this.updateTokensPaginationInfo(0, 0, 0);
+            this.updateTokensPaginationButtons();
+            this.updateCount('tokensCount', 0);
         }
     }
 
@@ -3006,11 +3295,12 @@ if (filterActiveExtSessions) {
             return;
         }
         
+        const totalTokens = Array.isArray(this.allTokens) ? this.allTokens.length : 0;
         if (tokens.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay tokens disponibles
+                        <i class="bi ${totalTokens > 0 ? 'bi-funnel' : 'bi-inbox'}"></i> ${totalTokens > 0 ? 'No se encontraron tokens para esta página' : 'No hay tokens disponibles'}
                     </td>
                 </tr>
             `;
@@ -3033,7 +3323,89 @@ if (filterActiveExtSessions) {
             </tr>
         `).join('');
         
-        console.log(`✅ ${tokens.length} tokens renderizados`);
+        console.log(`✅ ${tokens.length} tokens renderizados en la página actual`);
+    }
+
+    renderTokensPage() {
+        const tokens = Array.isArray(this.filteredTokens) ? this.filteredTokens : [];
+        const totalTokens = tokens.length;
+
+        if (totalTokens === 0) {
+            this.renderTokens([]);
+            this.updateTokensPaginationInfo(0, 0, 0);
+            this.updateTokensPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalTokens / this.tokensPerPage));
+        if (this.currentTokensPage > totalPages) {
+            this.currentTokensPage = totalPages;
+        }
+        if (this.currentTokensPage < 1) {
+            this.currentTokensPage = 1;
+        }
+
+        const startIndex = (this.currentTokensPage - 1) * this.tokensPerPage;
+        const endIndex = Math.min(startIndex + this.tokensPerPage, totalTokens);
+        const pageTokens = tokens.slice(startIndex, endIndex);
+
+        this.renderTokens(pageTokens);
+        this.updateTokensPaginationInfo(startIndex + 1, endIndex, totalTokens);
+        this.updateTokensPaginationButtons();
+    }
+
+    updateTokensPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('tokensPageInfo');
+        const totalCount = document.getElementById('tokensTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateTokensPaginationButtons() {
+        const prevButton = document.getElementById('tokensPrevPage');
+        const nextButton = document.getElementById('tokensNextPage');
+        const totalTokens = Array.isArray(this.filteredTokens) ? this.filteredTokens.length : 0;
+        const totalPages = totalTokens > 0 ? Math.ceil(totalTokens / this.tokensPerPage) : 1;
+
+        const atFirstPage = this.currentTokensPage <= 1 || totalTokens === 0;
+        const atLastPage = this.currentTokensPage >= totalPages || totalTokens === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToTokensPrevPage() {
+        if (this.currentTokensPage > 1) {
+            this.currentTokensPage--;
+            this.renderTokensPage();
+        }
+    }
+
+    goToTokensNextPage() {
+        const totalTokens = Array.isArray(this.filteredTokens) ? this.filteredTokens.length : 0;
+        const totalPages = Math.ceil(totalTokens / this.tokensPerPage);
+
+        if (this.currentTokensPage < totalPages) {
+            this.currentTokensPage++;
+            this.renderTokensPage();
+        }
     }
 
     truncateToken(token, length = 20) {
@@ -3070,13 +3442,19 @@ if (filterActiveExtSessions) {
             console.log('💾 Stored sessions:', this.allSessions.length);
             
             // Aplicar filtro y renderizar
-            this.filterSessions();
+            this.filterSessions({ resetPage: true });
             
             console.log('✅ Sesiones cargadas exitosamente');
             
         } catch (error) {
             console.error('❌ Error cargando sesiones:', error);
             this.showTableError('sessionsTableBody', `Error al cargar sesiones: ${error.message}`);
+            this.allSessions = [];
+            this.filteredSessions = [];
+            this.currentSessionsPage = 1;
+            this.updateSessionsPaginationInfo(0, 0, 0);
+            this.updateSessionsPaginationButtons();
+            this.updateCount('sessionsCount', 0);
         }
     }
 
@@ -3204,7 +3582,89 @@ if (filterActiveExtSessions) {
         }
     }
 
-    filterSessions() {
+    renderSessionsPage() {
+        const sessions = Array.isArray(this.filteredSessions) ? this.filteredSessions : [];
+        const totalSessions = sessions.length;
+
+        if (totalSessions === 0) {
+            this.renderSessions([]);
+            this.updateSessionsPaginationInfo(0, 0, 0);
+            this.updateSessionsPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalSessions / this.sessionsPerPage));
+        if (this.currentSessionsPage > totalPages) {
+            this.currentSessionsPage = totalPages;
+        }
+        if (this.currentSessionsPage < 1) {
+            this.currentSessionsPage = 1;
+        }
+
+        const startIndex = (this.currentSessionsPage - 1) * this.sessionsPerPage;
+        const endIndex = Math.min(startIndex + this.sessionsPerPage, totalSessions);
+        const pageSessions = sessions.slice(startIndex, endIndex);
+
+        this.renderSessions(pageSessions);
+        this.updateSessionsPaginationInfo(startIndex + 1, endIndex, totalSessions);
+        this.updateSessionsPaginationButtons();
+    }
+
+    updateSessionsPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('sessionsPageInfo');
+        const totalCount = document.getElementById('sessionsTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateSessionsPaginationButtons() {
+        const prevButton = document.getElementById('sessionsPrevPage');
+        const nextButton = document.getElementById('sessionsNextPage');
+        const totalSessions = Array.isArray(this.filteredSessions) ? this.filteredSessions.length : 0;
+        const totalPages = totalSessions > 0 ? Math.ceil(totalSessions / this.sessionsPerPage) : 1;
+
+        const atFirstPage = this.currentSessionsPage <= 1 || totalSessions === 0;
+        const atLastPage = this.currentSessionsPage >= totalPages || totalSessions === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToSessionsPrevPage() {
+        if (this.currentSessionsPage > 1) {
+            this.currentSessionsPage--;
+            this.renderSessionsPage();
+        }
+    }
+
+    goToSessionsNextPage() {
+        const totalSessions = Array.isArray(this.filteredSessions) ? this.filteredSessions.length : 0;
+        const totalPages = Math.ceil(totalSessions / this.sessionsPerPage);
+
+        if (this.currentSessionsPage < totalPages) {
+            this.currentSessionsPage++;
+            this.renderSessionsPage();
+        }
+    }
+
+    filterSessions({ resetPage = false } = {}) {
         try {
             console.log('🔍 Iniciando filtro de sesiones');
             console.log('🔍 allSessions:', this.allSessions);
@@ -3217,10 +3677,10 @@ if (filterActiveExtSessions) {
             console.log('🔍 Filter checkbox found:', !!filterActiveCheckbox);
             console.log('🔍 Filter checkbox checked:', showOnlyActive);
             
-            let filteredSessions = this.allSessions || [];
+            let filteredSessions = this.allSessions ? [...this.allSessions] : [];
             
             if (showOnlyActive) {
-                filteredSessions = this.allSessions.filter(session => 
+                filteredSessions = filteredSessions.filter(session => 
                     session.status === 'ACTIVE'
                 );
                 console.log(`📊 Filtradas ${filteredSessions.length} sesiones activas de ${this.allSessions.length} totales`);
@@ -3230,7 +3690,11 @@ if (filterActiveExtSessions) {
             
             console.log('🔍 Filtered sessions:', filteredSessions);
             
-            this.renderSessions(filteredSessions);
+            this.filteredSessions = filteredSessions;
+            if (resetPage) {
+                this.currentSessionsPage = 1;
+            }
+            this.renderSessionsPage();
             this.updateCount('sessionsCount', filteredSessions.length);
             
         } catch (error) {
@@ -3290,18 +3754,28 @@ if (filterActiveExtSessions) {
                 });
             }
             
-            this.renderEmspLocations(locationsData.data || [], evseCountMap);
-            this.updateCount('emspLocationsCount', locationsData.data?.length || 0);
+            this.emspLocationsEvseCountMap = evseCountMap;
+            this.allEmspLocations = Array.isArray(locationsData.data) ? locationsData.data : [];
+            this.filteredEmspLocations = [...this.allEmspLocations];
+            this.currentEmspLocationsPage = 1;
+            this.renderEmspLocationsPage();
+            this.updateCount('emspLocationsCount', this.allEmspLocations.length);
             
             console.log('✅ EMSP Locations cargados exitosamente');
             
         } catch (error) {
             console.error('❌ Error cargando EMSP locations:', error);
             this.showTableError('emspLocationsTableBody', `Error al cargar EMSP locations: ${error.message}`);
+            this.allEmspLocations = [];
+            this.filteredEmspLocations = [];
+            this.emspLocationsEvseCountMap = {};
+            this.currentEmspLocationsPage = 1;
+            this.updateEmspLocationsPaginationInfo(0, 0, 0);
+            this.updateEmspLocationsPaginationButtons();
         }
     }
 
-    renderEmspLocations(locations, evseCountMap = {}) {
+    renderEmspLocations(locations) {
         const tbody = document.getElementById('emspLocationsTableBody');
         if (!tbody) {
             console.warn('⚠️ Elemento emspLocationsTableBody no encontrado');
@@ -3312,7 +3786,7 @@ if (filterActiveExtSessions) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay EMSP locations disponibles
+                        <i class="bi bi-inbox"></i> No hay Ext locations disponibles
                     </td>
                 </tr>
             `;
@@ -3321,7 +3795,7 @@ if (filterActiveExtSessions) {
 
         tbody.innerHTML = locations.map(location => {
             // Obtener el conteo de EVSEs del mapa
-            const evseCount = evseCountMap[location.id] || 0;
+            const evseCount = this.emspLocationsEvseCountMap?.[location.id] || 0;
 
             return `
                 <tr class="fade-in">
@@ -3338,6 +3812,88 @@ if (filterActiveExtSessions) {
         }).join('');
         
         console.log(`✅ ${locations.length} EMSP locations renderizados con conteo de EVSEs`);
+    }
+
+    renderEmspLocationsPage() {
+        const locations = Array.isArray(this.filteredEmspLocations) ? this.filteredEmspLocations : [];
+        const totalLocations = locations.length;
+
+        if (totalLocations === 0) {
+            this.renderEmspLocations([]);
+            this.updateEmspLocationsPaginationInfo(0, 0, 0);
+            this.updateEmspLocationsPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalLocations / this.emspLocationsPerPage));
+        if (this.currentEmspLocationsPage > totalPages) {
+            this.currentEmspLocationsPage = totalPages;
+        }
+        if (this.currentEmspLocationsPage < 1) {
+            this.currentEmspLocationsPage = 1;
+        }
+
+        const startIndex = (this.currentEmspLocationsPage - 1) * this.emspLocationsPerPage;
+        const endIndex = Math.min(startIndex + this.emspLocationsPerPage, totalLocations);
+        const pageLocations = locations.slice(startIndex, endIndex);
+
+        this.renderEmspLocations(pageLocations);
+        this.updateEmspLocationsPaginationInfo(startIndex + 1, endIndex, totalLocations);
+        this.updateEmspLocationsPaginationButtons();
+    }
+
+    updateEmspLocationsPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('emspLocationsPageInfo');
+        const totalCount = document.getElementById('emspLocationsTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateEmspLocationsPaginationButtons() {
+        const prevButton = document.getElementById('emspLocationsPrevPage');
+        const nextButton = document.getElementById('emspLocationsNextPage');
+        const totalLocations = Array.isArray(this.filteredEmspLocations) ? this.filteredEmspLocations.length : 0;
+        const totalPages = totalLocations > 0 ? Math.ceil(totalLocations / this.emspLocationsPerPage) : 1;
+
+        const atFirstPage = this.currentEmspLocationsPage <= 1 || totalLocations === 0;
+        const atLastPage = this.currentEmspLocationsPage >= totalPages || totalLocations === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToEmspLocationsPrevPage() {
+        if (this.currentEmspLocationsPage > 1) {
+            this.currentEmspLocationsPage--;
+            this.renderEmspLocationsPage();
+        }
+    }
+
+    goToEmspLocationsNextPage() {
+        const totalLocations = Array.isArray(this.filteredEmspLocations) ? this.filteredEmspLocations.length : 0;
+        const totalPages = Math.ceil(totalLocations / this.emspLocationsPerPage);
+
+        if (this.currentEmspLocationsPage < totalPages) {
+            this.currentEmspLocationsPage++;
+            this.renderEmspLocationsPage();
+        }
     }
 
     // Cargar EVSEs de eMSPs
@@ -3357,17 +3913,24 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP EVSEs data:', data.data ? `Array[${data.data.length}]` : data);
+            const evses = Array.isArray(data.data) ? data.data : [];
+            console.log('📊 EMSP EVSEs data:', evses.length ? `Array[${evses.length}]` : data);
             
-            this.renderEmspEvses(data.data || []);
-            this.updateCount('emspEvsesCount', data.data?.length || 0);
-            this.populateEmspPartyFilter(data.data || []);
+            this.allEmspEvses = evses;
+            this.populateEmspPartyFilter(evses);
+            this.applyEmspEvseFilters({ resetPage: true });
+            this.updateCount('emspEvsesCount', evses.length);
             
             console.log('✅ EMSP EVSEs cargados exitosamente');
             
         } catch (error) {
             console.error('❌ Error cargando EMSP EVSEs:', error);
             this.showTableError('emspEvsesTableBody', `Error al cargar EMSP EVSEs: ${error.message}`);
+            this.allEmspEvses = [];
+            this.filteredEmspEvses = [];
+            this.currentEmspEvsesPage = 1;
+            this.updateEmspEvsesPaginationInfo(0, 0, 0);
+            this.updateEmspEvsesPaginationButtons();
         }
     }
 
@@ -3379,10 +3942,22 @@ if (filterActiveExtSessions) {
         }
         
         if (evses.length === 0) {
+            const hasData = Array.isArray(this.allEmspEvses) && this.allEmspEvses.length > 0;
+            const filters = this.emspEvsesFilters || {};
+            const hasFilters = Boolean(
+                (filters.status && filters.status.trim()) ||
+                (filters.party && filters.party.trim()) ||
+                (filters.search && filters.search.trim())
+            );
+            const emptyIcon = hasFilters && hasData ? 'bi-funnel' : 'bi-inbox';
+            const emptyMessage = hasFilters && hasData
+                ? 'No se encontraron Ext EVSEs con los filtros aplicados'
+                : 'No hay Ext EVSEs disponibles';
+
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay EMSP EVSEs disponibles
+                        <i class="bi ${emptyIcon}"></i> ${emptyMessage}
                     </td>
                 </tr>
             `;
@@ -3437,7 +4012,89 @@ if (filterActiveExtSessions) {
             `;
         }).join('');
         
-        console.log(`✅ ${evses.length} EMSP EVSEs renderizados`);
+        console.log(`✅ ${evses.length} Ext EVSEs renderizados en la página actual`);
+    }
+
+    renderEmspEvsesPage() {
+        const evses = Array.isArray(this.filteredEmspEvses) ? this.filteredEmspEvses : [];
+        const totalEvses = evses.length;
+
+        if (totalEvses === 0) {
+            this.renderEmspEvses([]);
+            this.updateEmspEvsesPaginationInfo(0, 0, 0);
+            this.updateEmspEvsesPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalEvses / this.emspEvsesPerPage));
+        if (this.currentEmspEvsesPage > totalPages) {
+            this.currentEmspEvsesPage = totalPages;
+        }
+        if (this.currentEmspEvsesPage < 1) {
+            this.currentEmspEvsesPage = 1;
+        }
+
+        const startIndex = (this.currentEmspEvsesPage - 1) * this.emspEvsesPerPage;
+        const endIndex = Math.min(startIndex + this.emspEvsesPerPage, totalEvses);
+        const pageEvses = evses.slice(startIndex, endIndex);
+
+        this.renderEmspEvses(pageEvses);
+        this.updateEmspEvsesPaginationInfo(startIndex + 1, endIndex, totalEvses);
+        this.updateEmspEvsesPaginationButtons();
+    }
+
+    updateEmspEvsesPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('emspEvsesPageInfo');
+        const totalCount = document.getElementById('emspEvsesTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateEmspEvsesPaginationButtons() {
+        const prevButton = document.getElementById('emspEvsesPrevPage');
+        const nextButton = document.getElementById('emspEvsesNextPage');
+        const totalEvses = Array.isArray(this.filteredEmspEvses) ? this.filteredEmspEvses.length : 0;
+        const totalPages = totalEvses > 0 ? Math.ceil(totalEvses / this.emspEvsesPerPage) : 1;
+
+        const atFirstPage = this.currentEmspEvsesPage <= 1 || totalEvses === 0;
+        const atLastPage = this.currentEmspEvsesPage >= totalPages || totalEvses === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToEmspEvsesPrevPage() {
+        if (this.currentEmspEvsesPage > 1) {
+            this.currentEmspEvsesPage--;
+            this.renderEmspEvsesPage();
+        }
+    }
+
+    goToEmspEvsesNextPage() {
+        const totalEvses = Array.isArray(this.filteredEmspEvses) ? this.filteredEmspEvses.length : 0;
+        const totalPages = Math.ceil(totalEvses / this.emspEvsesPerPage);
+
+        if (this.currentEmspEvsesPage < totalPages) {
+            this.currentEmspEvsesPage++;
+            this.renderEmspEvsesPage();
+        }
     }
 
     // Cargar tariffs de eMSPs
@@ -3465,7 +4122,10 @@ if (filterActiveExtSessions) {
                 active: activeTariffs.length
             });
             
-            this.renderEmspTariffs(activeTariffs);
+            this.allEmspTariffs = activeTariffs;
+            this.filteredEmspTariffs = [...activeTariffs];
+            this.currentEmspTariffsPage = 1;
+            this.renderEmspTariffsPage();
             this.updateCount('emspTariffsCount', activeTariffs.length);
             
             console.log('✅ EMSP Tariffs cargados exitosamente');
@@ -3473,6 +4133,11 @@ if (filterActiveExtSessions) {
         } catch (error) {
             console.error('❌ Error cargando EMSP tariffs:', error);
             this.showTableError('emspTariffsTableBody', `Error al cargar EMSP tariffs: ${error.message}`);
+            this.allEmspTariffs = [];
+            this.filteredEmspTariffs = [];
+            this.currentEmspTariffsPage = 1;
+            this.updateEmspTariffsPaginationInfo(0, 0, 0);
+            this.updateEmspTariffsPaginationButtons();
         }
     }
 
@@ -3487,7 +4152,7 @@ if (filterActiveExtSessions) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="9" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay EMSP tariffs disponibles
+                        <i class="bi bi-inbox"></i> No hay Ext tariffs disponibles
                     </td>
                 </tr>
             `;
@@ -3508,7 +4173,89 @@ if (filterActiveExtSessions) {
             </tr>
         `).join('');
         
-        console.log(`✅ ${tariffs.length} EMSP tariffs renderizados`);
+        console.log(`✅ ${tariffs.length} Ext tariffs renderizados en la página actual`);
+    }
+
+    renderEmspTariffsPage() {
+        const tariffs = Array.isArray(this.filteredEmspTariffs) ? this.filteredEmspTariffs : [];
+        const totalTariffs = tariffs.length;
+
+        if (totalTariffs === 0) {
+            this.renderEmspTariffs([]);
+            this.updateEmspTariffsPaginationInfo(0, 0, 0);
+            this.updateEmspTariffsPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalTariffs / this.emspTariffsPerPage));
+        if (this.currentEmspTariffsPage > totalPages) {
+            this.currentEmspTariffsPage = totalPages;
+        }
+        if (this.currentEmspTariffsPage < 1) {
+            this.currentEmspTariffsPage = 1;
+        }
+
+        const startIndex = (this.currentEmspTariffsPage - 1) * this.emspTariffsPerPage;
+        const endIndex = Math.min(startIndex + this.emspTariffsPerPage, totalTariffs);
+        const pageTariffs = tariffs.slice(startIndex, endIndex);
+
+        this.renderEmspTariffs(pageTariffs);
+        this.updateEmspTariffsPaginationInfo(startIndex + 1, endIndex, totalTariffs);
+        this.updateEmspTariffsPaginationButtons();
+    }
+
+    updateEmspTariffsPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('emspTariffsPageInfo');
+        const totalCount = document.getElementById('emspTariffsTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateEmspTariffsPaginationButtons() {
+        const prevButton = document.getElementById('emspTariffsPrevPage');
+        const nextButton = document.getElementById('emspTariffsNextPage');
+        const totalTariffs = Array.isArray(this.filteredEmspTariffs) ? this.filteredEmspTariffs.length : 0;
+        const totalPages = totalTariffs > 0 ? Math.ceil(totalTariffs / this.emspTariffsPerPage) : 1;
+
+        const atFirstPage = this.currentEmspTariffsPage <= 1 || totalTariffs === 0;
+        const atLastPage = this.currentEmspTariffsPage >= totalPages || totalTariffs === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToEmspTariffsPrevPage() {
+        if (this.currentEmspTariffsPage > 1) {
+            this.currentEmspTariffsPage--;
+            this.renderEmspTariffsPage();
+        }
+    }
+
+    goToEmspTariffsNextPage() {
+        const totalTariffs = Array.isArray(this.filteredEmspTariffs) ? this.filteredEmspTariffs.length : 0;
+        const totalPages = Math.ceil(totalTariffs / this.emspTariffsPerPage);
+
+        if (this.currentEmspTariffsPage < totalPages) {
+            this.currentEmspTariffsPage++;
+            this.renderEmspTariffsPage();
+        }
     }
 
     // Función auxiliar para obtener el conteo de elementos de manera segura
@@ -3539,39 +4286,6 @@ if (filterActiveExtSessions) {
         }
     }
 
-    // Cargar tariffs del CPO
-    async loadTariffs() {
-        try {
-            console.log('🔄 Cargando tariffs del CPO...');
-            
-            const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
-                headers: { 
-                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
-                }
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
-            
-            const data = await response.json();
-            console.log('📊 Tariffs data:', data.data ? `Array[${data.data.length}]` : data);
-            
-            // Almacenar tarifas para uso en tooltips
-            this.allTariffs = data.data || [];
-            
-            this.renderTariffs(this.allTariffs);
-            this.updateCount('tariffsCount', this.allTariffs.length);
-            
-            console.log('✅ Tariffs del CPO cargados exitosamente');
-            
-        } catch (error) {
-            console.error('❌ Error cargando tariffs del CPO:', error);
-            this.showTableError('tariffsTableBody', `Error al cargar tariffs: ${error.message}`);
-        }
-    }
-
     renderTariffs(tariffs) {
         const tbody = document.getElementById('tariffsTableBody');
         if (!tbody) {
@@ -3579,11 +4293,12 @@ if (filterActiveExtSessions) {
             return;
         }
         
+        const totalTariffs = Array.isArray(this.allTariffs) ? this.allTariffs.length : 0;
         if (tariffs.length === 0) {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="11" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay tariffs disponibles
+                        <i class="bi ${totalTariffs > 0 ? 'bi-funnel' : 'bi-inbox'}"></i> ${totalTariffs > 0 ? 'No se encontraron tariffs para esta página' : 'No hay tariffs disponibles'}
                     </td>
                 </tr>
             `;
@@ -3622,7 +4337,89 @@ if (filterActiveExtSessions) {
         // Inicializar tooltips para las tarifas
         this.initializeTariffTooltips();
         
-        console.log(`✅ ${tariffs.length} tariffs renderizados`);
+        console.log(`✅ ${tariffs.length} tariffs renderizados en la página actual`);
+    }
+
+    renderTariffsPage() {
+        const tariffs = Array.isArray(this.filteredTariffs) ? this.filteredTariffs : [];
+        const totalTariffs = tariffs.length;
+
+        if (totalTariffs === 0) {
+            this.renderTariffs([]);
+            this.updateTariffsPaginationInfo(0, 0, 0);
+            this.updateTariffsPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalTariffs / this.tariffsPerPage));
+        if (this.currentTariffsPage > totalPages) {
+            this.currentTariffsPage = totalPages;
+        }
+        if (this.currentTariffsPage < 1) {
+            this.currentTariffsPage = 1;
+        }
+
+        const startIndex = (this.currentTariffsPage - 1) * this.tariffsPerPage;
+        const endIndex = Math.min(startIndex + this.tariffsPerPage, totalTariffs);
+        const pageTariffs = tariffs.slice(startIndex, endIndex);
+
+        this.renderTariffs(pageTariffs);
+        this.updateTariffsPaginationInfo(startIndex + 1, endIndex, totalTariffs);
+        this.updateTariffsPaginationButtons();
+    }
+
+    updateTariffsPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('tariffsPageInfo');
+        const totalCount = document.getElementById('tariffsTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateTariffsPaginationButtons() {
+        const prevButton = document.getElementById('tariffsPrevPage');
+        const nextButton = document.getElementById('tariffsNextPage');
+        const totalTariffs = Array.isArray(this.filteredTariffs) ? this.filteredTariffs.length : 0;
+        const totalPages = totalTariffs > 0 ? Math.ceil(totalTariffs / this.tariffsPerPage) : 1;
+
+        const atFirstPage = this.currentTariffsPage <= 1 || totalTariffs === 0;
+        const atLastPage = this.currentTariffsPage >= totalPages || totalTariffs === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToTariffsPrevPage() {
+        if (this.currentTariffsPage > 1) {
+            this.currentTariffsPage--;
+            this.renderTariffsPage();
+        }
+    }
+
+    goToTariffsNextPage() {
+        const totalTariffs = Array.isArray(this.filteredTariffs) ? this.filteredTariffs.length : 0;
+        const totalPages = Math.ceil(totalTariffs / this.tariffsPerPage);
+
+        if (this.currentTariffsPage < totalPages) {
+            this.currentTariffsPage++;
+            this.renderTariffsPage();
+        }
     }
 
     // ===== FUNCIONES DEL MODAL DE CREACIÓN DE TARIFAS =====
@@ -6964,16 +7761,156 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP Tokens data:', data.data ? `Array[${data.data.length}]` : data);
+            const tokens = data.data || [];
+            console.log('📊 EMSP Tokens data:', tokens.length ? `Array[${tokens.length}]` : data);
             
-            this.renderEmspTokens(data.data || []);
-            this.updateCount('emspTokensCount', data.data?.length || 0);
+            this.allEmspTokens = tokens;
+            this.populateEmspTokensFilterOptions(tokens);
+            this.applyEmspTokensFilters({ resetPage: true });
+            this.updateCount('emspTokensCount', tokens.length);
             
             console.log('✅ EMSP Tokens cargados exitosamente');
             
         } catch (error) {
             console.error('❌ Error cargando EMSP tokens:', error);
             this.showTableError('emspTokensTableBody', `Error al cargar EMSP tokens: ${error.message}`);
+        }
+    }
+
+    hasActiveEmspTokensFilters() {
+        if (!this.emspTokensFilters) return false;
+        const { search, issuer, type, valid, whitelist } = this.emspTokensFilters;
+        return Boolean(
+            (search && search.trim()) ||
+            issuer ||
+            type ||
+            valid ||
+            whitelist
+        );
+    }
+
+    applyEmspTokensFilters({ resetPage = false } = {}) {
+        try {
+            const tokens = Array.isArray(this.allEmspTokens) ? this.allEmspTokens : [];
+            const filters = this.emspTokensFilters || {};
+            const searchTerm = (filters.search || '').trim().toLowerCase();
+            const issuerFilter = filters.issuer || '';
+            const typeFilter = filters.type || '';
+            const validFilter = filters.valid || '';
+            const whitelistFilter = filters.whitelist || '';
+
+            this.filteredEmspTokens = tokens.filter(token => {
+                if (issuerFilter && token.issuer !== issuerFilter) return false;
+                if (typeFilter && token.type !== typeFilter) return false;
+
+                if (validFilter) {
+                    const normalizedValid = typeof token.valid === 'boolean'
+                        ? token.valid
+                        : String(token.valid).toLowerCase() === 'true';
+
+                    if (validFilter === 'true' && !normalizedValid) return false;
+                    if (validFilter === 'false' && normalizedValid) return false;
+                }
+
+                if (whitelistFilter && token.whitelist !== whitelistFilter) return false;
+
+                if (searchTerm) {
+                    const haystack = [
+                        token.id,
+                        token.uid,
+                        token.party_id,
+                        token.type,
+                        token.issuer,
+                        token.auth_method,
+                        token.contract_id,
+                        token.whitelist
+                    ]
+                        .map(value => (value ?? '').toString().toLowerCase());
+
+                    const hasMatch = haystack.some(value => value.includes(searchTerm));
+                    if (!hasMatch) return false;
+                }
+
+                return true;
+            });
+
+            const totalPages = this.filteredEmspTokens.length > 0
+                ? Math.ceil(this.filteredEmspTokens.length / this.emspTokensPerPage)
+                : 1;
+
+            if (resetPage) {
+                this.currentEmspTokensPage = 1;
+            } else if (this.currentEmspTokensPage > totalPages) {
+                this.currentEmspTokensPage = totalPages;
+            }
+
+            this.renderEmspTokensPage();
+        } catch (error) {
+            console.warn('⚠️ Error aplicando filtros de Ext Tokens:', error);
+        }
+    }
+
+    populateEmspTokensFilterOptions(tokens) {
+        try {
+            const safeTokens = Array.isArray(tokens) ? tokens : [];
+            const collatorOptions = { sensitivity: 'base', numeric: false };
+            const compare = (a, b) => a.localeCompare(b, undefined, collatorOptions);
+
+            const issuers = Array.from(new Set(
+                safeTokens
+                    .map(token => token.issuer)
+                    .filter(value => value && value.trim() !== '')
+            )).sort(compare);
+
+            const types = Array.from(new Set(
+                safeTokens
+                    .map(token => token.type)
+                    .filter(value => value && value.trim() !== '')
+            )).sort(compare);
+
+            const whitelists = Array.from(new Set(
+                safeTokens
+                    .map(token => token.whitelist)
+                    .filter(value => value && value.trim() !== '')
+            )).sort(compare);
+
+            const setSelectOptions = (elementId, values, defaultLabel, filterKey) => {
+                const select = document.getElementById(elementId);
+                if (!select) return;
+
+                const previousValue = this.emspTokensFilters?.[filterKey] || '';
+                const optionsHtml = [
+                    `<option value="">${defaultLabel}</option>`,
+                    ...values.map(value => `<option value="${value}">${value}</option>`)
+                ].join('');
+
+                select.innerHTML = optionsHtml;
+
+                if (previousValue && values.includes(previousValue)) {
+                    select.value = previousValue;
+                } else {
+                    select.value = '';
+                    if (previousValue) {
+                        this.emspTokensFilters[filterKey] = '';
+                    }
+                }
+            };
+
+            setSelectOptions('emspTokensIssuerFilter', issuers, 'Todos los emisores', 'issuer');
+            setSelectOptions('emspTokensTypeFilter', types, 'Todos los tipos', 'type');
+            setSelectOptions('emspTokensWhitelistFilter', whitelists, 'Todas las whitelist', 'whitelist');
+
+            const searchInput = document.getElementById('emspTokensSearch');
+            if (searchInput) {
+                searchInput.value = this.emspTokensFilters?.search || '';
+            }
+
+            const validSelect = document.getElementById('emspTokensValidFilter');
+            if (validSelect) {
+                validSelect.value = this.emspTokensFilters?.valid || '';
+            }
+        } catch (error) {
+            console.warn('⚠️ Error actualizando filtros de Ext Tokens:', error);
         }
     }
 
@@ -6985,10 +7922,16 @@ if (filterActiveExtSessions) {
         }
         
         if (tokens.length === 0) {
+            const hasFilters = this.hasActiveEmspTokensFilters();
+            const emptyIcon = hasFilters ? 'bi-funnel' : 'bi-inbox';
+            const emptyMessage = hasFilters
+                ? 'No se encontraron Ext tokens con los filtros aplicados'
+                : 'No hay Ext tokens disponibles';
+
             tbody.innerHTML = `
                 <tr>
                     <td colspan="9" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay EMSP tokens disponibles
+                        <i class="bi ${emptyIcon}"></i> ${emptyMessage}
                     </td>
                 </tr>
             `;
@@ -7011,11 +7954,93 @@ if (filterActiveExtSessions) {
                 <td>
                     <span class="badge bg-info">${token.whitelist || 'N/A'}</span>
                 </td>
-                <td>${new Date(token.last_updated).toLocaleString()}</td>
+                <td>${token.last_updated ? new Date(token.last_updated).toLocaleString() : 'N/A'}</td>
             </tr>
         `).join('');
         
-        console.log(`✅ ${tokens.length} EMSP tokens renderizados`);
+        console.log(`✅ ${tokens.length} Ext tokens renderizados en la página actual`);
+    }
+
+    renderEmspTokensPage() {
+        const tokens = Array.isArray(this.filteredEmspTokens) ? this.filteredEmspTokens : [];
+        const totalTokens = tokens.length;
+
+        if (totalTokens === 0) {
+            this.renderEmspTokens([]);
+            this.updateEmspTokensPaginationInfo(0, 0, 0);
+            this.updateEmspTokensPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalTokens / this.emspTokensPerPage));
+        if (this.currentEmspTokensPage > totalPages) {
+            this.currentEmspTokensPage = totalPages;
+        }
+        if (this.currentEmspTokensPage < 1) {
+            this.currentEmspTokensPage = 1;
+        }
+
+        const startIndex = (this.currentEmspTokensPage - 1) * this.emspTokensPerPage;
+        const endIndex = Math.min(startIndex + this.emspTokensPerPage, totalTokens);
+        const pageTokens = tokens.slice(startIndex, endIndex);
+
+        this.renderEmspTokens(pageTokens);
+        this.updateEmspTokensPaginationInfo(startIndex + 1, endIndex, totalTokens);
+        this.updateEmspTokensPaginationButtons();
+    }
+
+    updateEmspTokensPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('emspTokensPageInfo');
+        const totalCount = document.getElementById('emspTokensTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateEmspTokensPaginationButtons() {
+        const prevButton = document.getElementById('emspTokensPrevPage');
+        const nextButton = document.getElementById('emspTokensNextPage');
+        const totalTokens = Array.isArray(this.filteredEmspTokens) ? this.filteredEmspTokens.length : 0;
+        const totalPages = totalTokens > 0 ? Math.ceil(totalTokens / this.emspTokensPerPage) : 1;
+
+        const atFirstPage = this.currentEmspTokensPage <= 1 || totalTokens === 0;
+        const atLastPage = this.currentEmspTokensPage >= totalPages || totalTokens === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToEmspTokensPrevPage() {
+        if (this.currentEmspTokensPage > 1) {
+            this.currentEmspTokensPage--;
+            this.renderEmspTokensPage();
+        }
+    }
+
+    goToEmspTokensNextPage() {
+        const totalTokens = Array.isArray(this.filteredEmspTokens) ? this.filteredEmspTokens.length : 0;
+        const totalPages = Math.ceil(totalTokens / this.emspTokensPerPage);
+
+        if (this.currentEmspTokensPage < totalPages) {
+            this.currentEmspTokensPage++;
+            this.renderEmspTokensPage();
+        }
     }
 
     // Funciones de filtrado EMSP
@@ -7023,39 +8048,69 @@ if (filterActiveExtSessions) {
         const partyFilter = document.getElementById('emspEvsePartyFilter');
         if (!partyFilter) return;
 
-        const parties = [...new Set(evses.map(evse => evse.emsp_party_id))];
+        const parties = [...new Set(evses.map(evse => evse.emsp_party_id).filter(Boolean))].sort();
+        const currentValue = this.emspEvsesFilters?.party || '';
+
         partyFilter.innerHTML = '<option value="">Todos los eMSPs</option>' + 
             parties.map(party => `<option value="${party}">${party}</option>`).join('');
+
+        if (currentValue && parties.includes(currentValue)) {
+            partyFilter.value = currentValue;
+        } else {
+            partyFilter.value = '';
+            if (currentValue) {
+                this.emspEvsesFilters.party = '';
+            }
+        }
     }
 
-    applyEmspEvseFilters() {
+    applyEmspEvseFilters({ resetPage = false } = {}) {
         const statusFilter = document.getElementById('emspEvseStatusFilter')?.value || '';
         const partyFilter = document.getElementById('emspEvsePartyFilter')?.value || '';
-        const searchFilter = document.getElementById('emspEvseSearchFilter')?.value || '';
+        const searchFilterRaw = document.getElementById('emspEvseSearchFilter')?.value || '';
+        const searchFilter = searchFilterRaw.trim().toLowerCase();
 
-        const rows = document.querySelectorAll('#emspEvsesTable tbody tr');
-        let visibleCount = 0;
+        this.emspEvsesFilters = {
+            status: statusFilter,
+            party: partyFilter,
+            search: searchFilter
+        };
 
-        rows.forEach(row => {
-            if (row.cells.length < 7) return; // Skip header rows
+        const source = Array.isArray(this.allEmspEvses) ? this.allEmspEvses : [];
 
-            const status = row.cells[4]?.textContent || '';
-            const party = row.cells[2]?.textContent || '';
-            const searchText = row.textContent.toLowerCase();
+        this.filteredEmspEvses = source.filter(evse => {
+            const status = (evse.status || '').toUpperCase();
+            const party = (evse.emsp_party_id || '').toUpperCase();
+            const locationId = (evse.location_id || '').toUpperCase();
+            const evseId = (evse.evse_id || '').toUpperCase();
+            const uid = (evse.id || '').toUpperCase();
 
-            const statusMatch = !statusFilter || status.includes(statusFilter);
-            const partyMatch = !partyFilter || party.includes(partyFilter);
-            const searchMatch = !searchFilter || searchText.includes(searchFilter.toLowerCase());
+            const statusMatch = !statusFilter || status === statusFilter.toUpperCase();
+            const partyMatch = !partyFilter || party === partyFilter.toUpperCase();
 
-            if (statusMatch && partyMatch && searchMatch) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
+            const searchMatch = !searchFilter || [
+                evse.evse_id,
+                evse.id,
+                evse.location_id,
+                evse.status,
+                evse.emsp_party_id
+            ].some(value => (value || '').toString().toLowerCase().includes(searchFilter));
+
+            return statusMatch && partyMatch && searchMatch;
         });
 
-        console.log(`🔍 Filtros EMSP EVSE aplicados: ${visibleCount} filas visibles`);
+        const totalPages = this.filteredEmspEvses.length > 0
+            ? Math.ceil(this.filteredEmspEvses.length / this.emspEvsesPerPage)
+            : 1;
+
+        if (resetPage) {
+            this.currentEmspEvsesPage = 1;
+        } else if (this.currentEmspEvsesPage > totalPages) {
+            this.currentEmspEvsesPage = totalPages;
+        }
+
+        this.renderEmspEvsesPage();
+        console.log(`🔍 Filtros EMSP EVSE aplicados: ${this.filteredEmspEvses.length} registros filtrados`);
     }
 
     applyEvseFilters() {
@@ -8520,11 +9575,11 @@ ${JSON.stringify(data, null, 2)}`;
             }
             
             const data = await response.json();
-            this.allExtSessions = data.data || [];
+            this.allExtSessions = Array.isArray(data.data) ? data.data : [];
             
             console.log(`✅ ${this.allExtSessions.length} sesiones externas cargadas`);
             console.log('🔍 Datos de sesiones externas:', this.allExtSessions);
-            this.renderExtSessions();
+            this.applyExtSessionsFilters({ resetPage: true });
             this.updateExtSessionsCount();
             
         } catch (error) {
@@ -8533,46 +9588,33 @@ ${JSON.stringify(data, null, 2)}`;
         }
     }
 
-    renderExtSessions() {
-        console.log('🎨 Iniciando renderExtSessions...');
-        console.log('📊 allExtSessions:', this.allExtSessions);
-        console.log('🔍 filterActiveExtSessions:', this.filterActiveExtSessions);
-        
+    renderExtSessions(sessions) {
         const tbody = document.getElementById('extSessionsTableBody');
         if (!tbody) {
             console.error('❌ No se encontró extSessionsTableBody');
             return;
         }
 
-        if (this.allExtSessions.length === 0) {
-            console.log('⚠️ No hay sesiones externas para mostrar');
+        const hasData = Array.isArray(this.allExtSessions) && this.allExtSessions.length > 0;
+
+        if (!Array.isArray(sessions) || sessions.length === 0) {
+            const emptyIcon = this.filterActiveExtSessions && hasData ? 'bi-funnel' : 'bi-cloud-download';
+            const emptyMessage = this.filterActiveExtSessions && hasData
+                ? 'No se encontraron sesiones externas activas o pendientes'
+                : 'No hay sesiones externas disponibles';
+
             tbody.innerHTML = `
                 <tr>
                     <td colspan="11" class="text-center text-muted py-4">
-                        <i class="bi bi-cloud-download fs-1 d-block mb-2"></i>
-                        No hay sesiones externas disponibles
+                        <i class="bi ${emptyIcon} fs-1 d-block mb-2"></i>
+                        ${emptyMessage}
                     </td>
                 </tr>
             `;
             return;
         }
 
-        const sessionsToShow = this.filterActiveExtSessions ? 
-            this.allExtSessions.filter(session => 
-                session.status === 'ACTIVE' || 
-                session.status === 'PENDING' || 
-                session.status === 'IN_PROGRESS'
-            ) : 
-            this.allExtSessions;
-            
-        console.log('🔍 Sesiones a mostrar:', sessionsToShow.length);
-        console.log('📋 Datos de sesiones a mostrar:', sessionsToShow);
-        
-        // Debug: mostrar los status únicos de las sesiones
-        const uniqueStatuses = [...new Set(this.allExtSessions.map(s => s.status))];
-        console.log('🏷️ Status únicos encontrados:', uniqueStatuses);
-
-        tbody.innerHTML = sessionsToShow.map(session => `
+        tbody.innerHTML = sessions.map(session => `
             <tr>
                 <td>
                     <span class="text-truncate d-inline-block" style="max-width: 150px;" 
@@ -8633,6 +9675,113 @@ ${JSON.stringify(data, null, 2)}`;
                 </td>
             </tr>
         `).join('');
+
+        console.log(`✅ ${sessions.length} Ext Sessions renderizadas en la página actual`);
+    }
+
+    applyExtSessionsFilters({ resetPage = false } = {}) {
+        const sessions = Array.isArray(this.allExtSessions) ? this.allExtSessions : [];
+
+        this.filteredExtSessions = this.filterActiveExtSessions
+            ? sessions.filter(session => {
+                const status = (session.status || '').toUpperCase();
+                return status === 'ACTIVE' || status === 'PENDING' || status === 'IN_PROGRESS';
+            })
+            : [...sessions];
+
+        const totalPages = this.filteredExtSessions.length > 0
+            ? Math.ceil(this.filteredExtSessions.length / this.extSessionsPerPage)
+            : 1;
+
+        if (resetPage) {
+            this.currentExtSessionsPage = 1;
+        } else if (this.currentExtSessionsPage > totalPages) {
+            this.currentExtSessionsPage = totalPages;
+        }
+
+        this.renderExtSessionsPage();
+    }
+
+    renderExtSessionsPage() {
+        const sessions = Array.isArray(this.filteredExtSessions) ? this.filteredExtSessions : [];
+        const totalSessions = sessions.length;
+
+        if (totalSessions === 0) {
+            this.renderExtSessions([]);
+            this.updateExtSessionsPaginationInfo(0, 0, 0);
+            this.updateExtSessionsPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalSessions / this.extSessionsPerPage));
+        if (this.currentExtSessionsPage > totalPages) {
+            this.currentExtSessionsPage = totalPages;
+        }
+        if (this.currentExtSessionsPage < 1) {
+            this.currentExtSessionsPage = 1;
+        }
+
+        const startIndex = (this.currentExtSessionsPage - 1) * this.extSessionsPerPage;
+        const endIndex = Math.min(startIndex + this.extSessionsPerPage, totalSessions);
+        const pageSessions = sessions.slice(startIndex, endIndex);
+
+        this.renderExtSessions(pageSessions);
+        this.updateExtSessionsPaginationInfo(startIndex + 1, endIndex, totalSessions);
+        this.updateExtSessionsPaginationButtons();
+    }
+
+    updateExtSessionsPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('extSessionsPageInfo');
+        const totalCount = document.getElementById('extSessionsTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateExtSessionsPaginationButtons() {
+        const prevButton = document.getElementById('extSessionsPrevPage');
+        const nextButton = document.getElementById('extSessionsNextPage');
+        const totalSessions = Array.isArray(this.filteredExtSessions) ? this.filteredExtSessions.length : 0;
+        const totalPages = totalSessions > 0 ? Math.ceil(totalSessions / this.extSessionsPerPage) : 1;
+
+        const atFirstPage = this.currentExtSessionsPage <= 1 || totalSessions === 0;
+        const atLastPage = this.currentExtSessionsPage >= totalPages || totalSessions === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToExtSessionsPrevPage() {
+        if (this.currentExtSessionsPage > 1) {
+            this.currentExtSessionsPage--;
+            this.renderExtSessionsPage();
+        }
+    }
+
+    goToExtSessionsNextPage() {
+        const totalSessions = Array.isArray(this.filteredExtSessions) ? this.filteredExtSessions.length : 0;
+        const totalPages = Math.ceil(totalSessions / this.extSessionsPerPage);
+
+        if (this.currentExtSessionsPage < totalPages) {
+            this.currentExtSessionsPage++;
+            this.renderExtSessionsPage();
+        }
     }
 
     renderExtSessionsError() {
@@ -8647,18 +9796,24 @@ ${JSON.stringify(data, null, 2)}`;
                 </td>
             </tr>
         `;
+
+        this.allExtSessions = [];
+        this.filteredExtSessions = [];
+        this.currentExtSessionsPage = 1;
+        this.updateExtSessionsCount();
+        this.updateExtSessionsPaginationInfo(0, 0, 0);
+        this.updateExtSessionsPaginationButtons();
     }
 
     filterExtSessions() {
         try {
             console.log('🔍 Iniciando filtro de sesiones externas');
-            // Actualizar el estado del filtro desde el checkbox
             const filterCheckbox = document.getElementById('filterActiveExtSessions');
             if (filterCheckbox) {
                 this.filterActiveExtSessions = filterCheckbox.checked;
                 console.log('🔍 Estado del filtro actualizado:', this.filterActiveExtSessions);
             }
-            this.renderExtSessions();
+            this.applyExtSessionsFilters({ resetPage: true });
             this.updateExtSessionsCount();
         } catch (error) {
             console.error('❌ Error filtrando sesiones externas:', error);
@@ -9820,127 +10975,41 @@ ${JSON.stringify(data, null, 2)}`;
     async loadTariffs() {
         try {
             console.log('💰 Cargando tarifas del CPO...');
-            
+
             const response = await fetch(`${this.baseUrl}/ocpi/cpo/2.2/tariffs`, {
                 headers: {
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
-            
-            if (result.status_code === 1000) {
-                // Almacenar tarifas para uso en conectores
-                this.allTariffs = result.data || [];
-                this.displayTariffs(result.data);
-                console.log('✅ Tarifas cargadas');
-            } else {
+            const tariffs = Array.isArray(result.data) ? result.data : [];
+
+            if (result.status_code !== 1000) {
                 throw new Error(result.status_message || 'Error desconocido');
             }
-            
+
+            this.allTariffs = tariffs;
+            this.filteredTariffs = [...tariffs];
+            this.currentTariffsPage = 1;
+            this.renderTariffsPage();
+            this.updateCount('tariffsCount', tariffs.length);
+            console.log('✅ Tarifas del CPO cargadas');
+
         } catch (error) {
             console.error('❌ Error cargando tarifas:', error);
             this.showNotification('Error cargando tarifas: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Muestra las tarifas en la tabla
-     */
-    displayTariffs(tariffs) {
-        try {
-            const tbody = document.getElementById('tariffsTableBody');
-            
-            if (!tbody) {
-                console.error('❌ No se encontró el elemento tariffsTableBody');
-                return;
-            }
-            
-            if (!tariffs || tariffs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted">No hay tarifas del CPO</td></tr>';
-                return;
-            }
-            
-            // Ordenar por última actualización (más recientes primero)
-            const sortedTariffs = tariffs.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated));
-            
-            tbody.innerHTML = sortedTariffs.map(tariff => {
-                const elements = tariff.elements ? (Array.isArray(tariff.elements) ? tariff.elements : JSON.parse(tariff.elements)) : [];
-                const elementsText = elements.length > 0 ? `${elements.length} elemento(s)` : 'Sin elementos';
-                
-                // Calcular precio mínimo y máximo de los elementos
-                let minPrice = 'N/A';
-                let maxPrice = 'N/A';
-                if (elements.length > 0) {
-                    const prices = elements.flatMap(el => 
-                        el.price_components ? el.price_components.map(pc => pc.price || 0) : []
-                    ).filter(price => price > 0);
-                    if (prices.length > 0) {
-                        minPrice = Math.min(...prices).toFixed(2);
-                        maxPrice = Math.max(...prices).toFixed(2);
-                    }
-                }
-                
-                return `
-                    <tr>
-                        <td><code>${tariff.id}</code></td>
-                        <td>
-                            <span class="badge bg-primary">${tariff.party_id || 'IPD'}</span>
-                            <small class="text-muted d-block">${tariff.country_code || 'ES'}</small>
-                        </td>
-                        <td>
-                            <span class="badge bg-info">${tariff.type || 'N/A'}</span>
-                        </td>
-                        <td>
-                            <span class="badge bg-success">${tariff.currency || 'N/A'}</span>
-                        </td>
-                        <td>
-                            <small>${elementsText}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${minPrice}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${maxPrice}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${new Date(tariff.last_updated).toLocaleString()}</small>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.dashboardApp.viewTariff('${tariff.id}')" title="Ver detalles">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="window.dashboardApp.editTariff('${tariff.id}')" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.dashboardApp.deleteTariff('${tariff.id}')" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-            
-            console.log(`✅ ${tariffs.length} tarifas mostradas`);
-            
-        } catch (error) {
-            console.error('❌ Error mostrando tarifas:', error);
-            const tbody = document.getElementById('tariffsTableBody');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error cargando tarifas</td></tr>';
-            }
+            this.showTableError('tariffsTableBody', `Error al cargar tariffs: ${error.message}`);
+            this.allTariffs = [];
+            this.filteredTariffs = [];
+            this.currentTariffsPage = 1;
+            this.updateTariffsPaginationInfo(0, 0, 0);
+            this.updateTariffsPaginationButtons();
+            this.updateCount('tariffsCount', 0);
         }
     }
     
