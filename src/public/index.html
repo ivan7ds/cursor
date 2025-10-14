@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ OCPI Test Application v1.2.1 - OCPI 2.2</title>
+    <title>✨ OCPI Test Application v1.2.3 - OCPI 2.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <img src="sparkle.png" alt="Sparkle Chibi" width="50" height="50" class="me-2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); object-fit: contain;">
-                <span class="fw-bold">OCPI Test Application <small class="text-muted">v1.2.1</small></span>
+                <span class="fw-bold">OCPI Test Application <small class="text-muted">v1.2.3</small></span>
             </a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text">
@@ -511,6 +511,27 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="tokensPageInfo">0-0</span> de <span id="tokensTotalCount">0</span> Tokens
+                            </div>
+                            <nav aria-label="Navegación de páginas de Tokens">
+                                <ul class="pagination pagination-sm mb-0" id="tokensPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="tokensPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="tokensNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -552,6 +573,27 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="emspLocationsPageInfo">0-0</span> de <span id="emspLocationsTotalCount">0</span> Ext Locations
+                            </div>
+                            <nav aria-label="Navegación de páginas de Ext Locations">
+                                <ul class="pagination pagination-sm mb-0" id="emspLocationsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspLocationsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspLocationsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -618,6 +660,27 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="emspEvsesPageInfo">0-0</span> de <span id="emspEvsesTotalCount">0</span> Ext EVSEs
+                            </div>
+                            <nav aria-label="Navegación de páginas de Ext EVSEs">
+                                <ul class="pagination pagination-sm mb-0" id="emspEvsesPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspEvsesPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspEvsesNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -643,6 +706,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>eMSP</th>
+                                        <th>Nombre</th>
                                         <th>Tipo</th>
                                         <th>Moneda</th>
                                         <th>Elementos</th>
@@ -653,12 +717,33 @@
                                 </thead>
                                 <tbody id="emspTariffsTableBody">
                                     <tr>
-                                        <td colspan="8" class="text-center text-muted">
+                                        <td colspan="9" class="text-center text-muted">
                                             <i class="bi bi-hourglass-split"></i> Cargando Ext tariffs...
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="emspTariffsPageInfo">0-0</span> de <span id="emspTariffsTotalCount">0</span> Ext Tariffs
+                            </div>
+                            <nav aria-label="Navegación de páginas de Ext Tariffs">
+                                <ul class="pagination pagination-sm mb-0" id="emspTariffsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspTariffsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspTariffsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -707,6 +792,27 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="tariffsPageInfo">0-0</span> de <span id="tariffsTotalCount">0</span> Tariffs
+                            </div>
+                            <nav aria-label="Navegación de páginas de Tariffs">
+                                <ul class="pagination pagination-sm mb-0" id="tariffsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="tariffsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="tariffsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -759,6 +865,27 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="sessionsPageInfo">0-0</span> de <span id="sessionsTotalCount">0</span> Sessions
+                            </div>
+                            <nav aria-label="Navegación de páginas de Sessions">
+                                <ul class="pagination pagination-sm mb-0" id="sessionsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="sessionsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="sessionsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -778,6 +905,34 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-lg-4">
+                                <input type="text" class="form-control form-control-sm" id="emspTokensSearch" placeholder="Buscar token por ID, UID, eMSP, emisor..." autocomplete="off">
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensIssuerFilter">
+                                    <option value="">Todos los emisores</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensTypeFilter">
+                                    <option value="">Todos los tipos</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensValidFilter">
+                                    <option value="">Todos</option>
+                                    <option value="true">Válidos</option>
+                                    <option value="false">No válidos</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensWhitelistFilter">
+                                    <option value="">Todas las whitelist</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="emspTokensTable">
                                 <thead>
@@ -798,8 +953,30 @@
                                         <td colspan="9" class="text-center text-muted">
                                             <i class="bi bi-hourglass-split"></i> Cargando Ext tokens...
                                         </td>
-                                    </tbody>
-                                </table>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="emspTokensPageInfo">0-0</span> de <span id="emspTokensTotalCount">0</span> Ext Tokens
+                            </div>
+                            <nav aria-label="Navegación de páginas de Ext Tokens">
+                                <ul class="pagination pagination-sm mb-0" id="emspTokensPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspTokensPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspTokensNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -852,6 +1029,27 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="extSessionsPageInfo">0-0</span> de <span id="extSessionsTotalCount">0</span> Ext Sessions
+                            </div>
+                            <nav aria-label="Navegación de páginas de Ext Sessions">
+                                <ul class="pagination pagination-sm mb-0" id="extSessionsPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="extSessionsPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="extSessionsNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -990,9 +1188,14 @@
                                                     <h6 class="card-title text-success mb-0">
                                                         <i class="bi bi-check-circle-fill"></i> EVSE Notification Service
                                                     </h6>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm" id="toggleEvseService">
-                                                        <i class="bi bi-play-circle" id="toggleEvseIcon"></i> <span id="toggleEvseText">Activar</span>
-                                                    </button>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runEvseServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-primary btn-sm" id="toggleEvseService">
+                                                            <i class="bi bi-play-circle" id="toggleEvseIcon"></i> <span id="toggleEvseText">Activar</span>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="evse-service-status" class="badge bg-success">Activo</span>
@@ -1009,9 +1212,19 @@
                                     <div class="col-md-6">
                                         <div class="card border-success">
                                             <div class="card-body">
-                                                <h6 class="card-title text-success">
-                                                    <i class="bi bi-check-circle-fill"></i> Charging Notification Service
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-success mb-0">
+                                                        <i class="bi bi-check-circle-fill"></i> Charging Notification Service
+                                                    </h6>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runChargingServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="toggleChargingService">
+                                                            <i class="bi bi-play-circle" id="toggleChargingIcon"></i> <span id="toggleChargingText">Activar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="charging-service-status" class="badge bg-success">Activo</span>
                                                 </p>
@@ -1029,9 +1242,19 @@
                                     <div class="col-md-6">
                                         <div class="card border-success">
                                             <div class="card-body">
-                                                <h6 class="card-title text-success">
-                                                    <i class="bi bi-check-circle-fill"></i> EMSP Locations Sync Service
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-success mb-0">
+                                                        <i class="bi bi-check-circle-fill"></i> EMSP Locations Sync Service
+                                                    </h6>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runEmspLocationsServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="toggleEmspLocationsService">
+                                                            <i class="bi bi-play-circle" id="toggleEmspLocationsIcon"></i> <span id="toggleEmspLocationsText">Activar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="emsp-locations-service-status" class="badge bg-success">Activo</span>
                                                 </p>
@@ -1047,9 +1270,19 @@
                                     <div class="col-md-6">
                                         <div class="card border-success">
                                             <div class="card-body">
-                                                <h6 class="card-title text-success">
-                                                    <i class="bi bi-check-circle-fill"></i> EMSP Tariffs Sync Service
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-success mb-0">
+                                                        <i class="bi bi-check-circle-fill"></i> EMSP Tariffs Sync Service
+                                                    </h6>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runEmspTariffsServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="toggleEmspTariffsService">
+                                                            <i class="bi bi-play-circle" id="toggleEmspTariffsIcon"></i> <span id="toggleEmspTariffsText">Activar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="emsp-tariffs-service-status" class="badge bg-success">Activo</span>
                                                 </p>
@@ -1067,9 +1300,19 @@
                                     <div class="col-md-6">
                                         <div class="card border-success">
                                             <div class="card-body">
-                                                <h6 class="card-title text-success">
-                                                    <i class="bi bi-check-circle-fill"></i> EMSP Tokens Sync Service
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-success mb-0">
+                                                        <i class="bi bi-check-circle-fill"></i> EMSP Tokens Sync Service
+                                                    </h6>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runEmspTokensServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="toggleEmspTokensService">
+                                                            <i class="bi bi-play-circle" id="toggleEmspTokensIcon"></i> <span id="toggleEmspTokensText">Activar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="emsp-tokens-service-status" class="badge bg-success">Activo</span>
                                                 </p>
@@ -1085,9 +1328,19 @@
                                     <div class="col-md-6">
                                         <div class="card border-info">
                                             <div class="card-body">
-                                                <h6 class="card-title text-info">
-                                                    <i class="bi bi-bug-fill"></i> Test Location EVSE Creation Service
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-info mb-0">
+                                                        <i class="bi bi-bug-fill"></i> Test Location EVSE Creation Service
+                                                    </h6>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runTestLocationEvseServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="toggleTestLocationEvseService">
+                                                            <i class="bi bi-play-circle" id="toggleTestLocationEvseIcon"></i> <span id="toggleTestLocationEvseText">Activar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="test-location-evse-service-status" class="badge bg-info">Activo</span>
                                                 </p>
@@ -1103,9 +1356,19 @@
                                     <div class="col-md-6">
                                         <div class="card border-warning">
                                             <div class="card-body">
-                                                <h6 class="card-title text-warning">
-                                                    <i class="bi bi-lightning-charge-fill"></i> Test Session Service
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title text-warning mb-0">
+                                                        <i class="bi bi-lightning-charge-fill"></i> Test Session Service
+                                                    </h6>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="runTestSessionServiceOnce">
+                                                            <i class="bi bi-play-fill"></i> Ejecutar
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" id="toggleTestSessionService">
+                                                            <i class="bi bi-play-circle" id="toggleTestSessionIcon"></i> <span id="toggleTestSessionText">Activar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                                 <p class="card-text mb-1">
                                                     <strong>Estado:</strong> <span id="test-session-service-status" class="badge bg-warning">Activo</span>
                                                 </p>
@@ -1180,12 +1443,13 @@
                                                     <tr>
                                                         <td colspan="6" class="text-center text-muted">Cargando tarifas...</td>
                                                     </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
                         </div>
 
                         <!-- Estadísticas de Pruebas -->
@@ -2496,6 +2760,7 @@
 
     <!-- Scripts -->
     <script src="bootstrap.bundle.min.js"></script>
+    <script src="/app-config.js"></script>
     <script src="app.js"></script>
     
     <!-- EASTER EGG TEMPORAL - ELIMINAR EN PRODUCCIÓN -->

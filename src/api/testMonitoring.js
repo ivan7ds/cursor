@@ -30,16 +30,16 @@ let serviceStatus = {
         lastRun: null,
         errorCount: 0
     },
-        testLocationEVSECreationService: {
-            status: 'active',
-            lastRun: null,
-            errorCount: 0
-        },
-        testSessionService: {
-            status: 'active',
-            lastRun: null,
-            errorCount: 0
-        }
+    testLocationEVSECreationService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
+    },
+    testSessionService: {
+        status: 'active',
+        lastRun: null,
+        errorCount: 0
+    }
 };
 
 // Estadísticas de pruebas (datos reales)
@@ -52,6 +52,280 @@ let testStatistics = {
 
 // Historial de pruebas para estadísticas reales
 let testHistory = [];
+
+/**
+ * Obtiene el estado en tiempo real de un servicio dado
+ * @param {*} serviceInstance Instancia del servicio requerida dinámicamente
+ * @param {string} inactiveStatus Etiqueta a usar cuando el servicio no está activo
+ * @returns {{status: string, metadata?: object}}
+ */
+const getRuntimeServiceStatus = (serviceInstance, inactiveStatus = 'inactive') => {
+    if (!serviceInstance) {
+        return { status: inactiveStatus };
+    }
+
+    try {
+        let isRunning;
+
+        if (typeof serviceInstance.getStatus === 'function') {
+            const runtimeStatus = serviceInstance.getStatus() || {};
+            if (Object.prototype.hasOwnProperty.call(runtimeStatus, 'isRunning')) {
+                isRunning = runtimeStatus.isRunning;
+                return {
+                    status: isRunning ? 'active' : inactiveStatus,
+                    metadata: runtimeStatus
+                };
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(serviceInstance, 'isRunning')) {
+            isRunning = serviceInstance.isRunning;
+            return { status: isRunning ? 'active' : inactiveStatus };
+        }
+
+        return { status: inactiveStatus };
+    } catch (error) {
+        logger.warn(`⚠️ No se pudo determinar el estado del servicio dinámicamente: ${error.message}`);
+        return { status: inactiveStatus };
+    }
+};
+
+const SERVICE_RESOLVERS = {
+    evseNotificationService: () => require('../services/evseNotificationService'),
+    chargingNotificationService: () => require('../services/chargingNotificationService'),
+    emspLocationsSyncService: () => require('../services/emspLocationsSyncService'),
+    emspTariffsSyncService: () => require('../services/emspTariffsSyncService'),
+    emspTokensSyncService: () => require('../services/emspTokensSyncService'),
+    testLocationEVSECreationService: () => require('../services/testLocationEVSECreationService'),
+    testSessionService: () => require('../services/testSessionService')
+};
+
+/**
+ * Map que describe cómo ejecutar y controlar cada servicio individualmente
+ */
+const SERVICE_EXECUTOR_CONFIG = {
+    evseNotificationService: {
+        label: 'EVSE Notification Service',
+        inactiveStatus: 'paused',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.evseNotificationService();
+            await service.processNotifications();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.evseNotificationService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.evseNotificationService();
+            await Promise.resolve(service.stop());
+        }
+    },
+    chargingNotificationService: {
+        label: 'Charging Notification Service',
+        inactiveStatus: 'inactive',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.chargingNotificationService();
+            await service.processActiveSessions();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.chargingNotificationService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.chargingNotificationService();
+            await Promise.resolve(service.stop());
+        }
+    },
+    emspLocationsSyncService: {
+        label: 'EMSP Locations Sync Service',
+        inactiveStatus: 'inactive',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.emspLocationsSyncService();
+            await service.syncEMSPLocations();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.emspLocationsSyncService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.emspLocationsSyncService();
+            await Promise.resolve(service.stop());
+        }
+    },
+    emspTariffsSyncService: {
+        label: 'EMSP Tariffs Sync Service',
+        inactiveStatus: 'inactive',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.emspTariffsSyncService();
+            await service.syncEMSPTariffs();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.emspTariffsSyncService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.emspTariffsSyncService();
+            await Promise.resolve(service.stop());
+        }
+    },
+    emspTokensSyncService: {
+        label: 'EMSP Tokens Sync Service',
+        inactiveStatus: 'inactive',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.emspTokensSyncService();
+            await service.syncEMSPTokens();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.emspTokensSyncService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.emspTokensSyncService();
+            await Promise.resolve(service.stop());
+        }
+    },
+    testLocationEVSECreationService: {
+        label: 'Test Location EVSE Creation Service',
+        inactiveStatus: 'paused',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.testLocationEVSECreationService();
+            await service.runTest();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.testLocationEVSECreationService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.testLocationEVSECreationService();
+            await Promise.resolve(service.stop());
+        }
+    },
+    testSessionService: {
+        label: 'Test Session Service',
+        inactiveStatus: 'paused',
+        run: async () => {
+            const service = SERVICE_RESOLVERS.testSessionService();
+            await service.runSessionTest();
+        },
+        start: async () => {
+            const service = SERVICE_RESOLVERS.testSessionService();
+            await Promise.resolve(service.start());
+        },
+        stop: async () => {
+            const service = SERVICE_RESOLVERS.testSessionService();
+            await Promise.resolve(service.stop());
+        }
+    }
+};
+
+/**
+ * Construye un snapshot del estado de los servicios combinando los datos almacenados con el estado runtime real
+ */
+const buildServicesStatusSnapshot = () => {
+    const servicesSnapshot = {};
+
+    // Copiar estado almacenado
+    Object.entries(serviceStatus).forEach(([serviceKey, statusValue]) => {
+        servicesSnapshot[serviceKey] = { ...statusValue };
+    });
+
+    // Mezclar con estado runtime real
+    Object.entries(SERVICE_EXECUTOR_CONFIG).forEach(([serviceKey, config]) => {
+        const resolver = SERVICE_RESOLVERS[serviceKey];
+        if (!resolver) {
+            return;
+        }
+
+        const serviceInstance = resolver();
+        const runtimeStatus = getRuntimeServiceStatus(serviceInstance, config.inactiveStatus);
+
+        servicesSnapshot[serviceKey] = {
+            ...(servicesSnapshot[serviceKey] || {}),
+            status: runtimeStatus.status
+        };
+    });
+
+    return servicesSnapshot;
+};
+
+/**
+ * Ejecuta una tarea de servicio individual y devuelve la información de resultado
+ * @param {string} serviceKey
+ */
+const executeServiceJobOnce = async (serviceKey) => {
+    const config = SERVICE_EXECUTOR_CONFIG[serviceKey];
+    if (!config) {
+        const error = new Error(`Servicio no soportado: ${serviceKey}`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    logger.info(`▶️ Ejecutando job manual: ${config.label}`);
+    await config.run();
+    logger.info(`✅ Job manual completado: ${config.label}`);
+
+    const servicesSnapshot = buildServicesStatusSnapshot();
+    return {
+        jobName: config.label,
+        services: servicesSnapshot
+    };
+};
+
+/**
+ * Alterna la ejecución continua de un servicio (start/stop)
+ * @param {string} serviceKey
+ */
+const toggleServiceExecution = async (serviceKey) => {
+    const config = SERVICE_EXECUTOR_CONFIG[serviceKey];
+    if (!config) {
+        const error = new Error(`Servicio no soportado: ${serviceKey}`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const resolver = SERVICE_RESOLVERS[serviceKey];
+    if (!resolver) {
+        const error = new Error(`Resolver no definido para el servicio: ${serviceKey}`);
+        error.statusCode = 500;
+        throw error;
+    }
+
+    const serviceInstance = resolver();
+    const runtimeStatus = getRuntimeServiceStatus(serviceInstance, config.inactiveStatus);
+    const isCurrentlyActive = runtimeStatus.status === 'active';
+
+    if (!serviceStatus[serviceKey]) {
+        serviceStatus[serviceKey] = {
+            status: config.inactiveStatus,
+            lastRun: null,
+            errorCount: 0
+        };
+    }
+
+    let isActiveAfterToggle;
+    let message;
+
+    if (isCurrentlyActive) {
+        await config.stop();
+        serviceStatus[serviceKey].status = config.inactiveStatus;
+        message = `${config.label} desactivado`;
+        isActiveAfterToggle = false;
+    } else {
+        await config.start();
+        serviceStatus[serviceKey].status = 'active';
+        message = `${config.label} activado`;
+        isActiveAfterToggle = true;
+    }
+
+    const servicesSnapshot = buildServicesStatusSnapshot();
+
+    return {
+        isActive: isActiveAfterToggle,
+        status: servicesSnapshot[serviceKey]?.status || serviceStatus[serviceKey].status,
+        message,
+        services: servicesSnapshot
+    };
+};
 
 // Función para actualizar estadísticas basadas en datos reales
 const updateTestStatistics = () => {
@@ -83,11 +357,12 @@ router.get('/status', async (req, res) => {
         
         // Actualizar estadísticas dinámicamente
         updateTestStatistics();
+        const servicesSnapshot = buildServicesStatusSnapshot();
         
         res.json({
             success: true,
             data: {
-                services: serviceStatus,
+                services: servicesSnapshot,
                 testStatistics: testStatistics,
                 lastUpdated: new Date().toISOString()
             }
@@ -248,6 +523,83 @@ router.get('/test-history', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Error interno del servidor',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/test-monitoring/run-job
+ * Ejecuta manualmente un servicio específico
+ */
+router.post('/run-job', async (req, res) => {
+    try {
+        const { service } = req.body || {};
+
+        if (!service) {
+            return res.status(400).json({
+                success: false,
+                error: 'Parámetro "service" requerido'
+            });
+        }
+
+        const result = await executeServiceJobOnce(service);
+
+        res.json({
+            success: true,
+            data: {
+                service,
+                jobName: result.jobName,
+                services: result.services,
+                lastUpdated: new Date().toISOString()
+            },
+            message: `${result.jobName} ejecutado manualmente`
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        logger.error('❌ Error ejecutando job manual:', error);
+        res.status(statusCode).json({
+            success: false,
+            error: 'Error ejecutando job manual',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/test-monitoring/toggle-service
+ * Activa o desactiva un servicio específico
+ */
+router.post('/toggle-service', async (req, res) => {
+    try {
+        const { service } = req.body || {};
+
+        if (!service) {
+            return res.status(400).json({
+                success: false,
+                error: 'Parámetro "service" requerido'
+            });
+        }
+
+        const result = await toggleServiceExecution(service);
+
+        res.json({
+            success: true,
+            data: {
+                service,
+                isActive: result.isActive,
+                status: result.status,
+                services: result.services,
+                lastUpdated: new Date().toISOString()
+            },
+            message: result.message
+        });
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        logger.error('❌ Error toggling service:', error);
+        res.status(statusCode).json({
+            success: false,
+            error: 'Error alternando servicio',
             message: error.message
         });
     }
@@ -434,51 +786,18 @@ function logJobExecution(service, message = 'Job executed successfully') {
  */
 router.post('/toggle-evse-service', async (req, res) => {
     try {
-        logger.info('🔧 Toggle EVSE Notification Service request received');
-        
-        // Importar el servicio
-        const evseNotificationService = require('../services/evseNotificationService');
-        
-        // Verificar el estado actual
-        const currentStatus = evseNotificationService.getStatus();
-        const evseServiceActive = currentStatus.isRunning;
-        
-        if (evseServiceActive) {
-            // Pausar el EVSE Notification Service
-            logger.info('⏸️ Pausando EVSE Notification Service...');
-            evseNotificationService.stop();
-            
-            // Actualizar estado en serviceStatus
-            serviceStatus.evseNotificationService.status = 'paused';
-            
-            logger.info('✅ EVSE Notification Service pausado');
-            
-            res.json({
-                success: true,
-                data: {
-                    evseServiceActive: false,
-                    message: 'EVSE Notification Service pausado'
-                }
-            });
-        } else {
-            // Activar el EVSE Notification Service
-            logger.info('▶️ Activando EVSE Notification Service...');
-            evseNotificationService.start();
-            
-            // Actualizar estado en serviceStatus
-            serviceStatus.evseNotificationService.status = 'active';
-            
-            logger.info('✅ EVSE Notification Service activado');
-            
-            res.json({
-                success: true,
-                data: {
-                    evseServiceActive: true,
-                    message: 'EVSE Notification Service activado'
-                }
-            });
-        }
-        
+        const result = await toggleServiceExecution('evseNotificationService');
+
+        res.json({
+            success: true,
+            data: {
+                evseServiceActive: result.isActive,
+                status: result.status,
+                services: result.services,
+                lastUpdated: new Date().toISOString()
+            },
+            message: result.message
+        });
     } catch (error) {
         logger.error('❌ Error toggling EVSE service:', error);
         res.status(500).json({
