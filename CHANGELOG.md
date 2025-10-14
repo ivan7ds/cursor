@@ -5,6 +5,16 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-10-10
+
+### Added
+- **Paginación en dashboard**: integrado paginado de 20 elementos para las pestañas Ext Locations, Ext EVSEs, Ext Tariffs, Ext Tokens, Ext Sessions y sus equivalentes del CPO (Tokens, Tariffs, Sessions), con indicadores de rango y controles Anterior/Siguiente.
+- **Filtros avanzados de Ext Tokens**: incorporados búsqueda por texto, filtros por emisor, tipo, validez y whitelist con recálculo automático del listado paginado.
+
+### Changed
+- **Cargas de datos del frontend**: los métodos `load*` guardan los listados completos, recalculan subconjuntos visibles y sincronizan contadores, vacíos y mensajes de error coherentes con la paginación.
+- **Interacción de la UI**: los botones de navegación se habilitan/deshabilitan según la página actual y los textos de estado reflejan la disponibilidad real de datos tras aplicar filtros.
+
 ## [1.2.3] - 2025-10-09
 
 ### Added
