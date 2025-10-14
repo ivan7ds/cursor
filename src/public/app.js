@@ -24,6 +24,7 @@ class DashboardApp {
         this.currentEmspLocationsPage = 1;
         this.emspLocationsPerPage = 20;
         this.emspLocationsEvseCountMap = {};
+        this.emspLocationNameMap = {};
         this.allEmspEvses = []; // EVSEs externos
         this.filteredEmspEvses = [];
         this.currentEmspEvsesPage = 1;
@@ -3756,6 +3757,7 @@ class DashboardApp {
             
             this.emspLocationsEvseCountMap = evseCountMap;
             this.allEmspLocations = Array.isArray(locationsData.data) ? locationsData.data : [];
+            this.buildEmspLocationNameMap();
             this.filteredEmspLocations = [...this.allEmspLocations];
             this.currentEmspLocationsPage = 1;
             this.renderEmspLocationsPage();
@@ -3769,6 +3771,7 @@ class DashboardApp {
             this.allEmspLocations = [];
             this.filteredEmspLocations = [];
             this.emspLocationsEvseCountMap = {};
+            this.emspLocationNameMap = {};
             this.currentEmspLocationsPage = 1;
             this.updateEmspLocationsPaginationInfo(0, 0, 0);
             this.updateEmspLocationsPaginationButtons();
@@ -3812,6 +3815,35 @@ class DashboardApp {
         }).join('');
         
         console.log(`✅ ${locations.length} EMSP locations renderizados con conteo de EVSEs`);
+    }
+
+    buildEmspLocationNameMap() {
+        const map = {};
+        if (Array.isArray(this.allEmspLocations)) {
+            this.allEmspLocations.forEach(location => {
+                if (!location || !location.id) {
+                    return;
+                }
+                const name = location.name
+                    || (location.address ? `${location.address}${location.city ? `, ${location.city}` : ''}` : '')
+                    || (location.city ? `${location.city}${location.country ? `, ${location.country}` : ''}` : '')
+                    || '';
+                if (name) {
+                    map[location.id] = name;
+                }
+            });
+        }
+        this.emspLocationNameMap = map;
+    }
+
+    getEmspLocationName(locationId) {
+        if (!locationId) {
+            return '';
+        }
+        if (!this.emspLocationNameMap || Object.keys(this.emspLocationNameMap).length === 0) {
+            this.buildEmspLocationNameMap();
+        }
+        return this.emspLocationNameMap?.[locationId] || '';
     }
 
     renderEmspLocationsPage() {
@@ -4151,7 +4183,7 @@ class DashboardApp {
         if (tariffs.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-muted">
+                    <td colspan="10" class="text-center text-muted">
                         <i class="bi bi-inbox"></i> No hay Ext tariffs disponibles
                     </td>
                 </tr>
@@ -4170,6 +4202,20 @@ class DashboardApp {
                 <td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleDateString() : 'N/A'}</td>
                 <td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleDateString() : 'N/A'}</td>
                 <td>${new Date(tariff.last_updated).toLocaleString()}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-info"
+                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                title="Ver detalles de la tarifa">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                title="Ver EVSEs asociados">
+                            <i class="bi bi-diagram-3"></i>
+                        </button>
+                    </div>
+                </td>
             </tr>
         `).join('');
         
@@ -4283,6 +4329,421 @@ class DashboardApp {
         } catch (error) {
             console.warn('⚠️ Error parseando elements:', error);
             return 0;
+        }
+    }
+
+    parseTariffElements(elements) {
+        try {
+            if (!elements) {
+                return [];
+            }
+
+            if (Array.isArray(elements)) {
+                return elements;
+            }
+
+            if (typeof elements === 'string') {
+                const parsed = JSON.parse(elements);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+
+            if (typeof elements === 'object') {
+                return [elements];
+            }
+
+            return [];
+        } catch (error) {
+            console.warn('⚠️ Error parseando elementos de tarifa:', error);
+            return [];
+        }
+    }
+
+    formatTariffRestrictions(restrictions) {
+        if (!restrictions || typeof restrictions !== 'object') {
+            return '<span class="text-muted">N/A</span>';
+        }
+
+        const entries = Object.entries(restrictions).filter(([_, value]) => value !== null && value !== undefined);
+        if (entries.length === 0) {
+            return '<span class="text-muted">N/A</span>';
+        }
+
+        const itemsHtml = entries.map(([key, value]) => `
+            <li class="mb-1">
+                <strong>${this.escapeHtml(this.formatRestrictionLabel(key))}:</strong>
+                <span class="ms-1">${this.formatRestrictionValue(value)}</span>
+            </li>
+        `).join('');
+
+        return `<ul class="list-unstyled mb-0 small">${itemsHtml}</ul>`;
+    }
+
+    formatRestrictionLabel(key) {
+        if (!key) {
+            return '';
+        }
+
+        return key
+            .toString()
+            .replace(/[_-]+/g, ' ')
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            .split(' ')
+            .filter(Boolean)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
+    formatRestrictionValue(value) {
+        if (value === null || value === undefined) {
+            return '<span class="text-muted">N/A</span>';
+        }
+
+        if (Array.isArray(value)) {
+            if (value.length === 0) {
+                return '<span class="text-muted">N/A</span>';
+            }
+
+            return value.map(item => {
+                if (item === null || item === undefined) {
+                    return '';
+                }
+
+                if (typeof item === 'object') {
+                    return `<span class="d-inline-block me-2">${this.formatRestrictionValue(item)}</span>`;
+                }
+
+                return `<span class="badge bg-light text-dark border">${this.escapeHtml(String(item))}</span>`;
+            }).join(' ');
+        }
+
+        if (typeof value === 'object') {
+            const nestedEntries = Object.entries(value).filter(([_, nestedValue]) => nestedValue !== null && nestedValue !== undefined);
+            if (nestedEntries.length === 0) {
+                return '<span class="text-muted">N/A</span>';
+            }
+
+            const nestedItems = nestedEntries.map(([nestedKey, nestedValue]) => `
+                <li>
+                    <strong>${this.escapeHtml(this.formatRestrictionLabel(nestedKey))}:</strong>
+                    <span class="ms-1">${this.formatRestrictionValue(nestedValue)}</span>
+                </li>
+            `).join('');
+
+            return `<ul class="list-unstyled mb-1">${nestedItems}</ul>`;
+        }
+
+        if (typeof value === 'boolean') {
+            return value
+                ? '<span class="badge bg-success">Sí</span>'
+                : '<span class="badge bg-secondary">No</span>';
+        }
+
+        return this.escapeHtml(String(value));
+    }
+
+    parseEmspConnectors(connectors) {
+        try {
+            if (!connectors) {
+                return [];
+            }
+
+            if (Array.isArray(connectors)) {
+                return connectors;
+            }
+
+            if (typeof connectors === 'string') {
+                const trimmed = connectors.trim();
+                if (!trimmed) {
+                    return [];
+                }
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) {
+                        return parsed;
+                    }
+                    if (parsed && typeof parsed === 'object') {
+                        if (Array.isArray(parsed.connectors)) {
+                            return parsed.connectors;
+                        }
+                        return Object.values(parsed);
+                    }
+                } catch (parseError) {
+                    console.warn('⚠️ JSON.parse falló para connectors de eMSP, intentando parseo alternativo:', parseError);
+                    const normalized = trimmed
+                        .replace(/=>/g, ':')
+                        .replace(/([{,]\s*)'([^']+?)'\s*:/g, '$1"$2":')
+                        .replace(/:\s*'([^']*?)'/g, ':"$1"')
+                        .replace(/'/g, '"');
+                    try {
+                        const parsedFallback = JSON.parse(normalized);
+                        if (Array.isArray(parsedFallback)) {
+                            return parsedFallback;
+                        }
+                        if (parsedFallback && typeof parsedFallback === 'object') {
+                            if (Array.isArray(parsedFallback.connectors)) {
+                                return parsedFallback.connectors;
+                            }
+                            return Object.values(parsedFallback);
+                        }
+                    } catch (fallbackError) {
+                        console.warn('⚠️ Parseo alternativo falló para connectors de eMSP:', fallbackError);
+                        // Intento final: dividir por llaves o puntos y coma
+                        const withoutBrackets = trimmed
+                            .replace(/^\[|\]$/g, '')
+                            .split(/}\s*,\s*{/)
+                            .map(chunk => chunk.replace(/^{|}$/g, '').trim())
+                            .filter(Boolean);
+                        if (withoutBrackets.length > 0) {
+                            return withoutBrackets.map((chunk, index) => ({
+                                index,
+                                raw: chunk
+                            }));
+                        }
+                    }
+                }
+                return [];
+            }
+
+            if (typeof connectors === 'object') {
+                if (Array.isArray(connectors.connectors)) {
+                    return connectors.connectors;
+                }
+                if (Array.isArray(connectors.data)) {
+                    return connectors.data;
+                }
+                return Object.values(connectors);
+            }
+
+            return [];
+        } catch (error) {
+            console.warn('⚠️ Error parseando conectores de eMSP:', error);
+            return [];
+        }
+    }
+
+    normalizeTariffIds(value) {
+        const result = [];
+
+        const append = (item) => {
+            if (item === null || item === undefined) {
+                return;
+            }
+
+            if (Array.isArray(item)) {
+                item.forEach(append);
+                return;
+            }
+
+            if (typeof item === 'string') {
+                const trimmed = item.trim();
+                if (!trimmed) {
+                    return;
+                }
+
+                if (
+                    (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+                    (trimmed.startsWith('{') && trimmed.endsWith('}'))
+                ) {
+                    const inner = trimmed.slice(1, -1).trim();
+                    if (!inner) {
+                        return;
+                    }
+                    if (trimmed.startsWith('[')) {
+                        try {
+                            const parsed = JSON.parse(trimmed);
+                            append(parsed);
+                            return;
+                        } catch (error) {
+                            console.warn('⚠️ Error parseando arreglo JSON de tarifas:', error);
+                            inner.split(',').forEach(part => append(part));
+                            return;
+                        }
+                    }
+                    if (trimmed.startsWith('{') && trimmed.includes(':')) {
+                        try {
+                            const parsed = JSON.parse(trimmed);
+                            append(parsed);
+                            return;
+                        } catch (error) {
+                            console.warn('⚠️ Error parseando objeto JSON de tarifas:', error);
+                        }
+                    }
+                    inner.split(',').forEach(part => append(part));
+                    return;
+                }
+
+                if (trimmed.includes(',')) {
+                    trimmed.split(',').forEach(part => append(part));
+                    return;
+                }
+
+                result.push(trimmed);
+                return;
+            }
+
+            if (typeof item === 'object') {
+                if (Object.prototype.hasOwnProperty.call(item, 'tariff_id')) {
+                    append(item.tariff_id);
+                }
+                if (Object.prototype.hasOwnProperty.call(item, 'tariff_ids')) {
+                    append(item.tariff_ids);
+                }
+                Object.values(item).forEach(append);
+                return;
+            }
+
+            result.push(String(item));
+        };
+
+        append(value);
+
+        return [...new Set(result.map(id => id.trim()).filter(Boolean))];
+    }
+
+    extractTariffIdsFromConnector(connector) {
+        if (!connector) {
+            return [];
+        }
+
+        const collected = [];
+        const collectValue = (value) => {
+            if (value === undefined || value === null) {
+                return;
+            }
+            this.normalizeTariffIds(value).forEach(id => collected.push(id));
+        };
+
+        collectValue(connector.tariff_ids);
+        collectValue(connector.tariff_id);
+        collectValue(connector.tariffs);
+        collectValue(connector.tariff);
+
+        if (Array.isArray(connector.tariffs)) {
+            connector.tariffs.forEach(tariffObj => {
+                collectValue(tariffObj);
+                if (tariffObj && typeof tariffObj === 'object') {
+                    collectValue(tariffObj.id);
+                    collectValue(tariffObj.tariff_id);
+                    collectValue(tariffObj.tariff_ids);
+                    Object.values(tariffObj).forEach(value => collectValue(value));
+                }
+            });
+        }
+
+        if (typeof connector === 'object') {
+            Object.entries(connector).forEach(([key, value]) => {
+                if (/tariff/i.test(key)) {
+                    collectValue(value);
+                }
+            });
+        }
+
+        return [...new Set(collected.map(id => id.trim()).filter(Boolean))];
+    }
+
+    findEmspTariff(countryCode, partyId, tariffId) {
+        const tariffs = Array.isArray(this.allEmspTariffs) ? this.allEmspTariffs : [];
+        const targetTariffId = (tariffId || '').trim();
+        if (!targetTariffId) {
+            return null;
+        }
+
+        const targetTariffUpper = targetTariffId.toUpperCase();
+        const targetPartyUpper = (partyId || '').trim().toUpperCase();
+        const targetCountryUpper = (countryCode || '').trim().toUpperCase();
+
+        const matchExact = tariffs.find(tariff => {
+            const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
+            const currentCountryUpper = String(tariff.emsp_country_code || '').trim().toUpperCase();
+
+            return currentTariffUpper === targetTariffUpper &&
+                (!targetPartyUpper || currentPartyUpper === targetPartyUpper) &&
+                (!targetCountryUpper || currentCountryUpper === targetCountryUpper);
+        });
+
+        if (matchExact) {
+            return matchExact;
+        }
+
+        const matchParty = tariffs.find(tariff => {
+            const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
+
+            return currentTariffUpper === targetTariffUpper &&
+                (!targetPartyUpper || currentPartyUpper === targetPartyUpper);
+        });
+
+        if (matchParty) {
+            return matchParty;
+        }
+
+        return tariffs.find(tariff =>
+            String(tariff.tariff_id || tariff.id || '').trim().toUpperCase() === targetTariffUpper
+        ) || null;
+    }
+
+    async ensureEmspEvsesLoaded() {
+        const alreadyLoaded = Array.isArray(this.allEmspEvses) && this.allEmspEvses.length > 0;
+        if (!alreadyLoaded) {
+            try {
+                console.log('🔄 Cargando EVSEs externos para consulta rápida de tarifas...');
+                const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/evses`, {
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                const evses = Array.isArray(data.data) ? data.data : [];
+                this.allEmspEvses = evses;
+                console.log(`✅ EVSEs externos cargados (${evses.length}) para consulta de tarifas.`);
+            } catch (error) {
+                console.error('❌ Error cargando EVSEs externos para consulta de tarifas:', error);
+                return false;
+            }
+        }
+
+        await this.ensureEmspLocationsLoaded();
+
+        return Array.isArray(this.allEmspEvses) && this.allEmspEvses.length > 0;
+    }
+
+    async ensureEmspLocationsLoaded() {
+        const alreadyLoaded = Array.isArray(this.allEmspLocations) && this.allEmspLocations.length > 0;
+        if (alreadyLoaded) {
+            if (!this.emspLocationNameMap || Object.keys(this.emspLocationNameMap).length === 0) {
+                this.buildEmspLocationNameMap();
+            }
+            return true;
+        }
+
+        try {
+            console.log('🔄 Cargando locations externos para consulta rápida de EVSEs...');
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/locations`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            this.allEmspLocations = Array.isArray(data.data) ? data.data : [];
+            this.buildEmspLocationNameMap();
+            console.log(`✅ Locations externos cargados (${this.allEmspLocations.length}) para consulta de EVSEs.`);
+            return this.allEmspLocations.length > 0;
+        } catch (error) {
+            console.error('❌ Error cargando locations externos para consulta rápida:', error);
+            return false;
         }
     }
 
@@ -7360,6 +7821,555 @@ class DashboardApp {
         } catch (error) {
             console.error('❌ Error eliminando tarifa:', error);
             this.showNotification(`Error al eliminar tarifa: ${error.message}`, 'error');
+        }
+    }
+
+    viewEmspTariff(encodedCountryCode, encodedPartyId, encodedTariffId) {
+        try {
+            const countryCode = decodeURIComponent(encodedCountryCode || '');
+            const partyId = decodeURIComponent(encodedPartyId || '');
+            const tariffId = decodeURIComponent(encodedTariffId || '');
+
+            console.log('👁️ Viendo detalles de tarifa externa...', {
+                countryCode,
+                partyId,
+                tariffId
+            });
+
+            const tariff = this.findEmspTariff(countryCode, partyId, tariffId);
+
+            if (!tariff) {
+                console.warn('⚠️ Tarifa externa no encontrada en la lista actual');
+                this.showNotification('No se encontró la tarifa externa seleccionada en la lista actual.', 'warning');
+                return;
+            }
+
+            const safeText = (value, fallback = 'N/A') => this.escapeHtml(
+                value !== undefined && value !== null && value !== '' ? String(value) : fallback
+            );
+
+            const parsedElements = this.parseTariffElements(tariff.elements);
+            const currencyText = safeText(tariff.currency, '');
+            const currencyLabel = currencyText ? ` ${currencyText}` : '';
+            const elementsRows = parsedElements.reduce((rows, element, elementIndex) => {
+                const priceComponents = Array.isArray(element.price_components) ? element.price_components : [];
+                const restrictionsText = this.formatTariffRestrictions(element.restrictions);
+
+                if (priceComponents.length === 0) {
+                    rows.push(`
+                        <tr>
+                            <td>${elementIndex + 1}</td>
+                            <td><span class="badge bg-warning text-dark">N/A</span></td>
+                            <td colspan="3"><span class="text-muted">Sin price components</span></td>
+                            <td class="text-wrap text-break">${restrictionsText}</td>
+                        </tr>
+                    `);
+                    return rows;
+                }
+
+                priceComponents.forEach((component, componentIndex) => {
+                    rows.push(`
+                        <tr>
+                            <td>${elementIndex + 1}.${componentIndex + 1}</td>
+                            <td><span class="badge bg-warning text-dark">${this.escapeHtml(component?.type || 'N/A')}</span></td>
+                            <td>${component?.price ?? 'N/A'}${currencyLabel}</td>
+                            <td>${component?.vat ?? 0}%</td>
+                            <td>${component?.step_size ?? 1}</td>
+                            <td class="text-wrap text-break">${restrictionsText}</td>
+                        </tr>
+                    `);
+                });
+
+                return rows;
+            }, []).join('');
+
+            const elementsTable = parsedElements.length > 0
+                ? `
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tipo</th>
+                                    <th>Precio</th>
+                                    <th>IVA</th>
+                                    <th>Paso</th>
+                                    <th>Restricciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${elementsRows}
+                            </tbody>
+                        </table>
+                    </div>
+                `
+                : '<p class="text-muted mb-0">No hay elementos de precio disponibles</p>';
+
+            const modalHtml = `
+                <div class="modal fade" id="viewEmspTariffModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-eye"></i> Detalles de la Tarifa Externa
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-4">
+                                    <div class="col-lg-5">
+                                        <h6>Información Básica</h6>
+                                        <table class="table table-sm">
+                                            <tr><td><strong>Tariff ID (OCPI):</strong></td><td><code>${safeText(tariff.tariff_id || tariff.id)}</code></td></tr>
+                                            <tr><td><strong>ID Interno:</strong></td><td><code>${safeText(tariff.id)}</code></td></tr>
+                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.emsp_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.emsp_country_code)}</span></td></tr>
+                                            <tr><td><strong>Nombre:</strong></td><td>${tariff.name ? safeText(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td></tr>
+                                            <tr><td><strong>Tipo:</strong></td><td><span class="badge bg-info">${safeText(tariff.type)}</span></td></tr>
+                                            <tr><td><strong>Moneda:</strong></td><td><span class="badge bg-success">${safeText(tariff.currency)}</span></td></tr>
+                                            <tr><td><strong>Válido Desde:</strong></td><td>${tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleString() : 'N/A'}</td></tr>
+                                            <tr><td><strong>Válido Hasta:</strong></td><td>${tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleString() : 'N/A'}</td></tr>
+                                            <tr><td><strong>Última Actualización:</strong></td><td>${tariff.last_updated ? new Date(tariff.last_updated).toLocaleString() : 'N/A'}</td></tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-lg-7">
+                                        <h6>Elementos de Precio</h6>
+                                        ${elementsTable}
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <h6>JSON Completo</h6>
+                                    <pre class="bg-light p-3 rounded small">${this.escapeHtml(JSON.stringify(tariff, null, 2))}</pre>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const existingModal = document.getElementById('viewEmspTariffModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            const modalElement = document.getElementById('viewEmspTariffModal');
+            if (!modalElement) {
+                throw new Error('No se pudo crear el modal de detalles de tarifa externa');
+            }
+
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error mostrando detalles de tarifa externa:', error);
+            this.showNotification(`Error al ver tarifa externa: ${error.message}`, 'error');
+        }
+    }
+
+    async viewEmspTariffEvses(encodedCountryCode, encodedPartyId, encodedTariffId) {
+        try {
+            const countryCode = decodeURIComponent(encodedCountryCode || '');
+            const partyId = decodeURIComponent(encodedPartyId || '');
+            const tariffId = decodeURIComponent(encodedTariffId || '');
+
+            console.log('🔗 Buscando EVSEs asociados a tarifa externa...', {
+                countryCode,
+                partyId,
+                tariffId
+            });
+
+            const tariff = this.findEmspTariff(countryCode, partyId, tariffId);
+            if (!tariff) {
+                console.warn('⚠️ Tarifa externa no encontrada para listar EVSEs');
+                this.showNotification('No se encontró la tarifa externa en la lista actual. Actualiza la pestaña Ext Tariffs e inténtalo nuevamente.', 'warning');
+                return;
+            }
+
+            const safeText = (value, fallback = 'N/A') => this.escapeHtml(
+                value !== undefined && value !== null && value !== '' ? String(value) : fallback
+            );
+
+            const evsesEnsureResult = await this.ensureEmspEvsesLoaded();
+            const evses = Array.isArray(this.allEmspEvses) ? this.allEmspEvses : [];
+            const hasEvseDataset = evses.length > 0;
+
+            const effectiveTariffId = (tariff.tariff_id || tariff.id || tariffId || '').trim();
+            if (!effectiveTariffId) {
+                console.warn('⚠️ Tarifa externa sin identificador válido. No es posible buscar EVSEs asociados.');
+                this.showNotification('La tarifa seleccionada no tiene un identificador válido. Verifica los datos recibidos.', 'warning');
+                return;
+            }
+
+            const targetTariffUpper = effectiveTariffId.toUpperCase();
+            const targetPartyUpper = (partyId || tariff.emsp_party_id || '').trim().toUpperCase();
+            const targetCountryUpper = (countryCode || tariff.emsp_country_code || '').trim().toUpperCase();
+
+            const matchingEvses = evses.reduce((acc, evse) => {
+                const evsePartyUpper = String(evse.emsp_party_id || '').trim().toUpperCase();
+                const evseCountryUpper = String(evse.emsp_country_code || '').trim().toUpperCase();
+
+                if (targetPartyUpper && evsePartyUpper !== targetPartyUpper) {
+                    return acc;
+                }
+                if (targetCountryUpper && evseCountryUpper !== targetCountryUpper) {
+                    return acc;
+                }
+
+                const connectors = this.parseEmspConnectors(evse.connectors);
+                const connectorMatches = [];
+                const searchTokens = new Set();
+                const addToken = (value) => {
+                    if (value === null || value === undefined) {
+                        return;
+                    }
+                    const stringValue = String(value).trim();
+                    if (!stringValue) {
+                        return;
+                    }
+                    searchTokens.add(stringValue.toLowerCase());
+                };
+
+                addToken(effectiveTariffId);
+                addToken(tariff.name);
+                addToken(tariff.type);
+                addToken(tariff.currency);
+                addToken(tariff.emsp_party_id || partyId);
+                addToken(tariff.emsp_country_code || countryCode);
+
+                const evseLocationName = this.getEmspLocationName(evse.location_id)
+                    || evse.location_name
+                    || evse.emsp_location_name
+                    || evse.location?.name;
+
+                addToken(evse.evse_id);
+                addToken(evse.id);
+                addToken(evse.location_id);
+                addToken(evseLocationName);
+                addToken(evse.status);
+
+                connectors.forEach(connector => {
+                    const connectorTariffs = this.extractTariffIdsFromConnector(connector);
+                    const hasTariff = connectorTariffs.some(id => id.toUpperCase() === targetTariffUpper);
+                    if (hasTariff) {
+                        const normalizedTariffs = [...new Set(connectorTariffs)];
+                        normalizedTariffs.forEach(addToken);
+                        [
+                            connector?.id,
+                            connector?.connector_id,
+                            connector?.uid,
+                            connector?.identifier,
+                            connector?.standard,
+                            connector?.format,
+                            connector?.power_type,
+                            connector?.voltage,
+                            connector?.amperage,
+                            connector?.max_voltage,
+                            connector?.max_amperage,
+                            connector?.max_electric_power,
+                            connector?.raw
+                        ].forEach(addToken);
+
+                        connectorMatches.push({
+                            connector,
+                            tariffs: normalizedTariffs
+                        });
+                    }
+                });
+
+                const evseTariffIds = [
+                    ...this.normalizeTariffIds(evse.tariff_ids),
+                    ...this.normalizeTariffIds(evse.tariffs),
+                    ...this.normalizeTariffIds(evse.tariff)
+                ];
+                const hasEvseLevelTariff = evseTariffIds.some(id => id.toUpperCase() === targetTariffUpper);
+
+                if (hasEvseLevelTariff) {
+                    evseTariffIds.forEach(addToken);
+                    addToken('evse');
+                    addToken('direct');
+                }
+
+                if (connectorMatches.length === 0 && !hasEvseLevelTariff) {
+                    return acc;
+                }
+
+                acc.push({
+                    evse,
+                    connectorMatches,
+                    hasEvseLevelTariff,
+                    searchText: Array.from(searchTokens).join(' ')
+                });
+
+                return acc;
+            }, []).sort((a, b) => {
+                const evseIdA = (a.evse.evse_id || a.evse.id || '').toString().toUpperCase();
+                const evseIdB = (b.evse.evse_id || b.evse.id || '').toString().toUpperCase();
+                if (evseIdA < evseIdB) return -1;
+                if (evseIdA > evseIdB) return 1;
+                return 0;
+            });
+            const totalMatches = matchingEvses.length;
+
+            const connectorDetailsToHtml = (match) => {
+                if (!match || !Array.isArray(match.connectorMatches) || match.connectorMatches.length === 0) {
+                    return '<span class="text-muted">Sin coincidencias a nivel conector</span>';
+                }
+
+                return match.connectorMatches.map(({ connector, tariffs }, index) => {
+                    const connectorIdRaw = connector && (connector.id || connector.connector_id || connector.uid || connector.identifier);
+                    const connectorLabel = connectorIdRaw
+                        ? this.escapeHtml(String(connectorIdRaw))
+                        : `Conector ${index + 1}`;
+
+                    const metaParts = [];
+                    if (connector && connector.standard) {
+                        metaParts.push(this.escapeHtml(String(connector.standard)));
+                    }
+                    if (connector && connector.format) {
+                        metaParts.push(this.escapeHtml(String(connector.format)));
+                    }
+                    if (connector && connector.power_type) {
+                        metaParts.push(this.escapeHtml(String(connector.power_type)));
+                    }
+                    const metaHtml = metaParts.length ? `<span class="text-muted small">${metaParts.join(' · ')}</span>` : '';
+
+                    const tariffsBadges = (tariffs || []).map(id =>
+                        `<span class="badge bg-light text-dark border me-1">${this.escapeHtml(id)}</span>`
+                    ).join('');
+                    const tariffsHtml = tariffsBadges
+                        ? `<div class="small mt-1">Tariffs: ${tariffsBadges}</div>`
+                        : '';
+
+                    const rawHtml = connector && connector.raw
+                        ? `<div class="small text-muted">${this.escapeHtml(String(connector.raw))}</div>`
+                        : '';
+
+                    return `
+                        <div class="mb-2">
+                            <span class="badge bg-primary me-2">${connectorLabel}</span>
+                            ${metaHtml}
+                            ${tariffsHtml}
+                            ${rawHtml}
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            const buildRowsHtml = (matchesArray) => matchesArray.map(match => {
+                const evse = match.evse || {};
+                const evseLevelHtml = match.hasEvseLevelTariff
+                    ? '<div class="mb-2"><span class="badge bg-success">Asignada directamente al EVSE</span></div>'
+                    : '';
+                const locationName = this.getEmspLocationName(evse.location_id)
+                    || evse.location_name
+                    || evse.emsp_location_name
+                    || (evse.location && evse.location.name);
+                const locationHtml = locationName
+                    ? `
+                        <div>${this.escapeHtml(locationName)}</div>
+                        <div class="small text-muted">${this.escapeHtml(evse.location_id || 'Sin ID')}</div>
+                    `.trim()
+                    : `
+                        <div>${this.escapeHtml(evse.location_id || 'N/A')}</div>
+                    `.trim();
+
+                return `
+                    <tr>
+                        <td>
+                            <code>${this.escapeHtml(evse.evse_id || evse.id || 'N/A')}</code>
+                            <div class="small text-muted">UID: ${this.escapeHtml(evse.id || 'N/A')}</div>
+                        </td>
+                        <td>${locationHtml}</td>
+                        <td class="text-wrap text-break">
+                            ${evseLevelHtml}
+                            ${connectorDetailsToHtml(match)}
+                        </td>
+                        <td>${evse.last_updated ? new Date(evse.last_updated).toLocaleString() : 'N/A'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const evseTable = totalMatches > 0
+                ? `
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>EVSE ID</th>
+                                    <th>Location</th>
+                                    <th>Coincidencias</th>
+                                    <th>Última Actualización</th>
+                                </tr>
+                            </thead>
+                            <tbody id="emspTariffEvsesTableBody">
+                                ${buildRowsHtml(matchingEvses)}
+                            </tbody>
+                        </table>
+                    </div>
+                `
+                : (() => {
+                    let message = 'No se encontraron EVSEs que usen esta tarifa externa.';
+                    if (!hasEvseDataset) {
+                        message = evsesEnsureResult
+                            ? 'No hay EVSEs externos almacenados para este eMSP en la base local.'
+                            : 'No fue posible cargar los EVSEs externos automáticamente. Abre la pestaña Ext EVSEs y presiona "Actualizar" para sincronizar los datos.';
+                    }
+                    return `
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        ${message}
+                    </div>
+                `;
+                })();
+
+            const summaryHtml = `
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge bg-primary" id="emspTariffEvsesCountBadge">
+                        ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'} asociados
+                    </span>
+                    <span class="badge bg-info">${safeText(tariff.emsp_party_id || partyId)}</span>
+                    <span class="badge bg-secondary">${safeText(tariff.emsp_country_code || countryCode)}</span>
+                    <span class="badge bg-light text-dark border">${safeText(tariff.currency)}</span>
+                </div>
+            `;
+
+            const searchHtml = `
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <div class="flex-grow-1">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text"
+                                   class="form-control"
+                                   id="emspTariffEvsesSearch"
+                                   placeholder="Buscar por EVSE, location o conector..."
+                                   ${totalMatches === 0 ? 'disabled' : ''}>
+                        </div>
+                    </div>
+                    <small class="text-muted" id="emspTariffEvsesCountText">
+                        ${totalMatches > 0
+                            ? `Mostrando ${totalMatches} de ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'}`
+                            : 'Sin EVSEs asociados'}
+                    </small>
+                </div>
+            `;
+
+            const headerHtml = `
+                <div class="mb-3">
+                    <h6 class="mb-1">Tarifa <code>${safeText(tariff.tariff_id || tariff.id)}</code></h6>
+                    <div class="small text-muted">
+                        ${tariff.name ? safeText(tariff.name) : 'Sin nombre'} · ${safeText(tariff.type)}
+                    </div>
+                </div>
+            `;
+
+            const modalHtml = `
+                <div class="modal fade" id="viewEmspTariffEvsesModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-plug"></i> EVSEs asociados a la tarifa externa
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                ${headerHtml}
+                                ${summaryHtml}
+                                ${searchHtml}
+                                ${evseTable}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const existingModal = document.getElementById('viewEmspTariffEvsesModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            const modalElement = document.getElementById('viewEmspTariffEvsesModal');
+            if (!modalElement) {
+                throw new Error('No se pudo crear el modal de EVSEs asociados.');
+            }
+
+            const tableBody = document.getElementById('emspTariffEvsesTableBody');
+            const searchInput = document.getElementById('emspTariffEvsesSearch');
+            const countBadge = document.getElementById('emspTariffEvsesCountBadge');
+            const countText = document.getElementById('emspTariffEvsesCountText');
+
+            const filterMatches = (query = '') => {
+                const normalized = (query || '').toString().trim().toLowerCase();
+                if (!normalized) {
+                    return matchingEvses;
+                }
+                const terms = normalized.split(/\s+/).filter(Boolean);
+                if (terms.length === 0) {
+                    return matchingEvses;
+                }
+
+                return matchingEvses.filter(match => {
+                    const searchPool = match.searchText || '';
+                    return terms.every(term => searchPool.includes(term));
+                });
+            };
+
+            const updateCountDisplay = (filteredLength) => {
+                if (countBadge) {
+                    countBadge.textContent = `${filteredLength} de ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'} asociados`;
+                }
+                if (countText) {
+                    if (totalMatches === 0) {
+                        countText.textContent = 'Sin EVSEs asociados';
+                    } else {
+                        countText.textContent = `Mostrando ${filteredLength} de ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'}`;
+                    }
+                }
+            };
+
+            const renderTableBody = (query = '') => {
+                const filtered = filterMatches(query);
+                if (tableBody) {
+                    if (filtered.length === 0) {
+                        const safeQuery = this.escapeHtml(query.trim());
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    <i class="bi bi-search"></i> No se encontraron EVSEs${safeQuery ? ` para <span class="fw-semibold">${safeQuery}</span>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        tableBody.innerHTML = buildRowsHtml(filtered);
+                    }
+                }
+                updateCountDisplay(filtered.length);
+            };
+
+            if (tableBody) {
+                renderTableBody('');
+                if (searchInput) {
+                    searchInput.addEventListener('input', () => renderTableBody(searchInput.value));
+                }
+            } else {
+                updateCountDisplay(totalMatches);
+            }
+
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error listando EVSEs asociados a tarifa externa:', error);
+            this.showNotification(`Error al consultar EVSEs asociados a la tarifa: ${error.message}`, 'error');
         }
     }
 

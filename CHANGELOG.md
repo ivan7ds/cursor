@@ -5,6 +5,19 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.4.0] - 2025-10-11
+
+### Added
+- **Acciones en Ext Tariffs**: nueva columna con botones para ver detalles y EVSEs asociados de cada tarifa externa directamente desde la tabla.
+- **Búsqueda en EVSEs asociados**: campo de búsqueda incremental en el modal de EVSEs que permite filtrar por identificador, location o metadatos de conectores, actualizando el conteo mostrado en tiempo real.
+
+### Changed
+- **Detalle de tarifas externas**: modal ampliado a pantalla extra grande, con formateo legible de elementos, restricciones y JSON completo.
+- **Listado de EVSEs asociados**: muestra el nombre de la location por encima del ID, omite la columna de estado, ordena conectores con metadatos y refleja correctamente los conectores/tariff_ids almacenados en JSON o texto.
+- **Sincronización auxiliar**: al abrir el detalle de EVSEs se asegura la precarga de locations externas para reutilizar los nombres en la tabla y en los filtros.
+
 ## [1.3.0] - 2025-10-10
 
 ### Added
