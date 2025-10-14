@@ -15,6 +15,7 @@ class DashboardApp {
         this.filteredExtSessions = []; // Sesiones externas filtradas
         this.currentExtSessionsPage = 1;
         this.extSessionsPerPage = 20;
+        this.extSessionsSearchQuery = '';
         this.allTokens = []; // Tokens del CPO
         this.filteredTokens = [];
         this.currentTokensPage = 1;
@@ -25,6 +26,7 @@ class DashboardApp {
         this.emspLocationsPerPage = 20;
         this.emspLocationsEvseCountMap = {};
         this.emspLocationNameMap = {};
+        this.emspEvseIdMap = {};
         this.allEmspEvses = []; // EVSEs externos
         this.filteredEmspEvses = [];
         this.currentEmspEvsesPage = 1;
@@ -610,6 +612,22 @@ class DashboardApp {
                 console.log('✅ Event listener para filterActiveExtSessions agregado');
             } else {
                 console.warn('⚠️ Elemento filterActiveExtSessions no encontrado');
+            }
+
+            const extSessionsSearch = document.getElementById('extSessionsSearch');
+            if (extSessionsSearch) {
+                if (this.extSessionsSearchQuery) {
+                    extSessionsSearch.value = this.extSessionsSearchQuery;
+                }
+                extSessionsSearch.addEventListener('input', () => {
+                    this.extSessionsSearchQuery = extSessionsSearch.value || '';
+                    console.log('🔍 Búsqueda Ext Sessions actualizada:', this.extSessionsSearchQuery);
+                    this.applyExtSessionsFilters({ resetPage: true });
+                    this.updateExtSessionsCount();
+                });
+                console.log('✅ Event listener para extSessionsSearch agregado');
+            } else {
+                console.warn('⚠️ Elemento extSessionsSearch no encontrado');
             }
 
             const extSessionsPrevPage = document.getElementById('extSessionsPrevPage');
@@ -3846,6 +3864,71 @@ class DashboardApp {
         return this.emspLocationNameMap?.[locationId] || '';
     }
 
+    buildEmspEvseIdMap() {
+        const map = {};
+        if (Array.isArray(this.allEmspEvses)) {
+            this.allEmspEvses.forEach(evse => {
+                if (!evse) {
+                    return;
+                }
+                const uidRaw = evse.id || evse.evse_uid || evse.uid;
+                if (!uidRaw) {
+                    return;
+                }
+                const evseIdRaw = evse.evse_id || '';
+                if (!evseIdRaw) {
+                    return;
+                }
+                const uid = uidRaw.toString().trim();
+                const uidUpper = uid.toUpperCase();
+                const evseId = evseIdRaw.toString().trim();
+                if (uid) {
+                    map[uid] = evseId;
+                }
+                if (uidUpper) {
+                    map[uidUpper] = evseId;
+                }
+            });
+        }
+        this.emspEvseIdMap = map;
+    }
+
+    getEmspEvseId(evseUid) {
+        if (!evseUid) {
+            return '';
+        }
+        if (!this.emspEvseIdMap || Object.keys(this.emspEvseIdMap).length === 0) {
+            this.buildEmspEvseIdMap();
+        }
+        const uid = evseUid.toString().trim();
+        const uidUpper = uid.toUpperCase();
+        const cached = this.emspEvseIdMap?.[uid] || this.emspEvseIdMap?.[uidUpper];
+        if (cached) {
+            return cached;
+        }
+
+        if (Array.isArray(this.allEmspEvses)) {
+            const found = this.allEmspEvses.find(evse => {
+                const rawUid = evse?.id || evse?.evse_uid || evse?.uid;
+                if (!rawUid) {
+                    return false;
+                }
+                const normalized = rawUid.toString().trim();
+                return normalized === uid || normalized.toUpperCase() === uidUpper;
+            });
+            if (found && found.evse_id) {
+                const evseId = found.evse_id.toString().trim();
+                if (evseId) {
+                    this.emspEvseIdMap[uidUpper] = evseId;
+                    this.emspEvseIdMap[uid] = evseId;
+                    return evseId;
+                }
+            }
+        }
+
+        return '';
+    }
+
     renderEmspLocationsPage() {
         const locations = Array.isArray(this.filteredEmspLocations) ? this.filteredEmspLocations : [];
         const totalLocations = locations.length;
@@ -3949,6 +4032,7 @@ class DashboardApp {
             console.log('📊 EMSP EVSEs data:', evses.length ? `Array[${evses.length}]` : data);
             
             this.allEmspEvses = evses;
+            this.buildEmspEvseIdMap();
             this.populateEmspPartyFilter(evses);
             this.applyEmspEvseFilters({ resetPage: true });
             this.updateCount('emspEvsesCount', evses.length);
@@ -3961,6 +4045,7 @@ class DashboardApp {
             this.allEmspEvses = [];
             this.filteredEmspEvses = [];
             this.currentEmspEvsesPage = 1;
+            this.emspEvseIdMap = {};
             this.updateEmspEvsesPaginationInfo(0, 0, 0);
             this.updateEmspEvsesPaginationButtons();
         }
@@ -4702,6 +4787,7 @@ class DashboardApp {
                 const data = await response.json();
                 const evses = Array.isArray(data.data) ? data.data : [];
                 this.allEmspEvses = evses;
+                this.buildEmspEvseIdMap();
                 console.log(`✅ EVSEs externos cargados (${evses.length}) para consulta de tarifas.`);
             } catch (error) {
                 console.error('❌ Error cargando EVSEs externos para consulta de tarifas:', error);
@@ -4712,6 +4798,39 @@ class DashboardApp {
         await this.ensureEmspLocationsLoaded();
 
         return Array.isArray(this.allEmspEvses) && this.allEmspEvses.length > 0;
+    }
+
+    async ensureEmspTariffsLoaded() {
+        const alreadyLoaded = Array.isArray(this.allEmspTariffs) && this.allEmspTariffs.length > 0;
+        if (alreadyLoaded) {
+            return true;
+        }
+
+        try {
+            console.log('🔄 Cargando tarifas externas para consulta...');
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/tariffs`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            const allTariffs = Array.isArray(data.data) ? data.data : [];
+            const activeTariffs = allTariffs.filter(tariff => !tariff.deleted_at);
+
+            this.allEmspTariffs = activeTariffs;
+            this.filteredEmspTariffs = [...activeTariffs];
+            console.log(`✅ Tarifas externas cargadas (${activeTariffs.length}) para consulta.`);
+            return activeTariffs.length > 0;
+        } catch (error) {
+            console.error('❌ Error cargando tarifas externas para consulta:', error);
+            return false;
+        }
     }
 
     async ensureEmspLocationsLoaded() {
@@ -10589,6 +10708,7 @@ ${JSON.stringify(data, null, 2)}`;
             
             console.log(`✅ ${this.allExtSessions.length} sesiones externas cargadas`);
             console.log('🔍 Datos de sesiones externas:', this.allExtSessions);
+            await this.ensureEmspEvsesLoaded();
             this.applyExtSessionsFilters({ resetPage: true });
             this.updateExtSessionsCount();
             
@@ -10606,12 +10726,19 @@ ${JSON.stringify(data, null, 2)}`;
         }
 
         const hasData = Array.isArray(this.allExtSessions) && this.allExtSessions.length > 0;
+        const hasSearch = Boolean((this.extSessionsSearchQuery || '').trim());
 
         if (!Array.isArray(sessions) || sessions.length === 0) {
-            const emptyIcon = this.filterActiveExtSessions && hasData ? 'bi-funnel' : 'bi-cloud-download';
-            const emptyMessage = this.filterActiveExtSessions && hasData
-                ? 'No se encontraron sesiones externas activas o pendientes'
-                : 'No hay sesiones externas disponibles';
+            let emptyIcon = 'bi-cloud-download';
+            let emptyMessage = 'No hay sesiones externas disponibles';
+
+            if (hasSearch) {
+                emptyIcon = 'bi-search';
+                emptyMessage = `No se encontraron sesiones externas para “${this.escapeHtml(this.extSessionsSearchQuery.trim())}”`;
+            } else if (this.filterActiveExtSessions && hasData) {
+                emptyIcon = 'bi-funnel';
+                emptyMessage = 'No se encontraron sesiones externas activas o pendientes';
+            }
 
             tbody.innerHTML = `
                 <tr>
@@ -10624,67 +10751,80 @@ ${JSON.stringify(data, null, 2)}`;
             return;
         }
 
-        tbody.innerHTML = sessions.map(session => `
-            <tr>
-                <td>
-                    <span class="text-truncate d-inline-block" style="max-width: 150px;" 
-                          title="${session.session_id}">
-                        ${session.session_id}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge bg-info">${session.emsp_party_id}</span>
-                </td>
-                <td>
-                    <span class="text-truncate d-inline-block" style="max-width: 100px;" 
-                          title="${session.id_token || 'N/A'}">
-                        ${session.id_token || 'N/A'}
-                    </span>
-                </td>
-                <td>
-                    <span class="text-truncate d-inline-block" style="max-width: 100px;" 
-                          title="${session.evse_uid || 'N/A'}">
-                        ${session.evse_uid || 'N/A'}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge ${this.getExtSessionStatusBadgeClass(session.status)}">
-                        ${session.status || 'UNKNOWN'}
-                    </span>
-                </td>
-                <td>
-                    ${session.start_datetime ? new Date(session.start_datetime).toLocaleString('es-ES') : 'N/A'}
-                </td>
-                <td>
-                    ${session.end_datetime ? new Date(session.end_datetime).toLocaleString('es-ES') : 'N/A'}
-                </td>
-                <td>
-                    ${session.kwh ? parseFloat(session.kwh).toFixed(3) : '0.000'} kWh
-                </td>
-                <td>
-                    ${session.total_cost ? `€${parseFloat(session.total_cost).toFixed(2)}` : 'N/A'}
-                </td>
-                <td>
-                    <span class="badge bg-secondary">${session.currency || 'EUR'}</span>
-                </td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-outline-info btn-sm" 
-                                onclick="window.dashboardApp.viewExtSessionDetails('${session.session_id}')"
-                                title="Ver detalles">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        ${session.status === 'ACTIVE' || session.status === 'IN_PROGRESS' ? `
-                            <button class="btn btn-outline-danger btn-sm" 
-                                    onclick="window.dashboardApp.closeExtSession('${session.session_id}', '${session.evse_uid || ''}')"
-                                    title="Cerrar sesión">
-                                <i class="bi bi-stop-circle"></i>
+        tbody.innerHTML = sessions.map(session => {
+            const evseId = this.getEmspEvseId(session.evse_uid);
+            const evseDisplay = evseId || session.evse_uid || 'N/A';
+            const evseTitleParts = [];
+            if (evseId) {
+                evseTitleParts.push(`EVSE ID: ${evseId}`);
+            }
+            if (session.evse_uid && (!evseId || evseId !== session.evse_uid)) {
+                evseTitleParts.push(`EVSE UID: ${session.evse_uid}`);
+            }
+            const evseTitle = evseTitleParts.length > 0 ? evseTitleParts.join(' • ') : evseDisplay;
+            const sessionIdJs = JSON.stringify(session.session_id || '');
+            const evseUidJs = JSON.stringify(session.evse_uid || '');
+
+            return `
+                <tr>
+                    <td>
+                        <span class="text-truncate d-inline-block" style="max-width: 150px;" 
+                              title="${this.escapeHtml(session.session_id || 'N/A')}">
+                            ${this.escapeHtml(session.session_id || 'N/A')}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${this.escapeHtml(session.emsp_party_id || 'N/A')}</span>
+                    </td>
+                    <td>
+                        <span class="text-truncate d-inline-block" style="max-width: 100px;" 
+                              title="${this.escapeHtml(session.id_token || 'N/A')}">
+                            ${this.escapeHtml(session.id_token || 'N/A')}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-truncate d-inline-block" style="max-width: 140px;" 
+                              title="${this.escapeHtml(evseTitle)}">
+                            ${this.escapeHtml(evseDisplay)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge ${this.getExtSessionStatusBadgeClass(session.status)}">
+                            ${this.escapeHtml(session.status || 'UNKNOWN')}
+                        </span>
+                    </td>
+                    <td>
+                        ${session.start_datetime ? new Date(session.start_datetime).toLocaleString('es-ES') : 'N/A'}
+                    </td>
+                    <td>
+                        ${session.end_datetime ? new Date(session.end_datetime).toLocaleString('es-ES') : 'N/A'}
+                    </td>
+                    <td>
+                        ${session.kwh ? parseFloat(session.kwh).toFixed(3) : '0.000'} kWh
+                    </td>
+                    <td>
+                        ${session.total_cost ? `€${parseFloat(session.total_cost).toFixed(2)}` : 'N/A'}
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">${this.escapeHtml(session.currency || 'EUR')}</span>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-info btn-sm" title="Ver detalles"
+                                    onclick='window.dashboardApp.viewExtSessionDetails(${sessionIdJs})'>
+                                <i class="bi bi-eye"></i>
                             </button>
-                        ` : ''}
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+                            ${session.status === 'ACTIVE' || session.status === 'IN_PROGRESS' ? `
+                                <button class="btn btn-outline-danger btn-sm" title="Cerrar sesión"
+                                        onclick='window.dashboardApp.closeExtSession(${sessionIdJs}, ${evseUidJs})'>
+                                    <i class="bi bi-stop-circle"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
 
         console.log(`✅ ${sessions.length} Ext Sessions renderizadas en la página actual`);
     }
@@ -10692,12 +10832,43 @@ ${JSON.stringify(data, null, 2)}`;
     applyExtSessionsFilters({ resetPage = false } = {}) {
         const sessions = Array.isArray(this.allExtSessions) ? this.allExtSessions : [];
 
-        this.filteredExtSessions = this.filterActiveExtSessions
-            ? sessions.filter(session => {
+        let filtered = sessions;
+
+        if (this.filterActiveExtSessions) {
+            filtered = filtered.filter(session => {
                 const status = (session.status || '').toUpperCase();
                 return status === 'ACTIVE' || status === 'PENDING' || status === 'IN_PROGRESS';
-            })
-            : [...sessions];
+            });
+        }
+
+        const searchQuery = (this.extSessionsSearchQuery || '').trim().toLowerCase();
+        if (searchQuery) {
+            const terms = searchQuery.split(/\s+/).filter(Boolean);
+            if (terms.length > 0) {
+                filtered = filtered.filter(session => {
+                    const evseId = this.getEmspEvseId(session.evse_uid);
+                    const locationName = this.getEmspLocationName(session.location_id);
+                    const searchableParts = [
+                        session.session_id,
+                        session.emsp_party_id,
+                        session.id_token,
+                        session.evse_uid,
+                        evseId,
+                        session.status,
+                        session.currency,
+                        session.connector_id,
+                        session.location_id,
+                        locationName,
+                        session.total_cost,
+                        session.kwh
+                    ].map(value => (value || '').toString().toLowerCase());
+                    const searchable = searchableParts.join(' ');
+                    return terms.every(term => searchable.includes(term));
+                });
+            }
+        }
+
+        this.filteredExtSessions = filtered;
 
         const totalPages = this.filteredExtSessions.length > 0
             ? Math.ceil(this.filteredExtSessions.length / this.extSessionsPerPage)
@@ -10856,12 +11027,96 @@ ${JSON.stringify(data, null, 2)}`;
         return statusClasses[status] || 'bg-secondary';
     }
 
-    viewExtSessionDetails(sessionId) {
+    async viewExtSessionDetails(sessionId) {
         const session = this.allExtSessions.find(s => s.session_id === sessionId);
         if (!session) {
             this.showNotification('Sesión no encontrada', 'error');
             return;
         }
+
+        await this.ensureEmspEvsesLoaded();
+        await this.ensureEmspTariffsLoaded();
+
+        const evse = Array.isArray(this.allEmspEvses)
+            ? this.allEmspEvses.find(evseItem => {
+                const rawUid = evseItem?.id || evseItem?.evse_uid || evseItem?.uid;
+                if (!rawUid) return false;
+                const normalized = rawUid.toString().trim();
+                return normalized === session.evse_uid || normalized.toUpperCase() === (session.evse_uid || '').toUpperCase();
+            })
+            : null;
+
+        const associatedTariffIds = new Set();
+        if (evse) {
+            this.normalizeTariffIds(evse.tariff_ids).forEach(id => associatedTariffIds.add(id.toString().trim().toUpperCase()));
+            this.normalizeTariffIds(evse.tariff_id).forEach(id => associatedTariffIds.add(id.toString().trim().toUpperCase()));
+
+            const connectors = this.parseEmspConnectors(evse.connectors);
+            connectors.forEach(connector => {
+                this.extractTariffIdsFromConnector(connector).forEach(id => associatedTariffIds.add(id.toString().trim().toUpperCase()));
+            });
+        }
+
+        const tariffEntries = Array.from(associatedTariffIds)
+            .map(id => id && id.toString().trim())
+            .filter(Boolean)
+            .map(id => {
+                const tariff = this.findEmspTariff(session.emsp_country_code, session.emsp_party_id, id)
+                    || this.findEmspTariff(null, null, id);
+                return { id, tariff };
+            });
+
+        const tariffsHtml = tariffEntries.length > 0
+            ? `
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tariff ID</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Moneda</th>
+                                <th>Vigencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tariffEntries.map(({ id, tariff }) => {
+                                if (!tariff) {
+                                    return `
+                                        <tr>
+                                            <td><code>${this.escapeHtml(id)}</code></td>
+                                            <td colspan="3"><span class="text-warning">Tarifa no encontrada en el catálogo actual</span></td>
+                                            <td>-</td>
+                                        </tr>
+                                    `;
+                                }
+
+                                const name = tariff.name ? this.escapeHtml(tariff.name) : '<span class="text-muted">Sin nombre</span>';
+                                const type = tariff.type ? this.escapeHtml(tariff.type) : 'N/A';
+                                const currency = tariff.currency ? this.escapeHtml(tariff.currency) : 'N/A';
+                                const validity = [
+                                    tariff.start_date_time ? new Date(tariff.start_date_time).toLocaleString('es-ES') : null,
+                                    tariff.end_date_time ? new Date(tariff.end_date_time).toLocaleString('es-ES') : null
+                                ];
+                                const validityText = validity[0] || validity[1]
+                                    ? `${validity[0] || '—'} / ${validity[1] || '—'}`
+                                    : 'No definido';
+
+                                return `
+                                    <tr>
+                                        <td><code>${this.escapeHtml(id)}</code></td>
+                                        <td>${name}</td>
+                                        <td>${type}</td>
+                                        <td>${currency}</td>
+                                        <td>${validityText}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `
+            : '<p class="text-muted mb-0">No hay tarifas asociadas registradas para el EVSE de esta sesión.</p>';
 
         const details = `
             <div class="row">
@@ -10875,6 +11130,7 @@ ${JSON.stringify(data, null, 2)}`;
                 <div class="col-md-6">
                     <h6>Información Técnica</h6>
                     <p><strong>Organización:</strong> ${session.emsp_party_id} (${session.emsp_country_code})</p>
+                    <p><strong>EVSE ID:</strong> ${this.getEmspEvseId(session.evse_uid) || 'N/A'}</p>
                     <p><strong>EVSE UID:</strong> ${session.evse_uid || 'N/A'}</p>
                     <p><strong>Token ID:</strong> ${session.id_token || 'N/A'}</p>
                     <p><strong>Método Auth:</strong> ${session.auth_method || 'N/A'}</p>
@@ -10893,6 +11149,16 @@ ${JSON.stringify(data, null, 2)}`;
                     <p><strong>Connector ID:</strong> ${session.connector_id || 'N/A'}</p>
                     <p><strong>Última Actualización:</strong> ${session.last_updated ? new Date(session.last_updated).toLocaleString('es-ES') : 'N/A'}</p>
                 </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>Tarifas Asociadas</h6>
+                    ${tariffsHtml}
+                </div>
+            </div>
+            <div class="mt-4">
+                <h6>JSON Completo</h6>
+                <pre class="bg-light p-3 rounded small">${this.escapeHtml(JSON.stringify(session, null, 2))}</pre>
             </div>
         `;
 

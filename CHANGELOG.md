@@ -17,6 +17,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Detalle de tarifas externas**: modal ampliado a pantalla extra grande, con formateo legible de elementos, restricciones y JSON completo.
 - **Listado de EVSEs asociados**: muestra el nombre de la location por encima del ID, omite la columna de estado, ordena conectores con metadatos y refleja correctamente los conectores/tariff_ids almacenados en JSON o texto.
 - **Sincronización auxiliar**: al abrir el detalle de EVSEs se asegura la precarga de locations externas para reutilizar los nombres en la tabla y en los filtros.
+- **Sesiones externas**: la columna EVSE ahora muestra el `EVSE ID` y conserva el UID como información contextual en el tooltip y en el detalle.
+- **Búsqueda en Ext Sessions**: añadido campo de búsqueda incremental para filtrar sesiones externas por ID, token, EVSE, estado u otros metadatos desde el dashboard.
+- **Detalles de sesiones externas**: el modal incluye los datos completos de la sesión, EVSE, tarifas asociadas y el JSON original para depuración rápida.
 
 ## [1.3.0] - 2025-10-10
 

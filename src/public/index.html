@@ -990,7 +990,11 @@
                         <h5 class="mb-0">
                             <i class="bi bi-cloud-download"></i> Sesiones Externas
                         </h5>
-                        <div class="d-flex gap-2 align-items-center">
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                            <div class="input-group input-group-sm" style="width: 240px;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="extSessionsSearch" placeholder="Buscar sesión, EVSE, token o estado">
+                            </div>
                                                             <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="filterActiveExtSessions" checked>
                                     <label class="form-check-label" for="filterActiveExtSessions">
@@ -1011,7 +1015,7 @@
                                         <th>ID Sesión</th>
                                         <th>Organización</th>
                                         <th>Token UID</th>
-                                        <th>EVSE UID</th>
+                                        <th>EVSE ID</th>
                                         <th>Estado</th>
                                         <th>Inicio</th>
                                         <th>Fin</th>
