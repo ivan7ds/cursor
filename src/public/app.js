@@ -9,6 +9,17 @@ class DashboardApp {
         this.logsEventSource = null;
         this.allSessions = []; // Almacenar todas las sesiones para filtrado
         this.allExtSessions = []; // Almacenar todas las sesiones externas para filtrado
+        this.allEmspTokens = []; // Almacenar todos los Ext tokens para paginación
+        this.filteredEmspTokens = []; // Tokens externos filtrados
+        this.currentEmspTokensPage = 1;
+        this.emspTokensPerPage = 20;
+        this.emspTokensFilters = {
+            search: '',
+            issuer: '',
+            type: '',
+            valid: '',
+            whitelist: ''
+        };
         this.currentChargingSession = null; // Sesión de recarga activa
         this.cpoEvses = []; // EVSEs del CPO externo
         this.filterActiveExtSessions = true; // Filtro de sesiones externas activas
@@ -386,16 +397,98 @@ if (refreshEmspTariffs) {
                 console.warn('⚠️ Elemento locationSearchFilter no encontrado');
             }
 
-const refreshEmspTokens = document.getElementById('refreshEmspTokens');
-if (refreshEmspTokens) {
-    refreshEmspTokens.addEventListener('click', () => {
-        console.log('🔑 Botón refreshEmspTokens clickeado');
-        this.loadEmspTokens();
-    });
-    console.log('✅ Event listener para refreshEmspTokens agregado');
-} else {
-    console.warn('⚠️ Elemento refreshEmspTokens no encontrado');
-}
+            const refreshEmspTokens = document.getElementById('refreshEmspTokens');
+            if (refreshEmspTokens) {
+                refreshEmspTokens.addEventListener('click', () => {
+                    console.log('🔑 Botón refreshEmspTokens clickeado');
+                    this.loadEmspTokens();
+                });
+                console.log('✅ Event listener para refreshEmspTokens agregado');
+            } else {
+                console.warn('⚠️ Elemento refreshEmspTokens no encontrado');
+            }
+
+            const emspTokensSearch = document.getElementById('emspTokensSearch');
+            if (emspTokensSearch) {
+                emspTokensSearch.addEventListener('input', () => {
+                    this.emspTokensFilters.search = emspTokensSearch.value;
+                    console.log('🔍 Búsqueda Ext Tokens actualizada:', this.emspTokensFilters.search);
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensSearch agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensSearch no encontrado');
+            }
+
+            const emspTokensIssuerFilter = document.getElementById('emspTokensIssuerFilter');
+            if (emspTokensIssuerFilter) {
+                emspTokensIssuerFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.issuer = emspTokensIssuerFilter.value;
+                    console.log('🏢 Filtro de emisor Ext Tokens cambiado:', this.emspTokensFilters.issuer || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensIssuerFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensIssuerFilter no encontrado');
+            }
+
+            const emspTokensTypeFilter = document.getElementById('emspTokensTypeFilter');
+            if (emspTokensTypeFilter) {
+                emspTokensTypeFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.type = emspTokensTypeFilter.value;
+                    console.log('🏷️ Filtro de tipo Ext Tokens cambiado:', this.emspTokensFilters.type || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensTypeFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensTypeFilter no encontrado');
+            }
+
+            const emspTokensValidFilter = document.getElementById('emspTokensValidFilter');
+            if (emspTokensValidFilter) {
+                emspTokensValidFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.valid = emspTokensValidFilter.value;
+                    console.log('✅ Filtro de válido Ext Tokens cambiado:', this.emspTokensFilters.valid || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensValidFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensValidFilter no encontrado');
+            }
+
+            const emspTokensWhitelistFilter = document.getElementById('emspTokensWhitelistFilter');
+            if (emspTokensWhitelistFilter) {
+                emspTokensWhitelistFilter.addEventListener('change', () => {
+                    this.emspTokensFilters.whitelist = emspTokensWhitelistFilter.value;
+                    console.log('📋 Filtro de whitelist Ext Tokens cambiado:', this.emspTokensFilters.whitelist || 'Todos');
+                    this.applyEmspTokensFilters({ resetPage: true });
+                });
+                console.log('✅ Event listener para emspTokensWhitelistFilter agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensWhitelistFilter no encontrado');
+            }
+
+            const emspTokensPrevPage = document.getElementById('emspTokensPrevPage');
+            if (emspTokensPrevPage) {
+                emspTokensPrevPage.addEventListener('click', () => {
+                    console.log('⬅️ Botón página anterior Ext Tokens clickeado');
+                    this.goToEmspTokensPrevPage();
+                });
+                console.log('✅ Event listener para emspTokensPrevPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensPrevPage no encontrado');
+            }
+
+            const emspTokensNextPage = document.getElementById('emspTokensNextPage');
+            if (emspTokensNextPage) {
+                emspTokensNextPage.addEventListener('click', () => {
+                    console.log('➡️ Botón página siguiente Ext Tokens clickeado');
+                    this.goToEmspTokensNextPage();
+                });
+                console.log('✅ Event listener para emspTokensNextPage agregado');
+            } else {
+                console.warn('⚠️ Elemento emspTokensNextPage no encontrado');
+            }
 
 // Event listeners para Ext Sessions
 const refreshExtSessions = document.getElementById('refreshExtSessions');
@@ -6964,16 +7057,156 @@ if (filterActiveExtSessions) {
             }
             
             const data = await response.json();
-            console.log('📊 EMSP Tokens data:', data.data ? `Array[${data.data.length}]` : data);
+            const tokens = data.data || [];
+            console.log('📊 EMSP Tokens data:', tokens.length ? `Array[${tokens.length}]` : data);
             
-            this.renderEmspTokens(data.data || []);
-            this.updateCount('emspTokensCount', data.data?.length || 0);
+            this.allEmspTokens = tokens;
+            this.populateEmspTokensFilterOptions(tokens);
+            this.applyEmspTokensFilters({ resetPage: true });
+            this.updateCount('emspTokensCount', tokens.length);
             
             console.log('✅ EMSP Tokens cargados exitosamente');
             
         } catch (error) {
             console.error('❌ Error cargando EMSP tokens:', error);
             this.showTableError('emspTokensTableBody', `Error al cargar EMSP tokens: ${error.message}`);
+        }
+    }
+
+    hasActiveEmspTokensFilters() {
+        if (!this.emspTokensFilters) return false;
+        const { search, issuer, type, valid, whitelist } = this.emspTokensFilters;
+        return Boolean(
+            (search && search.trim()) ||
+            issuer ||
+            type ||
+            valid ||
+            whitelist
+        );
+    }
+
+    applyEmspTokensFilters({ resetPage = false } = {}) {
+        try {
+            const tokens = Array.isArray(this.allEmspTokens) ? this.allEmspTokens : [];
+            const filters = this.emspTokensFilters || {};
+            const searchTerm = (filters.search || '').trim().toLowerCase();
+            const issuerFilter = filters.issuer || '';
+            const typeFilter = filters.type || '';
+            const validFilter = filters.valid || '';
+            const whitelistFilter = filters.whitelist || '';
+
+            this.filteredEmspTokens = tokens.filter(token => {
+                if (issuerFilter && token.issuer !== issuerFilter) return false;
+                if (typeFilter && token.type !== typeFilter) return false;
+
+                if (validFilter) {
+                    const normalizedValid = typeof token.valid === 'boolean'
+                        ? token.valid
+                        : String(token.valid).toLowerCase() === 'true';
+
+                    if (validFilter === 'true' && !normalizedValid) return false;
+                    if (validFilter === 'false' && normalizedValid) return false;
+                }
+
+                if (whitelistFilter && token.whitelist !== whitelistFilter) return false;
+
+                if (searchTerm) {
+                    const haystack = [
+                        token.id,
+                        token.uid,
+                        token.party_id,
+                        token.type,
+                        token.issuer,
+                        token.auth_method,
+                        token.contract_id,
+                        token.whitelist
+                    ]
+                        .map(value => (value ?? '').toString().toLowerCase());
+
+                    const hasMatch = haystack.some(value => value.includes(searchTerm));
+                    if (!hasMatch) return false;
+                }
+
+                return true;
+            });
+
+            const totalPages = this.filteredEmspTokens.length > 0
+                ? Math.ceil(this.filteredEmspTokens.length / this.emspTokensPerPage)
+                : 1;
+
+            if (resetPage) {
+                this.currentEmspTokensPage = 1;
+            } else if (this.currentEmspTokensPage > totalPages) {
+                this.currentEmspTokensPage = totalPages;
+            }
+
+            this.renderEmspTokensPage();
+        } catch (error) {
+            console.warn('⚠️ Error aplicando filtros de Ext Tokens:', error);
+        }
+    }
+
+    populateEmspTokensFilterOptions(tokens) {
+        try {
+            const safeTokens = Array.isArray(tokens) ? tokens : [];
+            const collatorOptions = { sensitivity: 'base', numeric: false };
+            const compare = (a, b) => a.localeCompare(b, undefined, collatorOptions);
+
+            const issuers = Array.from(new Set(
+                safeTokens
+                    .map(token => token.issuer)
+                    .filter(value => value && value.trim() !== '')
+            )).sort(compare);
+
+            const types = Array.from(new Set(
+                safeTokens
+                    .map(token => token.type)
+                    .filter(value => value && value.trim() !== '')
+            )).sort(compare);
+
+            const whitelists = Array.from(new Set(
+                safeTokens
+                    .map(token => token.whitelist)
+                    .filter(value => value && value.trim() !== '')
+            )).sort(compare);
+
+            const setSelectOptions = (elementId, values, defaultLabel, filterKey) => {
+                const select = document.getElementById(elementId);
+                if (!select) return;
+
+                const previousValue = this.emspTokensFilters?.[filterKey] || '';
+                const optionsHtml = [
+                    `<option value="">${defaultLabel}</option>`,
+                    ...values.map(value => `<option value="${value}">${value}</option>`)
+                ].join('');
+
+                select.innerHTML = optionsHtml;
+
+                if (previousValue && values.includes(previousValue)) {
+                    select.value = previousValue;
+                } else {
+                    select.value = '';
+                    if (previousValue) {
+                        this.emspTokensFilters[filterKey] = '';
+                    }
+                }
+            };
+
+            setSelectOptions('emspTokensIssuerFilter', issuers, 'Todos los emisores', 'issuer');
+            setSelectOptions('emspTokensTypeFilter', types, 'Todos los tipos', 'type');
+            setSelectOptions('emspTokensWhitelistFilter', whitelists, 'Todas las whitelist', 'whitelist');
+
+            const searchInput = document.getElementById('emspTokensSearch');
+            if (searchInput) {
+                searchInput.value = this.emspTokensFilters?.search || '';
+            }
+
+            const validSelect = document.getElementById('emspTokensValidFilter');
+            if (validSelect) {
+                validSelect.value = this.emspTokensFilters?.valid || '';
+            }
+        } catch (error) {
+            console.warn('⚠️ Error actualizando filtros de Ext Tokens:', error);
         }
     }
 
@@ -6985,10 +7218,16 @@ if (filterActiveExtSessions) {
         }
         
         if (tokens.length === 0) {
+            const hasFilters = this.hasActiveEmspTokensFilters();
+            const emptyIcon = hasFilters ? 'bi-funnel' : 'bi-inbox';
+            const emptyMessage = hasFilters
+                ? 'No se encontraron Ext tokens con los filtros aplicados'
+                : 'No hay Ext tokens disponibles';
+
             tbody.innerHTML = `
                 <tr>
                     <td colspan="9" class="text-center text-muted">
-                        <i class="bi bi-inbox"></i> No hay EMSP tokens disponibles
+                        <i class="bi ${emptyIcon}"></i> ${emptyMessage}
                     </td>
                 </tr>
             `;
@@ -7011,11 +7250,93 @@ if (filterActiveExtSessions) {
                 <td>
                     <span class="badge bg-info">${token.whitelist || 'N/A'}</span>
                 </td>
-                <td>${new Date(token.last_updated).toLocaleString()}</td>
+                <td>${token.last_updated ? new Date(token.last_updated).toLocaleString() : 'N/A'}</td>
             </tr>
         `).join('');
         
-        console.log(`✅ ${tokens.length} EMSP tokens renderizados`);
+        console.log(`✅ ${tokens.length} Ext tokens renderizados en la página actual`);
+    }
+
+    renderEmspTokensPage() {
+        const tokens = Array.isArray(this.filteredEmspTokens) ? this.filteredEmspTokens : [];
+        const totalTokens = tokens.length;
+
+        if (totalTokens === 0) {
+            this.renderEmspTokens([]);
+            this.updateEmspTokensPaginationInfo(0, 0, 0);
+            this.updateEmspTokensPaginationButtons();
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(totalTokens / this.emspTokensPerPage));
+        if (this.currentEmspTokensPage > totalPages) {
+            this.currentEmspTokensPage = totalPages;
+        }
+        if (this.currentEmspTokensPage < 1) {
+            this.currentEmspTokensPage = 1;
+        }
+
+        const startIndex = (this.currentEmspTokensPage - 1) * this.emspTokensPerPage;
+        const endIndex = Math.min(startIndex + this.emspTokensPerPage, totalTokens);
+        const pageTokens = tokens.slice(startIndex, endIndex);
+
+        this.renderEmspTokens(pageTokens);
+        this.updateEmspTokensPaginationInfo(startIndex + 1, endIndex, totalTokens);
+        this.updateEmspTokensPaginationButtons();
+    }
+
+    updateEmspTokensPaginationInfo(start, end, total) {
+        const pageInfo = document.getElementById('emspTokensPageInfo');
+        const totalCount = document.getElementById('emspTokensTotalCount');
+
+        if (pageInfo) {
+            pageInfo.textContent = total === 0 ? '0-0' : `${start}-${end}`;
+        }
+
+        if (totalCount) {
+            totalCount.textContent = total;
+        }
+    }
+
+    updateEmspTokensPaginationButtons() {
+        const prevButton = document.getElementById('emspTokensPrevPage');
+        const nextButton = document.getElementById('emspTokensNextPage');
+        const totalTokens = Array.isArray(this.filteredEmspTokens) ? this.filteredEmspTokens.length : 0;
+        const totalPages = totalTokens > 0 ? Math.ceil(totalTokens / this.emspTokensPerPage) : 1;
+
+        const atFirstPage = this.currentEmspTokensPage <= 1 || totalTokens === 0;
+        const atLastPage = this.currentEmspTokensPage >= totalPages || totalTokens === 0;
+
+        if (prevButton) {
+            prevButton.disabled = atFirstPage;
+            if (prevButton.parentElement) {
+                prevButton.parentElement.classList.toggle('disabled', atFirstPage);
+            }
+        }
+
+        if (nextButton) {
+            nextButton.disabled = atLastPage;
+            if (nextButton.parentElement) {
+                nextButton.parentElement.classList.toggle('disabled', atLastPage);
+            }
+        }
+    }
+
+    goToEmspTokensPrevPage() {
+        if (this.currentEmspTokensPage > 1) {
+            this.currentEmspTokensPage--;
+            this.renderEmspTokensPage();
+        }
+    }
+
+    goToEmspTokensNextPage() {
+        const totalTokens = Array.isArray(this.filteredEmspTokens) ? this.filteredEmspTokens.length : 0;
+        const totalPages = Math.ceil(totalTokens / this.emspTokensPerPage);
+
+        if (this.currentEmspTokensPage < totalPages) {
+            this.currentEmspTokensPage++;
+            this.renderEmspTokensPage();
+        }
     }
 
     // Funciones de filtrado EMSP

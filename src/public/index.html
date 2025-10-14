@@ -779,6 +779,34 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-lg-4">
+                                <input type="text" class="form-control form-control-sm" id="emspTokensSearch" placeholder="Buscar token por ID, UID, eMSP, emisor..." autocomplete="off">
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensIssuerFilter">
+                                    <option value="">Todos los emisores</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensTypeFilter">
+                                    <option value="">Todos los tipos</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensValidFilter">
+                                    <option value="">Todos</option>
+                                    <option value="true">Válidos</option>
+                                    <option value="false">No válidos</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <select class="form-select form-select-sm" id="emspTokensWhitelistFilter">
+                                    <option value="">Todas las whitelist</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="emspTokensTable">
                                 <thead>
@@ -799,8 +827,30 @@
                                         <td colspan="9" class="text-center text-muted">
                                             <i class="bi bi-hourglass-split"></i> Cargando Ext tokens...
                                         </td>
-                                    </tbody>
-                                </table>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginado -->
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-muted">
+                                Mostrando <span id="emspTokensPageInfo">0-0</span> de <span id="emspTokensTotalCount">0</span> Ext Tokens
+                            </div>
+                            <nav aria-label="Navegación de páginas de Ext Tokens">
+                                <ul class="pagination pagination-sm mb-0" id="emspTokensPagination">
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspTokensPrevPage" disabled>
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <button class="page-link" id="emspTokensNextPage" disabled>
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
