@@ -11027,6 +11027,121 @@ ${JSON.stringify(data, null, 2)}`;
         return statusClasses[status] || 'bg-secondary';
     }
 
+    formatNumber(value, decimals = 2) {
+        if (value === null || value === undefined || value === '') {
+            return null;
+        }
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) {
+            return null;
+        }
+        return numericValue.toFixed(decimals);
+    }
+
+    formatDuration(seconds) {
+        if (seconds === null || seconds === undefined) {
+            return 'N/A';
+        }
+        const numericValue = Number(seconds);
+        if (!Number.isFinite(numericValue)) {
+            return 'N/A';
+        }
+        const totalSeconds = Math.max(0, Math.floor(numericValue));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const remainingSeconds = totalSeconds % 60;
+        const parts = [];
+        if (hours > 0) {
+            parts.push(`${hours}h`);
+        }
+        if (minutes > 0 || hours > 0) {
+            parts.push(`${minutes}m`);
+        }
+        parts.push(`${remainingSeconds}s`);
+        return parts.join(' ');
+    }
+
+    async fetchCdrForSession(sessionId) {
+        try {
+            if (!sessionId) {
+                return null;
+            }
+
+            const params = new URLSearchParams({
+                session_id: sessionId,
+                limit: '1'
+            });
+
+            const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/cdrs?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                console.warn('⚠️ No se pudo obtener CDR para la sesión:', sessionId, 'Status:', response.status);
+                return null;
+            }
+
+            const data = await response.json();
+            if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+                return data.data[0];
+            }
+
+            return null;
+        } catch (error) {
+            console.error('❌ Error obteniendo CDR para sesión externa:', sessionId, error);
+            return null;
+        }
+    }
+
+    buildCdrDetailsHtml(cdr) {
+        if (!cdr) {
+            return '<p class="text-muted mb-0">No hay CDR asociado a esta sesión.</p>';
+        }
+
+        const totalEnergy = this.formatNumber(cdr.total_energy, 2);
+        const totalCost = this.formatNumber(cdr.total_cost, 2);
+        const totalTime = this.formatDuration(cdr.total_time);
+        const parkingTime = this.formatDuration(cdr.total_parking_time);
+        const currency = cdr.currency ? this.escapeHtml(String(cdr.currency)) : 'N/A';
+        const evseUid = cdr.evse_uid ? this.escapeHtml(String(cdr.evse_uid)) : 'N/A';
+        const connectorId = cdr.connector_id ? this.escapeHtml(String(cdr.connector_id)) : 'N/A';
+        const tokenId = cdr.id_token ? this.escapeHtml(String(cdr.id_token)) : 'N/A';
+        const cdrId = cdr.id ? this.escapeHtml(String(cdr.id)) : 'N/A';
+        const startDate = cdr.start_datetime ? new Date(cdr.start_datetime).toLocaleString('es-ES') : 'N/A';
+        const endDate = cdr.end_datetime ? new Date(cdr.end_datetime).toLocaleString('es-ES') : 'N/A';
+        const lastUpdated = cdr.last_updated ? new Date(cdr.last_updated).toLocaleString('es-ES') : 'N/A';
+
+        return `
+            <div class="card card-body bg-light border-0">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>CDR ID:</strong> <code>${cdrId}</code></p>
+                        <p><strong>Inicio:</strong> ${startDate}</p>
+                        <p><strong>Fin:</strong> ${endDate}</p>
+                        <p><strong>Última actualización:</strong> ${lastUpdated}</p>
+                        <p><strong>EVSE UID:</strong> ${evseUid}</p>
+                        <p><strong>Connector ID:</strong> ${connectorId}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Token ID:</strong> ${tokenId}</p>
+                        <p><strong>Energía total:</strong> ${totalEnergy !== null ? `${totalEnergy} kWh` : 'N/A'}</p>
+                        <p><strong>Coste total:</strong> ${totalCost !== null ? `€${totalCost}` : 'N/A'} (${currency})</p>
+                        <p><strong>Tiempo total:</strong> ${totalTime}</p>
+                        <p><strong>Tiempo de aparcamiento:</strong> ${parkingTime}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6 class="fw-semibold">JSON CDR</h6>
+                    <pre class="bg-white border rounded small p-3 mb-0">${this.escapeHtml(JSON.stringify(cdr, null, 2))}</pre>
+                </div>
+            </div>
+        `;
+    }
+
     async viewExtSessionDetails(sessionId) {
         const session = this.allExtSessions.find(s => s.session_id === sessionId);
         if (!session) {
@@ -11065,6 +11180,9 @@ ${JSON.stringify(data, null, 2)}`;
                     || this.findEmspTariff(null, null, id);
                 return { id, tariff };
             });
+
+        const cdrData = await this.fetchCdrForSession(session.session_id);
+        const cdrHtml = this.buildCdrDetailsHtml(cdrData);
 
         const tariffsHtml = tariffEntries.length > 0
             ? `
@@ -11154,6 +11272,12 @@ ${JSON.stringify(data, null, 2)}`;
                 <div class="col-12">
                     <h6>Tarifas Asociadas</h6>
                     ${tariffsHtml}
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>CDR Asociado</h6>
+                    ${cdrHtml}
                 </div>
             </div>
             <div class="mt-4">

@@ -12,6 +12,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ### Added
 - **Acciones en Ext Tariffs**: nueva columna con botones para ver detalles y EVSEs asociados de cada tarifa externa directamente desde la tabla.
 - **Búsqueda en EVSEs asociados**: campo de búsqueda incremental en el modal de EVSEs que permite filtrar por identificador, location o metadatos de conectores, actualizando el conteo mostrado en tiempo real.
+- **CDR en detalle de sesiones externas**: el modal incluye un bloque dedicado que obtiene el CDR asociado vía `/ocpi/emsp/2.2/cdrs`, muestra datos resumidos (energía, coste, tiempos) y adjunta el JSON completo para depuración.
+- **Callbacks START/STOP_SESSION**: se añadieron endpoints con `commandId` para registrar los resultados enviados por el CPO externo y dejarlos trazados en el dashboard.
 
 ### Changed
 - **Detalle de tarifas externas**: modal ampliado a pantalla extra grande, con formateo legible de elementos, restricciones y JSON completo.
@@ -19,7 +21,9 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Sincronización auxiliar**: al abrir el detalle de EVSEs se asegura la precarga de locations externas para reutilizar los nombres en la tabla y en los filtros.
 - **Sesiones externas**: la columna EVSE ahora muestra el `EVSE ID` y conserva el UID como información contextual en el tooltip y en el detalle.
 - **Búsqueda en Ext Sessions**: añadido campo de búsqueda incremental para filtrar sesiones externas por ID, token, EVSE, estado u otros metadatos desde el dashboard.
-- **Detalles de sesiones externas**: el modal incluye los datos completos de la sesión, EVSE, tarifas asociadas y el JSON original para depuración rápida.
+- **Detalles de sesiones externas**: el modal ahora normaliza tarifas, incorpora la ficha del CDR y mantiene el JSON original para depuración rápida.
+- **Persistencia de `emsp_sessions`**: el `PUT` ignora snapshots antiguos que degradan el estado y reutiliza datos existentes para evitar duplicados tras reintentos del operador externo.
+- **API de CDRs externos**: `/ocpi/emsp/2.2/cdrs` admite filtros por `session_id`, `emsp_party_id`, `emsp_country_code` y límite máximo, reduciendo el tráfico innecesario desde el frontend.
 
 ## [1.3.0] - 2025-10-10
 
