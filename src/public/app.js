@@ -11289,8 +11289,9 @@ ${JSON.stringify(data, null, 2)}`;
         try {
             console.log('🛑 Cerrando sesión externa:', { sessionId, evseUid });
             
-            // Confirmar acción
-            if (!confirm(`¿Estás seguro de que quieres cerrar la sesión ${sessionId}?`)) {
+            const forcedMessage = `Esta acción realizará una finalización forzada de la sesión ${sessionId}. `
+                + 'No se enviarán notificaciones OCPI al operador externo. ¿Deseas continuar?';
+            if (!confirm(forcedMessage)) {
                 return;
             }
 
@@ -11305,7 +11306,7 @@ ${JSON.stringify(data, null, 2)}`;
 
             // Actualizar sesión en la base de datos
             const updateData = {
-                status: 'COMPLETED',
+                status: 'FORCED',
                 end_datetime: new Date().toISOString(),
                 last_updated: new Date().toISOString()
             };
@@ -11322,8 +11323,8 @@ ${JSON.stringify(data, null, 2)}`;
             });
 
             if (response.ok) {
-                console.log('✅ Sesión actualizada exitosamente');
-                this.showNotification(`Sesión ${sessionId} cerrada exitosamente`, 'success');
+                console.log('✅ Sesión forzada actualizada exitosamente');
+                this.showNotification(`Sesión ${sessionId} finalizada de forma forzada (sin notificar a operadores externos)`, 'warning');
                 
                 // Recargar las sesiones externas para actualizar el estado
                 await this.loadExtSessions();

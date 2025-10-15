@@ -2,6 +2,26 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 
+const STATUS_PRIORITY = {
+    PENDING: 1,
+    PLANNED: 1,
+    ACTIVE: 2,
+    ON_HOLD: 2,
+    SUSPENDED: 2,
+    COMPLETED: 3,
+    FINISHED: 3,
+    CANCELED: 3,
+    CANCELLED: 3,
+    FORCED: 4
+};
+
+function getStatusPriority(status) {
+    if (!status || typeof status !== 'string') {
+        return 0;
+    }
+    return STATUS_PRIORITY[status.toUpperCase()] || 0;
+}
+
 // PUT /ocpi/emsp/2.2/sessions/{country_code}/{party_id}/{session_id}
 // Crear o actualizar una sesión completa
 router.put('/:country_code/:party_id/:session_id', async (req, res) => {
@@ -57,30 +77,61 @@ router.put('/:country_code/:party_id/:session_id', async (req, res) => {
         // Usar Sequelize para insertar/actualizar de forma segura
         const { EmspSession } = require('../models');
         
-        // Extraer lógica de total_cost para mejorar legibilidad
-        let totalCost = 0;
-        if (sessionData.total_cost) {
+        const existingSession = await EmspSession.findOne({
+            where: {
+                emsp_party_id: party_id,
+                emsp_country_code: country_code,
+                session_id: session_id
+            }
+        });
+
+        const incomingStatus = sessionData.status ?? existingSession?.status;
+        const incomingPriority = getStatusPriority(sessionData.status);
+        const currentPriority = getStatusPriority(existingSession?.status);
+
+        if (existingSession && sessionData.status && incomingPriority < currentPriority) {
+            logger.warn('⚠️ Ignoring stale PUT session payload (would downgrade status)', {
+                session_id,
+                current_status: existingSession.status,
+                incoming_status: sessionData.status
+            });
+
+            return res.status(200).json({
+                status_code: 1000,
+                status_message: 'Stale session snapshot ignored',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        let resolvedTotalCost = existingSession?.total_cost ?? 0;
+        if (sessionData.total_cost !== undefined) {
             if (typeof sessionData.total_cost === 'object') {
-                totalCost = sessionData.total_cost.excl_vat || 0;
+                resolvedTotalCost = sessionData.total_cost.excl_vat || resolvedTotalCost;
             } else {
-                totalCost = sessionData.total_cost;
+                resolvedTotalCost = sessionData.total_cost;
             }
         }
-        
-        await EmspSession.upsert({
+
+        const payload = {
             emsp_party_id: party_id,
             emsp_country_code: country_code,
             session_id: session_id,
-            evse_uid: sessionData.evse_uid || '',
-            connector_id: sessionData.connector_id || '',
-            id_token: sessionData.cdr_token?.uid || '',
-            start_datetime: sessionData.start_date_time,
-            end_datetime: sessionData.end_date_time,
-            total_cost: totalCost,
-            status: sessionData.status,
-            last_updated: sessionData.last_updated || new Date().toISOString(),
-            kwh: sessionData.kwh || 0.0
-        });
+            evse_uid: sessionData.evse_uid || existingSession?.evse_uid || '',
+            connector_id: sessionData.connector_id ?? existingSession?.connector_id ?? '',
+            id_token: sessionData.cdr_token?.uid || existingSession?.id_token || '',
+            start_datetime: sessionData.start_date_time || existingSession?.start_datetime,
+            end_datetime: sessionData.end_date_time ?? existingSession?.end_datetime,
+            total_cost: resolvedTotalCost,
+            status: incomingStatus || 'ACTIVE',
+            last_updated: sessionData.last_updated || existingSession?.last_updated || new Date().toISOString(),
+            kwh: sessionData.kwh ?? existingSession?.kwh ?? 0.0
+        };
+
+        if (existingSession) {
+            await existingSession.update(payload);
+        } else {
+            await EmspSession.create(payload);
+        }
 
         logger.info(`✅ Session upserted`, {
             session_id,

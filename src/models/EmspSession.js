@@ -77,10 +77,8 @@ module.exports = (sequelize) => {
         updatedAt: 'updated_at',
         indexes: [
             {
-                fields: ['country_code', 'party_id']
-            },
-            {
-                fields: ['session_id']
+                unique: true,
+                fields: ['emsp_country_code', 'emsp_party_id', 'session_id']
             },
             {
                 fields: ['status']
