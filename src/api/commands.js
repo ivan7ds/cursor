@@ -87,6 +87,49 @@ async function notifyCommandResult(responseUrl, result, message, tokenUid) {
   }
 }
 
+router.post('/START_SESSION/:commandId', async (req, res) => {
+  const { commandId } = req.params;
+  const { result, message, session_id: sessionId } = req.body || {};
+
+  logger.info('📨 START_SESSION command result received', {
+    command_id: commandId,
+    result,
+    message,
+    session_id: sessionId,
+    timestamp: new Date().toISOString()
+  });
+
+  try {
+    await axios.post('http://localhost:3000/api/charging-logs', {
+      message: `📨 Resultado START_SESSION (${commandId}): ${result || 'UNKNOWN'}`,
+      type: 'response',
+      sessionId: sessionId || commandId
+    });
+    if (message) {
+      await axios.post('http://localhost:3000/api/charging-logs', {
+        message: `   📝 Detalle: ${message}`,
+        type: 'info',
+        sessionId: sessionId || commandId
+      });
+    }
+  } catch (logError) {
+    logger.warn('⚠️ Could not log START_SESSION command result', {
+      command_id: commandId,
+      error: logError.message
+    });
+  }
+
+  return res.status(200).json({
+    status_code: 1000,
+    status_message: 'Command result received',
+    data: {
+      command_id: commandId,
+      result: result || 'UNKNOWN'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 /**
  * @swagger
  * /ocpi/cpo/2.2/commands/START_SESSION:
@@ -834,6 +877,49 @@ router.post('/STOP_SESSION', async (req, res) => {
 
     res.status(500).json(response);
   }
+});
+
+router.post('/STOP_SESSION/:commandId', async (req, res) => {
+  const { commandId } = req.params;
+  const { result, message, session_id: sessionId } = req.body || {};
+
+  logger.info('📨 STOP_SESSION command result received', {
+    command_id: commandId,
+    result,
+    message,
+    session_id: sessionId,
+    timestamp: new Date().toISOString()
+  });
+
+  try {
+    await axios.post('http://localhost:3000/api/charging-logs', {
+      message: `📨 Resultado STOP_SESSION (${commandId}): ${result || 'UNKNOWN'}`,
+      type: 'response',
+      sessionId: sessionId || commandId
+    });
+    if (message) {
+      await axios.post('http://localhost:3000/api/charging-logs', {
+        message: `   📝 Detalle: ${message}`,
+        type: 'info',
+        sessionId: sessionId || commandId
+      });
+    }
+  } catch (logError) {
+    logger.warn('⚠️ Could not log STOP_SESSION command result', {
+      command_id: commandId,
+      error: logError.message
+    });
+  }
+
+  return res.status(200).json({
+    status_code: 1000,
+    status_message: 'Command result received',
+    data: {
+      command_id: commandId,
+      result: result || 'UNKNOWN'
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
 /**

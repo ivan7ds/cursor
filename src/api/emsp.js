@@ -312,21 +312,60 @@ router.get('/sessions', authMiddleware, async (req, res) => {
 // GET /ocpi/emsp/2.2/cdrs - Obtener CDRs de eMSPs
 router.get('/cdrs', authMiddleware, async (req, res) => {
     try {
-        console.log('📍 GET /ocpi/emsp/2.2/cdrs - Consultando CDRs de eMSPs');
-        
-        const [results] = await sequelize.query(`
-            SELECT * FROM emsp_cdrs 
+        console.log('📍 GET /ocpi/emsp/2.2/cdrs - Consultando CDRs de eMSPs', {
+            query: req.query
+        });
+
+        const {
+            session_id: sessionId,
+            emsp_party_id: emspPartyId,
+            emsp_country_code: emspCountryCode,
+            limit
+        } = req.query;
+
+        const conditions = [];
+        const replacements = [];
+
+        if (sessionId) {
+            conditions.push('session_id = ?');
+            replacements.push(sessionId);
+        }
+
+        if (emspPartyId) {
+            conditions.push('emsp_party_id = ?');
+            replacements.push(emspPartyId);
+        }
+
+        if (emspCountryCode) {
+            conditions.push('emsp_country_code = ?');
+            replacements.push(emspCountryCode);
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const numericLimit = Math.min(
+            Math.max(parseInt(limit, 10) || 100, 1),
+            1000
+        );
+
+        const query = `
+            SELECT * FROM emsp_cdrs
+            ${whereClause}
             ORDER BY last_updated DESC
-        `);
-        
+            LIMIT ?
+        `;
+
+        replacements.push(numericLimit);
+
+        const [results] = await sequelize.query(query, { replacements });
+
         console.log(`✅ ${results.length} CDRs de eMSPs encontrados`);
-        
+
         res.status(200).json({
             status_code: 1000,
             data: results,
             timestamp: new Date().toISOString()
         });
-        
+
     } catch (error) {
         console.error('❌ Error consultando CDRs de eMSPs:', error);
         res.status(500).json({
