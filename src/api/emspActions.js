@@ -678,4 +678,45 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
     }
 });
 
+// POST /emsp/actions/clear-emsp-data - Eliminar datos almacenados de eMSP
+router.post('/clear-emsp-data', authMiddleware, async (req, res) => {
+    const tables = [
+        'emsp_cdrs',
+        'emsp_sessions',
+        'emsp_evses',
+        'emsp_locations',
+        'emsp_tariffs',
+        'emsp_tokens'
+    ];
+
+    try {
+        console.log('🧨 Iniciando limpieza completa de tablas eMSP:', tables.join(', '));
+
+        await sequelize.transaction(async (transaction) => {
+            await sequelize.query(
+                'TRUNCATE TABLE emsp_cdrs, emsp_sessions, emsp_evses, emsp_locations, emsp_tariffs, emsp_tokens RESTART IDENTITY CASCADE',
+                { transaction }
+            );
+        });
+
+        console.log('✅ Limpieza de tablas eMSP completada');
+
+        res.status(200).json({
+            status_code: 1000,
+            data: {
+                message: 'Datos eMSP eliminados correctamente',
+                tables_cleared: tables
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Error al limpiar tablas eMSP:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error al limpiar datos eMSP',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = { router };

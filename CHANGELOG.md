@@ -14,6 +14,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Búsqueda en EVSEs asociados**: campo de búsqueda incremental en el modal de EVSEs que permite filtrar por identificador, location o metadatos de conectores, actualizando el conteo mostrado en tiempo real.
 - **CDR en detalle de sesiones externas**: el modal incluye un bloque dedicado que obtiene el CDR asociado vía `/ocpi/emsp/2.2/cdrs`, muestra datos resumidos (energía, coste, tiempos) y adjunta el JSON completo para depuración.
 - **Callbacks START/STOP_SESSION**: se añadieron endpoints con `commandId` para registrar los resultados enviados por el CPO externo y dejarlos trazados en el dashboard.
+- **Ext Actions - Limpieza masiva**: nuevo botón con alerta irreversible que llama a `POST /emsp/actions/clear-emsp-data` para truncar `emsp_cdrs`, `emsp_sessions`, `emsp_evses`, `emsp_locations`, `emsp_tariffs` y `emsp_tokens`, dejando la UI sincronizada sin datos.
 
 ### Changed
 - **Detalle de tarifas externas**: modal ampliado a pantalla extra grande, con formateo legible de elementos, restricciones y JSON completo.

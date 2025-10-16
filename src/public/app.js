@@ -752,6 +752,17 @@ class DashboardApp {
                 console.warn('⚠️ Elemento getCpoCdrs no encontrado');
             }
 
+            const clearEmspData = document.getElementById('clearEmspData');
+            if (clearEmspData) {
+                clearEmspData.addEventListener('click', () => {
+                    console.log('🧨 Botón clearEmspData clickeado');
+                    this.clearEmspDataWithConfirmation();
+                });
+                console.log('✅ Event listener para clearEmspData agregado');
+            } else {
+                console.warn('⚠️ Elemento clearEmspData no encontrado');
+            }
+
             // Event listeners para modal de recarga
             const clearChargingConsole = document.getElementById('clearChargingConsole');
             if (clearChargingConsole) {
@@ -9758,6 +9769,81 @@ class DashboardApp {
             console.error('❌ Error guardando tokens eMSP en BD:', error);
             this.showCpoResponse(`❌ Error guardando tokens en BD: ${error.message}`, 'error');
         }
+    }
+
+    async clearEmspDataWithConfirmation() {
+        const warningMessage = '⚠️ Esta acción eliminará todos los datos eMSP almacenados (locations, EVSEs, tarifas, sesiones, CDRs y tokens) y no tiene vuelta atrás. ¿Deseas continuar?';
+        const userConfirmed = window.confirm(warningMessage);
+
+        if (!userConfirmed) {
+            console.log('ℹ️ Limpieza de datos eMSP cancelada por el usuario');
+            this.showNotification('Operación cancelada por el usuario', 'info');
+            return;
+        }
+
+        try {
+            console.log('🧨 Confirmación recibida, iniciando limpieza de datos eMSP');
+            const authToken = localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
+            
+            const response = await fetch(`${this.baseUrl}/emsp/actions/clear-emsp-data`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${authToken}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText || 'Error desconocido'}`);
+            }
+
+            const result = await response.json();
+            this.resetEmspDataState();
+
+            const successMessage = result?.data?.message || 'Datos eMSP eliminados correctamente';
+            console.log('✅ Limpieza de datos eMSP completada:', successMessage);
+            this.showNotification(successMessage, 'success');
+            this.showCpoResponse(`✅ ${successMessage}`, 'success');
+        } catch (error) {
+            console.error('❌ Error eliminando datos eMSP:', error);
+            const errorMessage = `Error eliminando datos eMSP: ${error.message}`;
+            this.showNotification(errorMessage, 'error');
+            this.showCpoResponse(`❌ ${errorMessage}`, 'error');
+        }
+    }
+
+    resetEmspDataState() {
+        console.log('🧹 Reiniciando estado local de datos eMSP');
+
+        this.allEmspLocations = [];
+        this.filteredEmspLocations = [];
+        this.emspLocationsEvseCountMap = {};
+        this.emspLocationNameMap = {};
+        this.emspEvseIdMap = {};
+        this.currentEmspLocationsPage = 1;
+        this.renderEmspLocationsPage();
+        this.updateCount('emspLocationsCount', 0);
+
+        this.allEmspEvses = [];
+        this.filteredEmspEvses = [];
+        this.currentEmspEvsesPage = 1;
+        this.emspEvsesFilters = { status: '', party: '', search: '' };
+        this.renderEmspEvsesPage();
+        this.updateCount('emspEvsesCount', 0);
+
+        this.allEmspTariffs = [];
+        this.filteredEmspTariffs = [];
+        this.currentEmspTariffsPage = 1;
+        this.renderEmspTariffsPage();
+        this.updateCount('emspTariffsCount', 0);
+
+        this.allEmspTokens = [];
+        this.filteredEmspTokens = [];
+        this.currentEmspTokensPage = 1;
+        this.emspTokensFilters = { search: '', issuer: '', type: '', valid: '', whitelist: '' };
+        this.renderEmspTokensPage();
+        this.updateCount('emspTokensCount', 0);
     }
 
     // Funciones auxiliares para CPO
