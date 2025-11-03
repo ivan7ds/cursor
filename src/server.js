@@ -43,6 +43,7 @@ const { router: logsRoutes } = require('./api/logs');
 const emspRoutes = require('./api/emsp');
 const emspSessionsRoutes = require('./api/emspSessions');
 const emspLocationsRoutes = require('./api/emspLocations');
+const emspTariffsRoutes = require('./api/emspTariffs');
 const { router: emspActionsRoutes } = require('./api/emspActions');
 const { router: testMonitoringRoutes } = require('./api/testMonitoring');
 
@@ -187,6 +188,7 @@ app.use('/api/connections', authMiddleware, require('./api/connections'));
   app.use('/ocpi/emsp/2.2', emspRoutes);
   app.use('/ocpi/emsp/2.2/sessions', emspSessionsRoutes);
   app.use('/ocpi/emsp/2.2/locations', emspLocationsRoutes);
+  app.use('/ocpi/emsp/2.2/tariffs', emspTariffsRoutes);
   
   // ===== RUTAS DE ACCIONES EMSP =====
   // Estas rutas permiten actuar como eMSP y guardar datos de CPOs externos

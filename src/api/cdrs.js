@@ -3,6 +3,10 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { CDR } = require('../models');
 const logger = require('../utils/logger');
+const {
+  validateCdrPostMiddleware,
+  validateCdrGetResponseMiddleware
+} = require('../validators/cdrValidators');
 
 /**
  * @swagger
@@ -24,7 +28,7 @@ const logger = require('../utils/logger');
  *         schema:
  *           type: string
  */
-router.get('/', async (req, res) => {
+router.get('/', validateCdrGetResponseMiddleware, async (req, res) => {
   try {
     logger.ocpi('/cdrs', 'GET', { query: req.query });
     
@@ -75,7 +79,7 @@ router.get('/', async (req, res) => {
  *         schema:
  *           type: string
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateCdrGetResponseMiddleware, async (req, res) => {
   try {
     logger.ocpi('/cdrs', 'GET_BY_ID', { id: req.params.id });
     
@@ -112,7 +116,7 @@ router.get('/:id', async (req, res) => {
  *     summary: Create new OCPI CDR
  *     tags: [CDRs]
  */
-router.post('/', async (req, res) => {
+router.post('/', validateCdrPostMiddleware, async (req, res) => {
   try {
     logger.ocpi('/cdrs', 'POST', { body: req.body });
     
