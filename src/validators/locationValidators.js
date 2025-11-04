@@ -778,7 +778,7 @@ function validateLocationPut(params, body) {
 /**
  * Express middleware for Location PUT validation
  */
-function validateLocationPutMiddleware(req, res, next) {
+async function validateLocationPutMiddleware(req, res, next) {
   const validation = validateLocationPut(req.params, req.body);
 
   if (!validation.valid) {
@@ -790,6 +790,16 @@ function validateLocationPutMiddleware(req, res, next) {
     logger.error('❌ Location PUT validation failed', {
       errors: validation.errors,
       body: req.body
+    });
+
+    // Log validation error to database
+    const { logValidationError } = require('../utils/validationErrorLogger');
+    await logValidationError({
+      endpoint: req.originalUrl || req.url,
+      method: req.method,
+      requestBody: req.body,
+      validationErrors: validation.errors,
+      req
     });
 
     return res.status(400).json({

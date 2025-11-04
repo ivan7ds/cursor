@@ -193,8 +193,9 @@ app.use('/api/connections', authMiddleware, require('./api/connections'));
   // ===== RUTAS DE ACCIONES EMSP =====
   // Estas rutas permiten actuar como eMSP y guardar datos de CPOs externos
   app.use('/emsp/actions', emspActionsRoutes);
-  
+
   app.use('/logs', logsRoutes);
+  app.use('/api/validation-errors', authMiddleware, require('./api/validationErrors'));
 
 // Error handling middleware
 app.use(errorHandler);

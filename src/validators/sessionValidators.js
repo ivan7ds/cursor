@@ -329,7 +329,7 @@ function validateSessionPut(params, body) {
 /**
  * Express middleware for Session PUT validation
  */
-function validateSessionPutMiddleware(req, res, next) {
+async function validateSessionPutMiddleware(req, res, next) {
   const validation = validateSessionPut(req.params, req.body);
 
   if (!validation.valid) {
@@ -341,6 +341,16 @@ function validateSessionPutMiddleware(req, res, next) {
     logger.error('❌ Session PUT validation failed', {
       errors: validation.errors,
       body: req.body
+    });
+
+    // Log validation error to database
+    const { logValidationError } = require('../utils/validationErrorLogger');
+    await logValidationError({
+      endpoint: req.originalUrl || req.url,
+      method: req.method,
+      requestBody: req.body,
+      validationErrors: validation.errors,
+      req
     });
 
     return res.status(400).json({
@@ -357,8 +367,9 @@ function validateSessionPutMiddleware(req, res, next) {
 }
 
 /**
- * Session PATCH body validator (all fields optional except last_updated)
+ * Session PATCH body validator (all fields optional)
  * Allows partial updates according to OCPI 2.2 spec
+ * Note: last_updated is optional to support non-compliant eMSPs
  */
 const sessionPatchBodySchema = Joi.object({
   country_code: ciString(2).optional(),
@@ -378,13 +389,13 @@ const sessionPatchBodySchema = Joi.object({
   charging_periods: Joi.array().items(chargingPeriodSchema).optional(),
   total_cost: priceSchema.optional(),
   status: Joi.string().valid(...SESSION_STATUSES).optional(),
-  last_updated: dateTime().required()
+  last_updated: dateTime().optional()
     .messages({
-      'any.required': 'last_updated is required even in PATCH requests'
+      'string.isoDate': 'last_updated must be a valid ISO 8601 datetime'
     })
-}).min(2) // At least last_updated + 1 other field
+}).min(1) // At least 1 field to update
   .messages({
-    'object.min': 'PATCH request must include at least one field to update besides last_updated'
+    'object.min': 'PATCH request must include at least one field to update'
   });
 
 /**
@@ -478,7 +489,7 @@ function validateSessionPatch(params, body) {
 /**
  * Express middleware for Session PATCH validation
  */
-function validateSessionPatchMiddleware(req, res, next) {
+async function validateSessionPatchMiddleware(req, res, next) {
   const validation = validateSessionPatch(req.params, req.body);
 
   if (!validation.valid) {
@@ -492,12 +503,27 @@ function validateSessionPatchMiddleware(req, res, next) {
       body: req.body
     });
 
+    // Log validation error to database
+    const { logValidationError } = require('../utils/validationErrorLogger');
+    await logValidationError({
+      endpoint: req.originalUrl || req.url,
+      method: req.method,
+      requestBody: req.body,
+      validationErrors: validation.errors,
+      req
+    });
+
     return res.status(400).json({
       status_code: 2001,
       status_message: `Invalid Session PATCH data: ${errorMessage}`,
       timestamp: new Date().toISOString(),
       errors: validation.errors
     });
+  }
+
+  // If last_updated is not provided, add current timestamp
+  if (!validation.value.last_updated) {
+    validation.value.last_updated = new Date().toISOString();
   }
 
   // Store validated data in request for use in route handler

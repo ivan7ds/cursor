@@ -785,7 +785,7 @@ function validateCdrPost(body) {
 /**
  * Express middleware for CDR POST validation
  */
-function validateCdrPostMiddleware(req, res, next) {
+async function validateCdrPostMiddleware(req, res, next) {
   const validation = validateCdrPost(req.body);
 
   if (!validation.valid) {
@@ -797,6 +797,16 @@ function validateCdrPostMiddleware(req, res, next) {
     logger.error('❌ CDR POST validation failed', {
       errors: validation.errors,
       body: req.body
+    });
+
+    // Log validation error to database
+    const { logValidationError } = require('../utils/validationErrorLogger');
+    await logValidationError({
+      endpoint: req.originalUrl || req.url,
+      method: req.method,
+      requestBody: req.body,
+      validationErrors: validation.errors,
+      req
     });
 
     return res.status(400).json({

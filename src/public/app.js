@@ -59,6 +59,9 @@ class DashboardApp {
         this.cpoEvses = []; // EVSEs del CPO externo
         this.filterActiveExtSessions = true; // Filtro de sesiones externas activas
         this.logPollingInterval = null; // Intervalo para consultar logs
+        this.validationErrorsPage = 0; // Página actual de errores de validación
+        this.currentValidationErrorId = null; // ID del error de validación actual en el modal
+        this.validationErrorsPollingInterval = null; // Intervalo para actualizar contador de errores
         this.testServiceToggleConfigs = {
             evseNotificationService: {
                 buttonId: 'toggleEvseService',
@@ -205,15 +208,18 @@ class DashboardApp {
 
     setupBasic() {
         console.log('🔧 Configurando funcionalidad básica...');
-        
+
         try {
             // Solo configurar lo básico por ahora
             this.setupSimpleEventListeners();
             this.updateConnectionStatus();
-            
+
             // Cargar conexiones CPO para el selector
             this.loadCpoConnections();
-            
+
+            // Iniciar polling de errores de validación
+            this.startValidationErrorsPolling();
+
             console.log('✅ Configuración básica completada');
         } catch (error) {
             console.error('❌ Error en setupBasic:', error);
@@ -11688,9 +11694,53 @@ class DashboardApp {
                 console.warn('⚠️ Elemento toggleTariffsView no encontrado');
             }
             
+            // Event listeners para errores de validación
+            const refreshValidationErrors = document.getElementById('refreshValidationErrors');
+            if (refreshValidationErrors) {
+                refreshValidationErrors.addEventListener('click', () => {
+                    console.log('🔄 Botón refreshValidationErrors clickeado');
+                    this.loadValidationErrors();
+                });
+                console.log('✅ Event listener para refreshValidationErrors agregado');
+            }
+
+            const clearValidationErrors = document.getElementById('clearValidationErrors');
+            if (clearValidationErrors) {
+                clearValidationErrors.addEventListener('click', () => {
+                    console.log('🗑️ Botón clearValidationErrors clickeado');
+                    this.clearValidationErrors();
+                });
+                console.log('✅ Event listener para clearValidationErrors agregado');
+            }
+
+            const prevValidationErrors = document.getElementById('prevValidationErrors');
+            if (prevValidationErrors) {
+                prevValidationErrors.addEventListener('click', () => {
+                    if (this.validationErrorsPage > 0) {
+                        this.validationErrorsPage--;
+                        this.loadValidationErrors();
+                    }
+                });
+            }
+
+            const nextValidationErrors = document.getElementById('nextValidationErrors');
+            if (nextValidationErrors) {
+                nextValidationErrors.addEventListener('click', () => {
+                    this.validationErrorsPage++;
+                    this.loadValidationErrors();
+                });
+            }
+
+            const deleteThisValidationError = document.getElementById('deleteThisValidationError');
+            if (deleteThisValidationError) {
+                deleteThisValidationError.addEventListener('click', () => {
+                    this.deleteValidationError(this.currentValidationErrorId);
+                });
+            }
+
             // Configurar actualización automática cada 30 segundos
             this.setupTestAutoRefresh();
-            
+
             console.log('✅ Event listeners para pestaña Test configurados');
         } catch (error) {
             console.error('❌ Error configurando event listeners para pestaña Test:', error);
@@ -11909,16 +11959,19 @@ class DashboardApp {
     async loadTestData() {
         try {
             console.log('📊 Cargando datos para pestaña Test...');
-            
+
             // Actualizar estado de los servicios
             await this.updateServiceStatus();
-            
+
             // Cargar estadísticas de pruebas
             this.loadTestStatistics();
-            
+
             // Cargar log de errores
             await this.loadErrorLog();
-            
+
+            // Cargar errores de validación
+            await this.loadValidationErrors();
+
             console.log('✅ Datos de pestaña Test cargados');
         } catch (error) {
             console.error('❌ Error cargando datos para pestaña Test:', error);
@@ -12213,52 +12266,361 @@ class DashboardApp {
     async clearTestErrors() {
         try {
             console.log('🧹 Limpiando errores de la pestaña Test...');
-            
+
             const response = await fetch('/api/test-monitoring/errors', {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 // Limpiar contadores de errores en la UI
                 const evseErrorCount = document.getElementById('evse-error-count');
                 const chargingErrorCount = document.getElementById('charging-error-count');
-                
+
                 if (evseErrorCount) {
                     evseErrorCount.textContent = '0';
                 }
-                
+
                 if (chargingErrorCount) {
                     chargingErrorCount.textContent = '0';
                 }
-                
+
                 // Limpiar log de errores
                 this.clearErrorLog();
-                
+
                 // Ocultar badge de error
                 this.hideErrorBadge();
-                
+
                 this.showNotification('Errores limpiados exitosamente', 'success');
-                
+
                 console.log('✅ Errores limpiados desde el backend');
             } else {
                 throw new Error(result.error || 'Error desconocido');
             }
-            
+
         } catch (error) {
             console.error('❌ Error limpiando errores de la pestaña Test:', error);
             this.showNotification('Error limpiando errores: ' + error.message, 'error');
         }
     }
-    
+
+    /**
+     * Carga los errores de validación desde la API
+     */
+    async loadValidationErrors() {
+        try {
+            const limit = 20;
+            const offset = (this.validationErrorsPage || 0) * limit;
+
+            const response = await fetch(`${this.baseUrl}/api/validation-errors?limit=${limit}&offset=${offset}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Update total count
+            const totalElement = document.getElementById('validationErrorsTotal');
+            if (totalElement) {
+                totalElement.textContent = data.pagination?.total || 0;
+            }
+
+            // Update navbar badge count
+            this.updateValidationErrorsBadge(data.pagination?.total || 0);
+
+            // Update pagination buttons
+            const prevBtn = document.getElementById('prevValidationErrors');
+            const nextBtn = document.getElementById('nextValidationErrors');
+
+            if (prevBtn) {
+                prevBtn.disabled = offset === 0;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = offset + limit >= (data.pagination?.total || 0);
+            }
+
+            // Update table
+            const tableBody = document.getElementById('validationErrorsTable');
+            if (!tableBody) return;
+
+            if (!data.data || data.data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            <i class="bi bi-check-circle text-success"></i> No hay errores de validación registrados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.data.map(error => {
+                const timestamp = new Date(error.timestamp).toLocaleString('es-ES');
+                const errorCount = Array.isArray(error.validation_errors) ? error.validation_errors.length : 0;
+                const errorSummary = Array.isArray(error.validation_errors)
+                    ? error.validation_errors.map(e => e.field).slice(0, 2).join(', ') + (errorCount > 2 ? '...' : '')
+                    : 'N/A';
+
+                return `
+                    <tr>
+                        <td><small class="font-monospace">${error.id}</small></td>
+                        <td><small class="font-monospace">${error.endpoint || 'N/A'}</small></td>
+                        <td><span class="badge bg-${this.getMethodBadgeColor(error.method)}">${error.method || 'N/A'}</span></td>
+                        <td>
+                            <small class="text-danger">
+                                <i class="bi bi-exclamation-circle"></i> ${errorCount} error${errorCount !== 1 ? 'es' : ''}
+                                ${errorCount > 0 ? `<br><span class="text-muted">${errorSummary}</span>` : ''}
+                            </small>
+                        </td>
+                        <td><small>${timestamp}</small></td>
+                        <td>
+                            <button class="btn btn-outline-info btn-sm" onclick="window.dashboardApp.viewValidationErrorDetail(${error.id})" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('❌ Error cargando errores de validación:', error);
+            const tableBody = document.getElementById('validationErrorsTable');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Error cargando datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    /**
+     * Muestra los detalles de un error de validación en un modal
+     */
+    async viewValidationErrorDetail(errorId) {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/validation-errors/${errorId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const error = result.data;
+
+            // Store current error ID for deletion
+            this.currentValidationErrorId = errorId;
+
+            // Populate modal
+            document.getElementById('errorDetailEndpoint').textContent = error.endpoint || 'N/A';
+            document.getElementById('errorDetailMethod').textContent = error.method || 'N/A';
+            document.getElementById('errorDetailIp').textContent = error.ip_address || 'N/A';
+            document.getElementById('errorDetailUserAgent').textContent = error.user_agent || 'N/A';
+            document.getElementById('errorDetailTimestamp').textContent = new Date(error.timestamp).toLocaleString('es-ES');
+
+            // Validation errors table
+            const errorsTable = document.getElementById('errorDetailValidationErrors');
+            if (error.validation_errors && error.validation_errors.length > 0) {
+                errorsTable.innerHTML = error.validation_errors.map(err => `
+                    <tr>
+                        <td><code>${err.field || 'N/A'}</code></td>
+                        <td>${err.message || 'N/A'}</td>
+                        <td><small class="text-muted">${err.type || 'N/A'}</small></td>
+                    </tr>
+                `).join('');
+            } else {
+                errorsTable.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No hay errores</td></tr>';
+            }
+
+            // Request body
+            const requestBody = document.getElementById('errorDetailRequestBody');
+            try {
+                const parsedBody = JSON.parse(error.request_body);
+                requestBody.textContent = JSON.stringify(parsedBody, null, 2);
+            } catch {
+                requestBody.textContent = error.request_body || 'N/A';
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('validationErrorDetailModal'));
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error cargando detalles del error:', error);
+            this.showNotification('Error cargando detalles: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Elimina un error de validación específico
+     */
+    async deleteValidationError(errorId) {
+        try {
+            if (!confirm('¿Estás seguro de que quieres eliminar este error de validación?')) {
+                return;
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/validation-errors/${errorId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Error eliminado exitosamente', 'success');
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('validationErrorDetailModal'));
+            if (modal) {
+                modal.hide();
+            }
+
+            // Reload errors list
+            await this.loadValidationErrors();
+
+        } catch (error) {
+            console.error('❌ Error eliminando error de validación:', error);
+            this.showNotification('Error eliminando: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Limpia todos los errores de validación
+     */
+    async clearValidationErrors() {
+        try {
+            if (!confirm('¿Estás seguro de que quieres borrar TODOS los errores de validación?')) {
+                return;
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/validation-errors`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Todos los errores han sido eliminados', 'success');
+            this.validationErrorsPage = 0;
+            await this.loadValidationErrors();
+
+        } catch (error) {
+            console.error('❌ Error limpiando errores de validación:', error);
+            this.showNotification('Error limpiando errores: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Obtiene el color del badge según el método HTTP
+     */
+    getMethodBadgeColor(method) {
+        const colors = {
+            'GET': 'primary',
+            'POST': 'success',
+            'PUT': 'warning',
+            'PATCH': 'info',
+            'DELETE': 'danger'
+        };
+        return colors[method] || 'secondary';
+    }
+
+    /**
+     * Actualiza el contador de errores de validación en el navbar
+     */
+    updateValidationErrorsBadge(count) {
+        const badge = document.getElementById('validation-errors-count');
+        const badgeContainer = document.getElementById('validation-errors-count-badge');
+
+        if (badge && badgeContainer) {
+            const previousCount = parseInt(badge.textContent) || 0;
+            badge.textContent = count || 0;
+
+            // Si hay errores, mostrar el badge, sino ocultarlo
+            if (count > 0) {
+                badgeContainer.style.display = 'inline';
+
+                // Agregar animación si el contador aumentó
+                if (count > previousCount) {
+                    badge.classList.add('badge-pulse');
+                    setTimeout(() => {
+                        badge.classList.remove('badge-pulse');
+                    }, 1000);
+                }
+            } else {
+                // Ocultar si no hay errores
+                badgeContainer.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Actualiza periódicamente el contador de errores de validación
+     */
+    async updateValidationErrorsCount() {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/validation-errors?limit=1&offset=0`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.updateValidationErrorsBadge(data.pagination?.total || 0);
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando contador de errores de validación:', error);
+        }
+    }
+
+    /**
+     * Inicia la actualización automática del contador de errores de validación
+     */
+    startValidationErrorsPolling() {
+        // Actualizar inmediatamente
+        this.updateValidationErrorsCount();
+
+        // Actualizar cada 30 segundos
+        if (this.validationErrorsPollingInterval) {
+            clearInterval(this.validationErrorsPollingInterval);
+        }
+        this.validationErrorsPollingInterval = setInterval(() => {
+            this.updateValidationErrorsCount();
+        }, 30000); // 30 segundos
+    }
+
     /**
      * Activa o desactiva todos los jobs
      */

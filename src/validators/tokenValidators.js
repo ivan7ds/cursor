@@ -217,13 +217,23 @@ function validateTokenPut(params, body) {
 /**
  * Express middleware for Token PUT validation
  */
-function validateTokenPutMiddleware(req, res, next) {
+async function validateTokenPutMiddleware(req, res, next) {
   const validation = validateTokenPut(req.params, req.body);
 
   if (!validation.valid) {
     const errorMessage = validation.errors
       .map(err => `${err.field}: ${err.message}`)
       .join('; ');
+
+    // Log validation error to database
+    const { logValidationError } = require('../utils/validationErrorLogger');
+    await logValidationError({
+      endpoint: req.originalUrl || req.url,
+      method: req.method,
+      requestBody: req.body,
+      validationErrors: validation.errors,
+      req
+    });
 
     return res.status(400).json({
       status_code: 2001,
@@ -356,13 +366,23 @@ function validateTokenPatch(params, body) {
 /**
  * Express middleware for Token PATCH validation
  */
-function validateTokenPatchMiddleware(req, res, next) {
+async function validateTokenPatchMiddleware(req, res, next) {
   const validation = validateTokenPatch(req.params, req.body);
 
   if (!validation.valid) {
     const errorMessage = validation.errors
       .map(err => `${err.field}: ${err.message}`)
       .join('; ');
+
+    // Log validation error to database
+    const { logValidationError } = require('../utils/validationErrorLogger');
+    await logValidationError({
+      endpoint: req.originalUrl || req.url,
+      method: req.method,
+      requestBody: req.body,
+      validationErrors: validation.errors,
+      req
+    });
 
     return res.status(400).json({
       status_code: 2001,
