@@ -3,6 +3,10 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { Tariff } = require('../models');
 const logger = require('../utils/logger');
+const {
+  validateTariffPutMiddleware,
+  validateTariffPatchMiddleware
+} = require('../validators/tariffValidators');
 
 /**
  * Transformar elements de tariff al formato OCPI 2.2

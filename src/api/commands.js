@@ -7,6 +7,13 @@ const logger = require('../utils/logger');
 const AuthorizationService = require('../services/authorizationService');
 const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 const cdrSendingService = require('../services/cdrSendingService');
+const {
+  validateStartSessionMiddleware,
+  validateStopSessionMiddleware,
+  validateReserveNowMiddleware,
+  validateCancelReservationMiddleware,
+  validateUnlockConnectorMiddleware
+} = require('../validators/commandValidators');
 
 /**
  * Envía notificación al response_url con el resultado del comando
@@ -193,37 +200,19 @@ router.post('/START_SESSION/:commandId', async (req, res) => {
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/START_SESSION', async (req, res) => {
+router.post('/START_SESSION', validateStartSessionMiddleware, async (req, res) => {
   try {
-    const { response_url, token, location_id, evse_uid } = req.body;
-    
+    // Use validated data from middleware
+    const { response_url, token, location_id, evse_uid, authorization_reference } = req.validatedCommand;
+
     logger.info('🚀 START_SESSION Command Received', {
       response_url,
       token: token?.uid,
       location_id,
       evse_uid,
+      authorization_reference,
       timestamp: new Date().toISOString()
     });
-
-    // Validar campos requeridos
-    if (!response_url || !token || !location_id || !evse_uid) {
-      logger.error('❌ START_SESSION: Missing required fields', {
-        response_url: !!response_url,
-        token: !!token,
-        location_id: !!location_id,
-        evse_uid: !!evse_uid
-      });
-      
-      return res.status(400).json({
-        status_code: 2000,
-        status_message: "Missing required fields",
-        data: {
-          result: "REJECTED",
-          timeout: 0
-        },
-        timestamp: new Date().toISOString()
-      });
-    }
 
     // Buscar el EVSE
     const evse = await EVSE.findOne({
@@ -687,35 +676,16 @@ async function notifyEMSPAboutSession(sessionId, evseUid, token, locationId) {
 /**
  * Endpoint para recibir comando STOP_SESSION del EMSP
  */
-router.post('/STOP_SESSION', async (req, res) => {
+router.post('/STOP_SESSION', validateStopSessionMiddleware, async (req, res) => {
   try {
-    const { response_url, session_id } = req.body;
+    // Use validated data from middleware
+    const { response_url, session_id } = req.validatedCommand;
 
     logger.info('🛑 STOP_SESSION Command Received', {
       response_url,
       session_id,
       timestamp: new Date().toISOString()
     });
-
-    // Validar parámetros requeridos
-    if (!response_url || !session_id) {
-      logger.error('❌ STOP_SESSION: Missing required parameters', {
-        response_url: !!response_url,
-        session_id: !!session_id
-      });
-
-      const response = {
-        status_code: 2000,
-        status_message: "Missing required parameters",
-        data: {
-          result: "REJECTED",
-          timeout: 0
-        },
-        timestamp: new Date().toISOString()
-      };
-
-      return res.status(400).json(response);
-    }
 
     // Buscar la sesión en la base de datos
     const session = await Session.findByPk(session_id);
