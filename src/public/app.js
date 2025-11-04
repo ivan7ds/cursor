@@ -62,6 +62,7 @@ class DashboardApp {
         this.validationErrorsPage = 0; // Página actual de errores de validación
         this.currentValidationErrorId = null; // ID del error de validación actual en el modal
         this.validationErrorsPollingInterval = null; // Intervalo para actualizar contador de errores
+        this.activeSessionBannerPollingInterval = null; // Intervalo para actualizar banner de sesiones activas
         this.testServiceToggleConfigs = {
             evseNotificationService: {
                 buttonId: 'toggleEvseService',
@@ -219,6 +220,9 @@ class DashboardApp {
 
             // Iniciar polling de errores de validación
             this.startValidationErrorsPolling();
+
+            // Iniciar polling del banner de sesiones activas
+            this.startActiveSessionBannerPolling();
 
             console.log('✅ Configuración básica completada');
         } catch (error) {
@@ -3479,9 +3483,12 @@ class DashboardApp {
             
             // Aplicar filtro y renderizar
             this.filterSessions({ resetPage: true });
-            
+
+            // Actualizar banner de sesiones activas
+            this.updateActiveSessionBanner();
+
             console.log('✅ Sesiones cargadas exitosamente');
-            
+
         } catch (error) {
             console.error('❌ Error cargando sesiones:', error);
             this.showTableError('sessionsTableBody', `Error al cargar sesiones: ${error.message}`);
@@ -3573,9 +3580,114 @@ class DashboardApp {
         return statusClasses[status] || 'bg-secondary';
     }
 
-    viewSessionDetails(sessionId) {
-        console.log('👁️ Ver detalles de sesión:', sessionId);
-        this.showNotification(`Ver detalles de sesión: ${sessionId}`, 'info');
+    async viewSessionDetails(sessionId) {
+        try {
+            console.log('👁️ Ver detalles de sesión:', sessionId);
+
+            // Buscar la sesión en el array de sesiones cargadas
+            const session = this.allSessions.find(s => s.id === sessionId);
+
+            if (!session) {
+                this.showNotification('No se encontró la sesión', 'error');
+                return;
+            }
+
+            // Poblar el modal con los datos de la sesión
+            document.getElementById('sessionDetailId').textContent = session.id || '-';
+
+            // Estado con badge de color
+            const statusBadge = document.getElementById('sessionDetailStatus');
+            statusBadge.textContent = session.status || '-';
+            statusBadge.className = 'badge ' + this.getSessionStatusBadgeClass(session.status);
+
+            document.getElementById('sessionDetailParty').textContent =
+                `${session.country_code || '-'}*${session.party_id || '-'}`;
+
+            // Fechas
+            document.getElementById('sessionDetailStartTime').textContent =
+                session.start_date_time ? new Date(session.start_date_time).toLocaleString('es-ES') : '-';
+            document.getElementById('sessionDetailEndTime').textContent =
+                session.end_date_time ? new Date(session.end_date_time).toLocaleString('es-ES') : 'En progreso';
+            document.getElementById('sessionDetailKwh').textContent =
+                session.kwh !== undefined && session.kwh !== null ? parseFloat(session.kwh).toFixed(2) : '-';
+
+            // Ubicación
+            document.getElementById('sessionDetailLocationId').textContent = session.location_id || '-';
+            document.getElementById('sessionDetailEvseUid').textContent = session.evse_uid || '-';
+            document.getElementById('sessionDetailConnectorId').textContent = session.connector_id || '-';
+
+            // Token
+            if (session.cdr_token) {
+                document.getElementById('sessionDetailTokenUid').textContent = session.cdr_token.uid || '-';
+                document.getElementById('sessionDetailTokenType').textContent = session.cdr_token.type || '-';
+                document.getElementById('sessionDetailTokenContract').textContent = session.cdr_token.contract_id || '-';
+            } else {
+                document.getElementById('sessionDetailTokenUid').textContent = '-';
+                document.getElementById('sessionDetailTokenType').textContent = '-';
+                document.getElementById('sessionDetailTokenContract').textContent = '-';
+            }
+
+            // Autenticación
+            document.getElementById('sessionDetailAuthMethod').textContent = session.auth_method || '-';
+            document.getElementById('sessionDetailAuthRef').textContent = session.authorization_reference || 'N/A';
+
+            // Costo
+            document.getElementById('sessionDetailCurrency').textContent = session.currency || '-';
+            if (session.total_cost) {
+                const cost = typeof session.total_cost === 'object'
+                    ? session.total_cost.excl_vat
+                    : session.total_cost;
+                document.getElementById('sessionDetailTotalCost').textContent =
+                    cost !== undefined && cost !== null ? `${parseFloat(cost).toFixed(2)} ${session.currency || ''}` : 'N/A';
+            } else {
+                document.getElementById('sessionDetailTotalCost').textContent = 'N/A';
+            }
+
+            // Períodos de carga
+            const chargingPeriodsContainer = document.getElementById('sessionDetailChargingPeriods');
+            if (session.charging_periods && Array.isArray(session.charging_periods) && session.charging_periods.length > 0) {
+                chargingPeriodsContainer.innerHTML = session.charging_periods.map((period, index) => `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6 class="card-title">Período ${index + 1}</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small><strong>Inicio:</strong></small>
+                                    <p>${period.start_date_time ? new Date(period.start_date_time).toLocaleString('es-ES') : '-'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <small><strong>Tariff ID:</strong></small>
+                                    <p class="font-monospace">${period.tariff_id || 'N/A'}</p>
+                                </div>
+                            </div>
+                            ${period.dimensions && period.dimensions.length > 0 ? `
+                                <small><strong>Dimensiones:</strong></small>
+                                <ul class="list-unstyled">
+                                    ${period.dimensions.map(dim => `
+                                        <li><span class="badge bg-secondary">${dim.type}</span>: ${dim.volume}</li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<p class="text-muted">Sin dimensiones</p>'}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                chargingPeriodsContainer.innerHTML = '<p class="text-muted">No hay períodos de carga</p>';
+            }
+
+            // Información adicional
+            document.getElementById('sessionDetailMeterId').textContent = session.meter_id || 'N/A';
+            document.getElementById('sessionDetailLastUpdated').textContent =
+                session.last_updated ? new Date(session.last_updated).toLocaleString('es-ES') : '-';
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('sessionDetailModal'));
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error mostrando detalles de sesión:', error);
+            this.showNotification('Error cargando detalles de la sesión: ' + error.message, 'error');
+        }
     }
 
     async endSession(sessionId) {
@@ -12619,6 +12731,88 @@ class DashboardApp {
         this.validationErrorsPollingInterval = setInterval(() => {
             this.updateValidationErrorsCount();
         }, 30000); // 30 segundos
+    }
+
+    /**
+     * Actualiza el banner de sesión activa en el navbar
+     */
+    async updateActiveSessionBanner() {
+        try {
+            const banner = document.getElementById('active-session-banner');
+            const message = document.getElementById('active-session-message');
+
+            if (!banner || !message) {
+                console.log('⚠️ Banner o mensaje no encontrado');
+                return;
+            }
+
+            // Verificar sesiones activas del CPO (nuestras sesiones)
+            const cpoActiveSessions = this.allSessions.filter(s => s.status === 'ACTIVE');
+
+            // Verificar sesiones externas activas (eMSP sobre nosotros)
+            let emspActiveSessions = [];
+            try {
+                const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/sessions?status=ACTIVE`, {
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    emspActiveSessions = (data.data || []).filter(s => s.status === 'ACTIVE');
+                    console.log('📊 Sesiones eMSP activas encontradas:', emspActiveSessions.length);
+                } else {
+                    console.warn('⚠️ Error obteniendo sesiones eMSP:', response.status);
+                }
+            } catch (error) {
+                console.error('Error obteniendo sesiones eMSP:', error);
+            }
+
+            // Construir mensaje
+            const messages = [];
+
+            if (cpoActiveSessions.length > 0) {
+                cpoActiveSessions.forEach(session => {
+                    messages.push(`⚡ CPO → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por CPO: ${session.id.substring(0, 8)}...)`);
+                });
+            }
+
+            if (emspActiveSessions.length > 0) {
+                emspActiveSessions.forEach(session => {
+                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.emsp_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
+                });
+            }
+
+            console.log(`📢 Total sesiones activas: CPO=${cpoActiveSessions.length}, eMSP=${emspActiveSessions.length}`);
+
+            if (messages.length > 0) {
+                message.textContent = messages.join('  •  ');
+                banner.style.display = 'block';
+                console.log('✅ Banner mostrado:', messages.join('  •  '));
+            } else {
+                banner.style.display = 'none';
+                console.log('ℹ️ Banner oculto - no hay sesiones activas');
+            }
+
+        } catch (error) {
+            console.error('❌ Error actualizando banner de sesión activa:', error);
+        }
+    }
+
+    /**
+     * Inicia la actualización automática del banner de sesiones activas
+     */
+    startActiveSessionBannerPolling() {
+        // Actualizar inmediatamente
+        this.updateActiveSessionBanner();
+
+        // Actualizar cada 10 segundos
+        if (this.activeSessionBannerPollingInterval) {
+            clearInterval(this.activeSessionBannerPollingInterval);
+        }
+        this.activeSessionBannerPollingInterval = setInterval(() => {
+            this.updateActiveSessionBanner();
+        }, 10000); // 10 segundos
     }
 
     /**
