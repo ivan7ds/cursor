@@ -9451,45 +9451,46 @@ class DashboardApp {
     // Obtener locations del CPO
     async getCpoLocations() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value;
+            console.log('🌐 Consultando Locations de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🌐 Consultando locations del CPO:', cpoUrl);
-            
-            // Crear headers con soporte para ngrok
-            const headers = this.createCpoHeaders(cpoToken);
-            if (this.isNgrokUrl(cpoUrl)) {
-                headers['ngrok-skip-browser-warning'] = 'true';
-            }
-
-            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/locations`, {
-                headers: headers
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-locations`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
+
             const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
-            
-            console.log('✅ Locations del CPO obtenidas exitosamente');
-            
-            // Guardar las locations en nuestra base de datos
-            if (data.data && Array.isArray(data.data)) {
-                console.log(`💾 Guardando ${data.data.length} locations en base de datos...`);
-                await this.saveCpoLocationsToDatabase(cpoUrl, cpoToken, cpoVersion, data.data);
+
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE LOCATIONS\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de locations encontradas: ${data.metadata?.total_locations || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Locations guardadas en BD: ${data.metadata?.locations_saved || 0}\n`;
+            responseText += `⚠️ Locations duplicadas (saltadas): ${data.metadata?.locations_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
+
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
             }
-            
+
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ Locations obtenidas y guardadas exitosamente');
+
         } catch (error) {
-            console.error('❌ Error consultando CPO:', error);
+            console.error('❌ Error consultando locations:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
@@ -9649,71 +9650,60 @@ class DashboardApp {
     // Obtener tariffs del CPO y guardarlos en BD
     async getCpoTariffs() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+            console.log('🌐 Consultando Tariffs de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🌐 Consultando tariffs del CPO:', cpoUrl);
-            
-            // Crear headers con soporte para ngrok
-            const headers = this.createCpoHeaders(cpoToken);
-            if (this.isNgrokUrl(cpoUrl)) {
-                headers['ngrok-skip-browser-warning'] = 'true';
-            }
-
-            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/tariffs`, {
-                headers: headers
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-tariffs`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
-            const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
-            
-            console.log('✅ Tariffs del CPO obtenidos exitosamente');
 
-            // Guardar los tariffs en la tabla emsp_tariffs
-            if (data.data && Array.isArray(data.data)) {
-                console.log(`💾 Guardando ${data.data.length} tariffs en tabla emsp_tariffs...`);
-                await this.saveCpoTariffsToDatabase(data.data);
+            const data = await response.json();
+
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE TARIFFS\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de tariffs encontradas: ${data.metadata?.total_tariffs || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Tariffs guardadas en BD: ${data.metadata?.tariffs_saved || 0}\n`;
+            responseText += `⚠️ Tariffs duplicadas (saltadas): ${data.metadata?.tariffs_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
+
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
             }
-            
+
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ Tariffs obtenidas y guardadas exitosamente');
+
         } catch (error) {
-            console.error('❌ Error consultando CPO:', error);
+            console.error('❌ Error consultando tariffs:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
 
-    // Obtener tokens del CPO externo usando /ocpi/emsp/2.2/tokens
+    // Obtener tokens del CPO externo usando /emsp/2.2/tokens
     async getCpoTokens() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+            console.log('🌐 Consultando Tokens de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🔑 Consultando tokens del CPO usando endpoint /emsp/2.2/tokens:', cpoUrl);
-
-            // Crear headers con soporte para ngrok
-            const headers = this.createCpoHeaders(cpoToken);
-            if (this.isNgrokUrl(cpoUrl)) {
-                headers['ngrok-skip-browser-warning'] = 'true';
-            }
-
-            const response = await fetch(`${cpoUrl}/ocpi/emsp/${cpoVersion}/tokens`, {
-                headers: headers
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-tokens`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
             if (!response.ok) {
@@ -9722,18 +9712,31 @@ class DashboardApp {
             }
 
             const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
 
-            console.log('✅ Tokens del CPO externo obtenidos exitosamente');
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE TOKENS\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de tokens encontrados: ${data.metadata?.total_tokens || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Tokens guardados en BD: ${data.metadata?.tokens_saved || 0}\n`;
+            responseText += `⚠️ Tokens duplicados (saltados): ${data.metadata?.tokens_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
 
-            // Guardar los tokens en la tabla emsp_tokens
-            if (data.data && Array.isArray(data.data)) {
-                console.log(`💾 Guardando ${data.data.length} tokens en tabla emsp_tokens...`);
-                await this.saveEmspTokensToDatabase(data.data);
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
             }
 
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ Tokens obtenidos y guardados exitosamente');
+
         } catch (error) {
-            console.error('❌ Error consultando tokens del CPO:', error);
+            console.error('❌ Error consultando tokens:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
@@ -10700,32 +10703,14 @@ class DashboardApp {
     // Obtener CDRs del CPO
     async getCpoCdrs() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+            console.log('🌐 Consultando CDRs de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🧾 Obteniendo CDRs del CPO:', cpoUrl);
-            
-            // Construir URL para obtener CDRs
-            const cdrsUrl = `${cpoUrl}/ocpi/cpo/${cpoVersion}/cdrs`;
-            
-            console.log('📡 Enviando petición GET a:', cdrsUrl);
-            
-            const response = await fetch(cdrsUrl, {
-                method: 'GET',
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-cdrs`, {
                 headers: {
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json',
-                    'User-Agent': `${window.OCPI_PARTY_ID}-EMSP-OCPI-${window.OCPI_VERSION}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
                 }
             });
-
-            console.log('📊 Respuesta recibida:', response.status, response.statusText);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -10733,22 +10718,32 @@ class DashboardApp {
             }
 
             const data = await response.json();
-            console.log('✅ CDRs obtenidos exitosamente:', data);
 
-            // Formatear la respuesta para mostrar
-            const formattedResponse = `🧾 CDRs obtenidos del CPO:
-📋 URL: ${cdrsUrl}
-📊 Total de CDRs: ${data.data ? data.data.length : 0}
-📅 Timestamp: ${data.timestamp || new Date().toISOString()}
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE CDRs\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de CDRs encontrados: ${data.metadata?.total_cdrs || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 CDRs guardados en BD: ${data.metadata?.cdrs_saved || 0}\n`;
+            responseText += `⚠️ CDRs duplicados (saltados): ${data.metadata?.cdrs_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
 
-📄 Datos recibidos:
-${JSON.stringify(data, null, 2)}`;
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
+            }
 
-            this.showCpoResponse(formattedResponse, 'success');
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ CDRs obtenidos y guardados exitosamente');
 
         } catch (error) {
-            console.error('❌ Error obteniendo CDRs del CPO:', error);
-            this.showCpoResponse(`❌ Error obteniendo CDRs: ${error.message}`, 'error');
+            console.error('❌ Error consultando CDRs:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
 

@@ -604,7 +604,7 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
                                     currency: session.currency || 'EUR',
                                     status: session.status || 'PENDING',
                                     last_updated: session.last_updated ? new Date(session.last_updated) : new Date(),
-                                    total_cost: session.total_cost?.excl_vat || session.total_cost || null,
+                                    total_cost: typeof session.total_cost === 'number' ? session.total_cost : (session.total_cost?.excl_vat ?? null),
                                     charging_periods: session.charging_periods || null
                                 };
                                 
@@ -714,6 +714,547 @@ router.post('/clear-emsp-data', authMiddleware, async (req, res) => {
         res.status(500).json({
             status_code: 2000,
             status_message: 'Error al limpiar datos eMSP',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// GET /emsp/actions/get-external-locations - Obtener y guardar locations de organizaciones externas conectadas
+router.get('/get-external-locations', authMiddleware, async (req, res) => {
+    try {
+        console.log('🌐 Obteniendo y guardando locations de organizaciones externas conectadas...');
+
+        // Obtener todas las organizaciones configuradas (excluyendo nuestro CPO)
+        const organizations = await sequelize.query(`
+            SELECT id, token, url, party_id, country_code, business_details
+            FROM credentials
+            WHERE url IS NOT NULL
+            AND token IS NOT NULL
+            AND url != ''
+            AND token != ''
+            AND party_id != 'IPD'
+        `, {
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        if (organizations.length === 0) {
+            return res.status(200).json({
+                status_code: 1000,
+                data: [],
+                message: 'No hay organizaciones externas conectadas',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        console.log(`📤 Consultando locations a ${organizations.length} organización(es) externa(s)`);
+
+        const allLocations = [];
+        const errors = [];
+        let savedLocationsCount = 0;
+        let duplicateLocationsCount = 0;
+
+        // Consultar locations de cada organización
+        for (const org of organizations) {
+            try {
+                console.log(`🔍 Consultando locations de ${org.party_id} (${org.url})`);
+
+                const locationsUrl = `${org.url}/ocpi/cpo/2.2/locations`;
+
+                const response = await fetch(locationsUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${org.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data && Array.isArray(data.data)) {
+                        console.log(`📥 Procesando ${data.data.length} locations de ${org.party_id}`);
+
+                        for (const location of data.data) {
+                            try {
+                                allLocations.push({
+                                    ...location,
+                                    source_organization: {
+                                        party_id: org.party_id,
+                                        country_code: org.country_code,
+                                        url: org.url
+                                    }
+                                });
+
+                                const [result] = await sequelize.query(`
+                                    INSERT INTO emsp_locations (
+                                        id, emsp_party_id, emsp_country_code, location_id, name, address, city,
+                                        postal_code, country, coordinates, time_zone, last_updated
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    ON CONFLICT (id) DO UPDATE SET
+                                        name = EXCLUDED.name,
+                                        address = EXCLUDED.address,
+                                        last_updated = EXCLUDED.last_updated,
+                                        updated_at = NOW()
+                                `, {
+                                    replacements: [
+                                        location.id,
+                                        org.party_id,
+                                        org.country_code,
+                                        location.id,
+                                        location.name || 'Sin nombre',
+                                        location.address || 'Sin dirección',
+                                        location.city || 'Sin ciudad',
+                                        location.postal_code || null,
+                                        location.country || 'Sin país',
+                                        JSON.stringify(location.coordinates || {}),
+                                        location.time_zone || 'UTC',
+                                        location.last_updated || new Date().toISOString()
+                                    ]
+                                });
+
+                                if (result.rowCount > 0) {
+                                    savedLocationsCount++;
+                                } else {
+                                    duplicateLocationsCount++;
+                                }
+
+                            } catch (locationError) {
+                                console.error(`❌ Error procesando location:`, locationError);
+                                errors.push(`Error procesando location: ${locationError.message}`);
+                            }
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    errors.push(`Error consultando ${org.party_id}: HTTP ${response.status} - ${errorText}`);
+                }
+
+            } catch (orgError) {
+                errors.push(`Error consultando ${org.party_id}: ${orgError.message}`);
+                console.error(`❌ Error consultando ${org.party_id}:`, orgError);
+            }
+        }
+
+        res.status(200).json({
+            status_code: 1000,
+            data: allLocations,
+            metadata: {
+                total_locations: allLocations.length,
+                organizations_consulted: organizations.length,
+                locations_saved: savedLocationsCount,
+                locations_duplicates: duplicateLocationsCount,
+                errors: errors,
+                timestamp: new Date().toISOString()
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error obteniendo locations de organizaciones externas:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error getting external locations',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// GET /emsp/actions/get-external-tariffs - Obtener y guardar tariffs de organizaciones externas conectadas
+router.get('/get-external-tariffs', authMiddleware, async (req, res) => {
+    try {
+        console.log('🌐 Obteniendo y guardando tariffs de organizaciones externas conectadas...');
+
+        const organizations = await sequelize.query(`
+            SELECT id, token, url, party_id, country_code, business_details
+            FROM credentials
+            WHERE url IS NOT NULL
+            AND token IS NOT NULL
+            AND url != ''
+            AND token != ''
+            AND party_id != 'IPD'
+        `, {
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        if (organizations.length === 0) {
+            return res.status(200).json({
+                status_code: 1000,
+                data: [],
+                message: 'No hay organizaciones externas conectadas',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        const allTariffs = [];
+        const errors = [];
+        let savedTariffsCount = 0;
+        let duplicateTariffsCount = 0;
+
+        for (const org of organizations) {
+            try {
+                console.log(`🔍 Consultando tariffs de ${org.party_id} (${org.url})`);
+
+                const tariffsUrl = `${org.url}/ocpi/cpo/2.2/tariffs`;
+
+                const response = await fetch(tariffsUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${org.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data && Array.isArray(data.data)) {
+                        console.log(`📥 Procesando ${data.data.length} tariffs de ${org.party_id}`);
+
+                        for (const tariff of data.data) {
+                            try {
+                                allTariffs.push({
+                                    ...tariff,
+                                    source_organization: {
+                                        party_id: org.party_id,
+                                        country_code: org.country_code,
+                                        url: org.url
+                                    }
+                                });
+
+                                const [result] = await sequelize.query(`
+                                    INSERT INTO emsp_tariffs (
+                                        id, emsp_party_id, emsp_country_code, tariff_id, currency, type, elements, last_updated
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                    ON CONFLICT (id) DO UPDATE SET
+                                        currency = EXCLUDED.currency,
+                                        type = EXCLUDED.type,
+                                        elements = EXCLUDED.elements,
+                                        last_updated = EXCLUDED.last_updated,
+                                        updated_at = NOW()
+                                `, {
+                                    replacements: [
+                                        tariff.id,
+                                        org.party_id,
+                                        org.country_code,
+                                        tariff.id,
+                                        tariff.currency || 'EUR',
+                                        tariff.type || 'REGULAR',
+                                        JSON.stringify(tariff.elements || []),
+                                        tariff.last_updated || new Date().toISOString()
+                                    ]
+                                });
+
+                                if (result.rowCount > 0) {
+                                    savedTariffsCount++;
+                                } else {
+                                    duplicateTariffsCount++;
+                                }
+
+                            } catch (tariffError) {
+                                console.error(`❌ Error procesando tariff:`, tariffError);
+                                errors.push(`Error procesando tariff: ${tariffError.message}`);
+                            }
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    errors.push(`Error consultando ${org.party_id}: HTTP ${response.status} - ${errorText}`);
+                }
+
+            } catch (orgError) {
+                errors.push(`Error consultando ${org.party_id}: ${orgError.message}`);
+            }
+        }
+
+        res.status(200).json({
+            status_code: 1000,
+            data: allTariffs,
+            metadata: {
+                total_tariffs: allTariffs.length,
+                organizations_consulted: organizations.length,
+                tariffs_saved: savedTariffsCount,
+                tariffs_duplicates: duplicateTariffsCount,
+                errors: errors,
+                timestamp: new Date().toISOString()
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error obteniendo tariffs de organizaciones externas:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error getting external tariffs',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// GET /emsp/actions/get-external-cdrs - Obtener y guardar CDRs de organizaciones externas conectadas
+router.get('/get-external-cdrs', authMiddleware, async (req, res) => {
+    try {
+        console.log('🌐 Obteniendo y guardando CDRs de organizaciones externas conectadas...');
+
+        const organizations = await sequelize.query(`
+            SELECT id, token, url, party_id, country_code, business_details
+            FROM credentials
+            WHERE url IS NOT NULL
+            AND token IS NOT NULL
+            AND url != ''
+            AND token != ''
+            AND party_id != 'IPD'
+        `, {
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        if (organizations.length === 0) {
+            return res.status(200).json({
+                status_code: 1000,
+                data: [],
+                message: 'No hay organizaciones externas conectadas',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        const allCDRs = [];
+        const errors = [];
+        let savedCDRsCount = 0;
+        let duplicateCDRsCount = 0;
+
+        for (const org of organizations) {
+            try {
+                console.log(`🔍 Consultando CDRs de ${org.party_id} (${org.url})`);
+
+                const cdrsUrl = `${org.url}/ocpi/cpo/2.2/cdrs`;
+
+                const response = await fetch(cdrsUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${org.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data && Array.isArray(data.data)) {
+                        console.log(`📥 Procesando ${data.data.length} CDRs de ${org.party_id}`);
+
+                        for (const cdr of data.data) {
+                            try {
+                                allCDRs.push({
+                                    ...cdr,
+                                    source_organization: {
+                                        party_id: org.party_id,
+                                        country_code: org.country_code,
+                                        url: org.url
+                                    }
+                                });
+
+                                const [result] = await sequelize.query(`
+                                    INSERT INTO emsp_cdrs (
+                                        id, emsp_party_id, emsp_country_code, cdr_id, session_id, evse_uid,
+                                        connector_id, id_token, start_datetime, end_datetime,
+                                        total_energy, currency, total_cost, total_time, last_updated
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    ON CONFLICT (id) DO UPDATE SET
+                                        end_datetime = EXCLUDED.end_datetime,
+                                        total_energy = EXCLUDED.total_energy,
+                                        total_cost = EXCLUDED.total_cost,
+                                        total_time = EXCLUDED.total_time,
+                                        last_updated = EXCLUDED.last_updated,
+                                        updated_at = NOW()
+                                `, {
+                                    replacements: [
+                                        cdr.id,
+                                        org.party_id,
+                                        org.country_code,
+                                        cdr.id,
+                                        cdr.session_id || cdr.id,
+                                        cdr.cdr_location?.evse_uid || cdr.evse_uid || 'unknown',
+                                        cdr.cdr_location?.connector_id || cdr.connector_id || null,
+                                        cdr.auth_id || cdr.authorization_reference || 'unknown',
+                                        cdr.start_date_time || new Date().toISOString(),
+                                        cdr.end_date_time || new Date().toISOString(),
+                                        cdr.total_energy || 0,
+                                        cdr.currency || 'EUR',
+                                        typeof cdr.total_cost === 'number' ? cdr.total_cost : (cdr.total_cost?.excl_vat ?? 0),
+                                        cdr.total_time || 0,
+                                        cdr.last_updated || new Date().toISOString()
+                                    ]
+                                });
+
+                                if (result.rowCount > 0) {
+                                    savedCDRsCount++;
+                                } else {
+                                    duplicateCDRsCount++;
+                                }
+
+                            } catch (cdrError) {
+                                console.error(`❌ Error procesando CDR:`, cdrError);
+                                errors.push(`Error procesando CDR: ${cdrError.message}`);
+                            }
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    errors.push(`Error consultando ${org.party_id}: HTTP ${response.status} - ${errorText}`);
+                }
+
+            } catch (orgError) {
+                errors.push(`Error consultando ${org.party_id}: ${orgError.message}`);
+            }
+        }
+
+        res.status(200).json({
+            status_code: 1000,
+            data: allCDRs,
+            metadata: {
+                total_cdrs: allCDRs.length,
+                organizations_consulted: organizations.length,
+                cdrs_saved: savedCDRsCount,
+                cdrs_duplicates: duplicateCDRsCount,
+                errors: errors,
+                timestamp: new Date().toISOString()
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error obteniendo CDRs de organizaciones externas:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error getting external cdrs',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// GET /emsp/actions/get-external-tokens - Obtener y guardar tokens de organizaciones externas conectadas
+router.get('/get-external-tokens', authMiddleware, async (req, res) => {
+    try {
+        console.log('🌐 Obteniendo y guardando tokens de organizaciones externas conectadas...');
+
+        const organizations = await sequelize.query(`
+            SELECT id, token, url, party_id, country_code, business_details
+            FROM credentials
+            WHERE url IS NOT NULL
+            AND token IS NOT NULL
+            AND url != ''
+            AND token != ''
+            AND party_id != 'IPD'
+        `, {
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        if (organizations.length === 0) {
+            return res.status(200).json({
+                status_code: 1000,
+                data: [],
+                message: 'No hay organizaciones externas conectadas',
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        const allTokens = [];
+        const errors = [];
+        let savedTokensCount = 0;
+        let duplicateTokensCount = 0;
+
+        for (const org of organizations) {
+            try {
+                console.log(`🔍 Consultando tokens de ${org.party_id} (${org.url})`);
+
+                const tokensUrl = `${org.url}/ocpi/emsp/2.2/tokens`;
+
+                const response = await fetch(tokensUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${org.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data && Array.isArray(data.data)) {
+                        console.log(`📥 Procesando ${data.data.length} tokens de ${org.party_id}`);
+
+                        for (const token of data.data) {
+                            try {
+                                allTokens.push({
+                                    ...token,
+                                    source_organization: {
+                                        party_id: org.party_id,
+                                        country_code: org.country_code,
+                                        url: org.url
+                                    }
+                                });
+
+                                const [result] = await sequelize.query(`
+                                    INSERT INTO emsp_tokens (
+                                        id, emsp_party_id, emsp_country_code, token_uid, type,
+                                        contract_id, issuer, valid, whitelist, last_updated
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    ON CONFLICT (id) DO UPDATE SET
+                                        valid = EXCLUDED.valid,
+                                        whitelist = EXCLUDED.whitelist,
+                                        last_updated = EXCLUDED.last_updated,
+                                        updated_at = NOW()
+                                `, {
+                                    replacements: [
+                                        token.uid,
+                                        org.party_id,
+                                        org.country_code,
+                                        token.uid,
+                                        token.type || 'RFID',
+                                        token.contract_id || null,
+                                        token.issuer || 'Unknown',
+                                        token.valid !== undefined ? token.valid : true,
+                                        token.whitelist || 'ALLOWED',
+                                        token.last_updated || new Date().toISOString()
+                                    ]
+                                });
+
+                                if (result.rowCount > 0) {
+                                    savedTokensCount++;
+                                } else {
+                                    duplicateTokensCount++;
+                                }
+
+                            } catch (tokenError) {
+                                console.error(`❌ Error procesando token:`, tokenError);
+                                errors.push(`Error procesando token: ${tokenError.message}`);
+                            }
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    errors.push(`Error consultando ${org.party_id}: HTTP ${response.status} - ${errorText}`);
+                }
+
+            } catch (orgError) {
+                errors.push(`Error consultando ${org.party_id}: ${orgError.message}`);
+            }
+        }
+
+        res.status(200).json({
+            status_code: 1000,
+            data: allTokens,
+            metadata: {
+                total_tokens: allTokens.length,
+                organizations_consulted: organizations.length,
+                tokens_saved: savedTokensCount,
+                tokens_duplicates: duplicateTokensCount,
+                errors: errors,
+                timestamp: new Date().toISOString()
+            },
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error obteniendo tokens de organizaciones externas:', error);
+        res.status(500).json({
+            status_code: 2000,
+            status_message: 'Error getting external tokens',
             timestamp: new Date().toISOString()
         });
     }
