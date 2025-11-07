@@ -212,8 +212,8 @@ router.post('/', async (req, res) => {
       token: ourToken,
       url: url, // URL de la organización externa
       business_details: {
-        name: 'IPD',
-        website: 'https://www.ipd.com'
+        name: process.env.OCPI_PARTY_ID,
+        website: `https://www.${process.env.OCPI_PARTY_ID.toLowerCase()}.com`
       },
       party_id: process.env.OCPI_PARTY_ID || 'IPD',
       country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
@@ -236,8 +236,8 @@ router.post('/', async (req, res) => {
     const systemPartyId = process.env.OCPI_PARTY_ID || 'IPD';
     const systemCountryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
     const systemBusinessDetails = {
-      name: 'IPD',
-      website: 'https://www.ipd.com'
+      name: systemPartyId,
+      website: `https://www.${systemPartyId}.com`
     };
 
     // Devolver nuestras credenciales según OCPI 2.2.1
@@ -246,11 +246,21 @@ router.post('/', async (req, res) => {
       data: {
         token: ourToken,
         url: `${cleanBaseUrl}/ocpi/cpo/versions`,
-        business_details: systemBusinessDetails,
-        party_id: systemPartyId,
-        country_code: systemCountryCode,
-        last_updated: new Date().toISOString()
-      },
+        last_updated: new Date().toISOString(),
+        roles: [
+          {
+            role: "CPO",
+            party_id: systemPartyId,
+            country_code: systemCountryCode,
+            business_details: systemBusinessDetails
+          }, 
+          {
+            role: "EMSP",
+            party_id: systemPartyId,
+            country_code: systemCountryCode,
+            business_details: systemBusinessDetails
+          }]
+        },
       timestamp: new Date().toISOString()
     };
 

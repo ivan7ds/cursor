@@ -10,6 +10,7 @@ const EmspSession = require('./EmspSession')(sequelize);
 const EmspEVSE = require('./EmspEVSE');
 const Credentials = require('./Credentials');
 const OCPIToken = require('./OCPIToken');
+const ValidationError = require('./ValidationError');
 
 // Define relationships
 Location.hasMany(EVSE, { 
@@ -60,5 +61,6 @@ module.exports = {
   EmspSession,
   EmspEVSE,
   Credentials,
-  OCPIToken
+  OCPIToken,
+  ValidationError
 };

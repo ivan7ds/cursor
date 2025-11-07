@@ -7,6 +7,90 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-01-17
+
+### Added
+- **Sistema completo de errores de validación**: Implementado sistema end-to-end para capturar, persistir y visualizar errores de validación de peticiones entrantes
+  - Tabla PostgreSQL `validation_errors` con soporte JSONB para almacenar errores estructurados
+  - Modelo Sequelize `ValidationError` con índices optimizados por timestamp y endpoint
+  - Utilidad `validationErrorLogger.js` para logging automático de errores de validación
+  - API REST completa en `/api/validation-errors` con paginación (GET, DELETE individual y masivo)
+  - Integración en todos los validadores principales: tokens, sessions, locations y CDRs
+  - Sección de errores de validación en pestaña Test del frontend con tabla paginada
+  - Modal de detalles completo mostrando endpoint, método, errores, request body y user agent
+  - Botones para borrar errores individuales y limpiar todos
+  - Contador en tiempo real en navbar que muestra cantidad de errores detectados
+  - Badge animado con efecto pulse cuando aumentan los errores
+  - Actualización automática cada 30 segundos del contador de errores
+  - El badge se oculta automáticamente cuando no hay errores
+
+- **Modal de detalles de sesión**: Implementado modal completo para visualizar información detallada de sesiones CPO
+  - Información básica: ID, estado con badge de color, país/operador
+  - Datos de tiempo y energía: fechas de inicio/fin, kWh totales
+  - Información de ubicación: Location ID, EVSE UID, Connector ID
+  - Detalles del token: UID, tipo, contract ID en tarjeta dedicada
+  - Información de autenticación: método y referencia de autorización
+  - Datos de costo: moneda y costo total con formato
+  - Períodos de carga expandidos con todas sus dimensiones (energía, tiempo, etc.)
+  - Información adicional: Meter ID y última actualización
+  - Botón "Ver detalles" completamente funcional desde tabla de sesiones
+
+- **Banner de sesiones activas en navbar**: Implementado sistema de notificación visual de sesiones de carga en curso
+  - Banner con animación de desplazamiento horizontal (marquee) en el navbar azul superior
+  - Icono de rayo amarillo con efecto de pulsación para llamar la atención
+  - Diferenciación clara entre sesiones iniciadas por CPO y sesiones iniciadas por eMSP
+  - Formato de mensaje CPO: `⚡ CPO → EVSE {id} (Sesión iniciada por CPO: {session_id}...)`
+  - Formato de mensaje eMSP: `⚡ eMSP → EVSE {id} (Sesión iniciada por eMSP {party_id}: {session_id}...)`
+  - Soporte para múltiples sesiones activas simultáneas separadas por `•`
+  - Auto-ocultación cuando no hay sesiones activas
+  - Actualización automática cada 10 segundos
+  - Actualización inmediata al cargar sesiones manualmente
+  - Diseño responsive con fondo semi-transparente y bordes redondeados
+  - Logs de depuración en consola del navegador para facilitar troubleshooting
+
+### Changed
+- **Validador de Session PATCH**: Reforzada validación estricta según especificación OCPI 2.2
+  - Campo `last_updated` es OBLIGATORIO en peticiones PATCH según estándar OCPI 2.2
+  - Mensaje de error claro indicando el requerimiento del estándar OCPI
+  - Requisito mínimo: `last_updated` + al menos 1 campo adicional para actualizar
+  - Validación estricta para garantizar conformidad con OCPI 2.2
+
+### Fixed
+- **Corrección de inserción de sessions**: Corregido manejo de `total_cost` para evitar errores de tipo en PostgreSQL
+  - Cambiado operador `||` por `typeof` check y nullish coalescing operator
+  - Previene error "invalid input syntax for type numeric: '[object Object]'"
+  - Manejo correcto de objetos `total_cost` con estructura `{excl_vat, incl_vat}`
+
+- **Corrección de inserción de tariffs**: Agregados campos requeridos faltantes en tabla `emsp_tariffs`
+  - Añadida columna `tariff_id` con valor apropiado en INSERT
+  - Añadida columna `type` con valor por defecto 'REGULAR'
+  - Previene violación de restricción not-null en base de datos
+
+- **Corrección de inserción de CDRs**: Actualizado mapeo de columnas para tabla `emsp_cdrs`
+  - Cambiado nombre de columna de `kwh` a `total_energy` según esquema real
+  - Agregados campos requeridos: `cdr_id`, `session_id`, `evse_uid`, `id_token`, `total_time`
+  - Manejo correcto de `total_cost` como número o objeto
+  - Previene error "column 'kwh' of relation 'emsp_cdrs' does not exist"
+
+- **Corrección de inserción de tokens**: Actualizado nombre de columna en tabla `emsp_tokens`
+  - Cambiado `uid` por `token_uid` según esquema real de base de datos
+  - Previene error "column 'uid' of relation 'emsp_tokens' does not exist"
+
+- **Corrección de modal de detalles de sesión**: Corregidos errores de tipo en renderizado
+  - Agregado `parseFloat()` para conversión segura de `kwh` antes de `toFixed()`
+  - Agregado `parseFloat()` para conversión segura de `total_cost` antes de `toFixed()`
+  - Corregido nombre de función de `getSessionStatusClass` a `getSessionStatusBadgeClass`
+  - Previene errores "toFixed is not a function" cuando valores vienen como strings
+
+- **Tabla de errores de validación**: Eliminada columna IP para simplificar visualización
+  - Removido header de columna IP del HTML
+  - Ajustados anchos de columnas restantes (más espacio para Endpoint y Errores)
+  - Actualizados todos los `colspan` de 7 a 6
+  - Eliminada celda que mostraba `ip_address` del renderizado JavaScript
+
+### Security
+- **Logging de validación**: Todos los errores de validación ahora se persisten con información de auditoría completa incluyendo IP, user agent y timestamp para trazabilidad de seguridad
+
 ## [1.4.0] - 2025-10-11
 
 ### Added

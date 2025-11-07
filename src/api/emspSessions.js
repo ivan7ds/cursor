@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
+const {
+  validateSessionPutMiddleware,
+  validateSessionPatchMiddleware
+} = require('../validators/sessionValidators');
 
 const STATUS_PRIORITY = {
     PENDING: 1,
@@ -24,7 +28,7 @@ function getStatusPriority(status) {
 
 // PUT /ocpi/emsp/2.2/sessions/{country_code}/{party_id}/{session_id}
 // Crear o actualizar una sesión completa
-router.put('/:country_code/:party_id/:session_id', async (req, res) => {
+router.put('/:country_code/:party_id/:session_id', validateSessionPutMiddleware, async (req, res) => {
     try {
         const { country_code, party_id, session_id } = req.params;
         const sessionData = req.body;
@@ -162,7 +166,7 @@ router.put('/:country_code/:party_id/:session_id', async (req, res) => {
 
 // PATCH /ocpi/emsp/2.2/sessions/{country_code}/{party_id}/{session_id}
 // Actualizar parcialmente una sesión
-router.patch('/:country_code/:party_id/:session_id', async (req, res) => {
+router.patch('/:country_code/:party_id/:session_id', validateSessionPatchMiddleware, async (req, res) => {
     try {
         const { country_code, party_id, session_id } = req.params;
         const updateData = req.body;

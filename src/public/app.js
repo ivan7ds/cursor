@@ -59,6 +59,10 @@ class DashboardApp {
         this.cpoEvses = []; // EVSEs del CPO externo
         this.filterActiveExtSessions = true; // Filtro de sesiones externas activas
         this.logPollingInterval = null; // Intervalo para consultar logs
+        this.validationErrorsPage = 0; // Página actual de errores de validación
+        this.currentValidationErrorId = null; // ID del error de validación actual en el modal
+        this.validationErrorsPollingInterval = null; // Intervalo para actualizar contador de errores
+        this.activeSessionBannerPollingInterval = null; // Intervalo para actualizar banner de sesiones activas
         this.testServiceToggleConfigs = {
             evseNotificationService: {
                 buttonId: 'toggleEvseService',
@@ -205,15 +209,21 @@ class DashboardApp {
 
     setupBasic() {
         console.log('🔧 Configurando funcionalidad básica...');
-        
+
         try {
             // Solo configurar lo básico por ahora
             this.setupSimpleEventListeners();
             this.updateConnectionStatus();
-            
+
             // Cargar conexiones CPO para el selector
             this.loadCpoConnections();
-            
+
+            // Iniciar polling de errores de validación
+            this.startValidationErrorsPolling();
+
+            // Iniciar polling del banner de sesiones activas
+            this.startActiveSessionBannerPolling();
+
             console.log('✅ Configuración básica completada');
         } catch (error) {
             console.error('❌ Error en setupBasic:', error);
@@ -3473,9 +3483,12 @@ class DashboardApp {
             
             // Aplicar filtro y renderizar
             this.filterSessions({ resetPage: true });
-            
+
+            // Actualizar banner de sesiones activas
+            this.updateActiveSessionBanner();
+
             console.log('✅ Sesiones cargadas exitosamente');
-            
+
         } catch (error) {
             console.error('❌ Error cargando sesiones:', error);
             this.showTableError('sessionsTableBody', `Error al cargar sesiones: ${error.message}`);
@@ -3567,9 +3580,114 @@ class DashboardApp {
         return statusClasses[status] || 'bg-secondary';
     }
 
-    viewSessionDetails(sessionId) {
-        console.log('👁️ Ver detalles de sesión:', sessionId);
-        this.showNotification(`Ver detalles de sesión: ${sessionId}`, 'info');
+    async viewSessionDetails(sessionId) {
+        try {
+            console.log('👁️ Ver detalles de sesión:', sessionId);
+
+            // Buscar la sesión en el array de sesiones cargadas
+            const session = this.allSessions.find(s => s.id === sessionId);
+
+            if (!session) {
+                this.showNotification('No se encontró la sesión', 'error');
+                return;
+            }
+
+            // Poblar el modal con los datos de la sesión
+            document.getElementById('sessionDetailId').textContent = session.id || '-';
+
+            // Estado con badge de color
+            const statusBadge = document.getElementById('sessionDetailStatus');
+            statusBadge.textContent = session.status || '-';
+            statusBadge.className = 'badge ' + this.getSessionStatusBadgeClass(session.status);
+
+            document.getElementById('sessionDetailParty').textContent =
+                `${session.country_code || '-'}*${session.party_id || '-'}`;
+
+            // Fechas
+            document.getElementById('sessionDetailStartTime').textContent =
+                session.start_date_time ? new Date(session.start_date_time).toLocaleString('es-ES') : '-';
+            document.getElementById('sessionDetailEndTime').textContent =
+                session.end_date_time ? new Date(session.end_date_time).toLocaleString('es-ES') : 'En progreso';
+            document.getElementById('sessionDetailKwh').textContent =
+                session.kwh !== undefined && session.kwh !== null ? parseFloat(session.kwh).toFixed(2) : '-';
+
+            // Ubicación
+            document.getElementById('sessionDetailLocationId').textContent = session.location_id || '-';
+            document.getElementById('sessionDetailEvseUid').textContent = session.evse_uid || '-';
+            document.getElementById('sessionDetailConnectorId').textContent = session.connector_id || '-';
+
+            // Token
+            if (session.cdr_token) {
+                document.getElementById('sessionDetailTokenUid').textContent = session.cdr_token.uid || '-';
+                document.getElementById('sessionDetailTokenType').textContent = session.cdr_token.type || '-';
+                document.getElementById('sessionDetailTokenContract').textContent = session.cdr_token.contract_id || '-';
+            } else {
+                document.getElementById('sessionDetailTokenUid').textContent = '-';
+                document.getElementById('sessionDetailTokenType').textContent = '-';
+                document.getElementById('sessionDetailTokenContract').textContent = '-';
+            }
+
+            // Autenticación
+            document.getElementById('sessionDetailAuthMethod').textContent = session.auth_method || '-';
+            document.getElementById('sessionDetailAuthRef').textContent = session.authorization_reference || 'N/A';
+
+            // Costo
+            document.getElementById('sessionDetailCurrency').textContent = session.currency || '-';
+            if (session.total_cost) {
+                const cost = typeof session.total_cost === 'object'
+                    ? session.total_cost.excl_vat
+                    : session.total_cost;
+                document.getElementById('sessionDetailTotalCost').textContent =
+                    cost !== undefined && cost !== null ? `${parseFloat(cost).toFixed(2)} ${session.currency || ''}` : 'N/A';
+            } else {
+                document.getElementById('sessionDetailTotalCost').textContent = 'N/A';
+            }
+
+            // Períodos de carga
+            const chargingPeriodsContainer = document.getElementById('sessionDetailChargingPeriods');
+            if (session.charging_periods && Array.isArray(session.charging_periods) && session.charging_periods.length > 0) {
+                chargingPeriodsContainer.innerHTML = session.charging_periods.map((period, index) => `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6 class="card-title">Período ${index + 1}</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small><strong>Inicio:</strong></small>
+                                    <p>${period.start_date_time ? new Date(period.start_date_time).toLocaleString('es-ES') : '-'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <small><strong>Tariff ID:</strong></small>
+                                    <p class="font-monospace">${period.tariff_id || 'N/A'}</p>
+                                </div>
+                            </div>
+                            ${period.dimensions && period.dimensions.length > 0 ? `
+                                <small><strong>Dimensiones:</strong></small>
+                                <ul class="list-unstyled">
+                                    ${period.dimensions.map(dim => `
+                                        <li><span class="badge bg-secondary">${dim.type}</span>: ${dim.volume}</li>
+                                    `).join('')}
+                                </ul>
+                            ` : '<p class="text-muted">Sin dimensiones</p>'}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                chargingPeriodsContainer.innerHTML = '<p class="text-muted">No hay períodos de carga</p>';
+            }
+
+            // Información adicional
+            document.getElementById('sessionDetailMeterId').textContent = session.meter_id || 'N/A';
+            document.getElementById('sessionDetailLastUpdated').textContent =
+                session.last_updated ? new Date(session.last_updated).toLocaleString('es-ES') : '-';
+
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('sessionDetailModal'));
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error mostrando detalles de sesión:', error);
+            this.showNotification('Error cargando detalles de la sesión: ' + error.message, 'error');
+        }
     }
 
     async endSession(sessionId) {
@@ -9451,45 +9569,46 @@ class DashboardApp {
     // Obtener locations del CPO
     async getCpoLocations() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value;
+            console.log('🌐 Consultando Locations de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🌐 Consultando locations del CPO:', cpoUrl);
-            
-            // Crear headers con soporte para ngrok
-            const headers = this.createCpoHeaders(cpoToken);
-            if (this.isNgrokUrl(cpoUrl)) {
-                headers['ngrok-skip-browser-warning'] = 'true';
-            }
-
-            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/locations`, {
-                headers: headers
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-locations`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
+
             const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
-            
-            console.log('✅ Locations del CPO obtenidas exitosamente');
-            
-            // Guardar las locations en nuestra base de datos
-            if (data.data && Array.isArray(data.data)) {
-                console.log(`💾 Guardando ${data.data.length} locations en base de datos...`);
-                await this.saveCpoLocationsToDatabase(cpoUrl, cpoToken, cpoVersion, data.data);
+
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE LOCATIONS\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de locations encontradas: ${data.metadata?.total_locations || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Locations guardadas en BD: ${data.metadata?.locations_saved || 0}\n`;
+            responseText += `⚠️ Locations duplicadas (saltadas): ${data.metadata?.locations_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
+
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
             }
-            
+
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ Locations obtenidas y guardadas exitosamente');
+
         } catch (error) {
-            console.error('❌ Error consultando CPO:', error);
+            console.error('❌ Error consultando locations:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
@@ -9649,71 +9768,60 @@ class DashboardApp {
     // Obtener tariffs del CPO y guardarlos en BD
     async getCpoTariffs() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+            console.log('🌐 Consultando Tariffs de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🌐 Consultando tariffs del CPO:', cpoUrl);
-            
-            // Crear headers con soporte para ngrok
-            const headers = this.createCpoHeaders(cpoToken);
-            if (this.isNgrokUrl(cpoUrl)) {
-                headers['ngrok-skip-browser-warning'] = 'true';
-            }
-
-            const response = await fetch(`${cpoUrl}/ocpi/cpo/${cpoVersion}/tariffs`, {
-                headers: headers
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-tariffs`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            
-            const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
-            
-            console.log('✅ Tariffs del CPO obtenidos exitosamente');
 
-            // Guardar los tariffs en la tabla emsp_tariffs
-            if (data.data && Array.isArray(data.data)) {
-                console.log(`💾 Guardando ${data.data.length} tariffs en tabla emsp_tariffs...`);
-                await this.saveCpoTariffsToDatabase(data.data);
+            const data = await response.json();
+
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE TARIFFS\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de tariffs encontradas: ${data.metadata?.total_tariffs || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Tariffs guardadas en BD: ${data.metadata?.tariffs_saved || 0}\n`;
+            responseText += `⚠️ Tariffs duplicadas (saltadas): ${data.metadata?.tariffs_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
+
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
             }
-            
+
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ Tariffs obtenidas y guardadas exitosamente');
+
         } catch (error) {
-            console.error('❌ Error consultando CPO:', error);
+            console.error('❌ Error consultando tariffs:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
 
-    // Obtener tokens del CPO externo usando /ocpi/emsp/2.2/tokens
+    // Obtener tokens del CPO externo usando /emsp/2.2/tokens
     async getCpoTokens() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+            console.log('🌐 Consultando Tokens de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🔑 Consultando tokens del CPO usando endpoint /emsp/2.2/tokens:', cpoUrl);
-
-            // Crear headers con soporte para ngrok
-            const headers = this.createCpoHeaders(cpoToken);
-            if (this.isNgrokUrl(cpoUrl)) {
-                headers['ngrok-skip-browser-warning'] = 'true';
-            }
-
-            const response = await fetch(`${cpoUrl}/ocpi/emsp/${cpoVersion}/tokens`, {
-                headers: headers
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-tokens`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
             if (!response.ok) {
@@ -9722,18 +9830,31 @@ class DashboardApp {
             }
 
             const data = await response.json();
-            this.showCpoResponse(JSON.stringify(data, null, 2), 'success');
 
-            console.log('✅ Tokens del CPO externo obtenidos exitosamente');
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE TOKENS\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de tokens encontrados: ${data.metadata?.total_tokens || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 Tokens guardados en BD: ${data.metadata?.tokens_saved || 0}\n`;
+            responseText += `⚠️ Tokens duplicados (saltados): ${data.metadata?.tokens_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
 
-            // Guardar los tokens en la tabla emsp_tokens
-            if (data.data && Array.isArray(data.data)) {
-                console.log(`💾 Guardando ${data.data.length} tokens en tabla emsp_tokens...`);
-                await this.saveEmspTokensToDatabase(data.data);
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
             }
 
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ Tokens obtenidos y guardados exitosamente');
+
         } catch (error) {
-            console.error('❌ Error consultando tokens del CPO:', error);
+            console.error('❌ Error consultando tokens:', error);
             this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
@@ -10700,32 +10821,14 @@ class DashboardApp {
     // Obtener CDRs del CPO
     async getCpoCdrs() {
         try {
-            const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
-            const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+            console.log('🌐 Consultando CDRs de organizaciones externas conectadas...');
 
-            if (!cpoUrl || !cpoToken) {
-                this.showCpoResponse('❌ Error: URL y Token del CPO son obligatorios', 'error');
-                return;
-            }
-
-            console.log('🧾 Obteniendo CDRs del CPO:', cpoUrl);
-            
-            // Construir URL para obtener CDRs
-            const cdrsUrl = `${cpoUrl}/ocpi/cpo/${cpoVersion}/cdrs`;
-            
-            console.log('📡 Enviando petición GET a:', cdrsUrl);
-            
-            const response = await fetch(cdrsUrl, {
-                method: 'GET',
+            const response = await fetch(`${this.baseUrl}/emsp/actions/get-external-cdrs`, {
                 headers: {
-                    'Authorization': `Token ${cpoToken}`,
-                    'Content-Type': 'application/json',
-                    'User-Agent': `${window.OCPI_PARTY_ID}-EMSP-OCPI-${window.OCPI_VERSION}`
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`,
+                    'Content-Type': 'application/json'
                 }
             });
-
-            console.log('📊 Respuesta recibida:', response.status, response.statusText);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -10733,22 +10836,32 @@ class DashboardApp {
             }
 
             const data = await response.json();
-            console.log('✅ CDRs obtenidos exitosamente:', data);
 
-            // Formatear la respuesta para mostrar
-            const formattedResponse = `🧾 CDRs obtenidos del CPO:
-📋 URL: ${cdrsUrl}
-📊 Total de CDRs: ${data.data ? data.data.length : 0}
-📅 Timestamp: ${data.timestamp || new Date().toISOString()}
+            // Formatear la respuesta para mostrar información útil
+            let responseText = `📊 RESULTADO DE CONSULTA Y GUARDADO DE CDRs\n`;
+            responseText += `===============================================\n\n`;
+            responseText += `📈 Total de CDRs encontrados: ${data.metadata?.total_cdrs || 0}\n`;
+            responseText += `🏢 Organizaciones consultadas: ${data.metadata?.organizations_consulted || 0}\n`;
+            responseText += `💾 CDRs guardados en BD: ${data.metadata?.cdrs_saved || 0}\n`;
+            responseText += `⚠️ CDRs duplicados (saltados): ${data.metadata?.cdrs_duplicates || 0}\n`;
+            responseText += `⏰ Fecha de consulta: ${data.metadata?.timestamp || 'N/A'}\n\n`;
 
-📄 Datos recibidos:
-${JSON.stringify(data, null, 2)}`;
+            if (data.metadata?.errors && data.metadata.errors.length > 0) {
+                responseText += `⚠️ ERRORES ENCONTRADOS:\n`;
+                data.metadata.errors.forEach((error, index) => {
+                    responseText += `   ${index + 1}. ${error}\n`;
+                });
+                responseText += `\n`;
+            }
 
-            this.showCpoResponse(formattedResponse, 'success');
+            responseText += `✅ Operación completada exitosamente`;
+
+            this.showCpoResponse(responseText, 'success');
+            console.log('✅ CDRs obtenidos y guardados exitosamente');
 
         } catch (error) {
-            console.error('❌ Error obteniendo CDRs del CPO:', error);
-            this.showCpoResponse(`❌ Error obteniendo CDRs: ${error.message}`, 'error');
+            console.error('❌ Error consultando CDRs:', error);
+            this.showCpoResponse(`❌ Error: ${error.message}`, 'error');
         }
     }
 
@@ -11693,9 +11806,53 @@ ${JSON.stringify(data, null, 2)}`;
                 console.warn('⚠️ Elemento toggleTariffsView no encontrado');
             }
             
+            // Event listeners para errores de validación
+            const refreshValidationErrors = document.getElementById('refreshValidationErrors');
+            if (refreshValidationErrors) {
+                refreshValidationErrors.addEventListener('click', () => {
+                    console.log('🔄 Botón refreshValidationErrors clickeado');
+                    this.loadValidationErrors();
+                });
+                console.log('✅ Event listener para refreshValidationErrors agregado');
+            }
+
+            const clearValidationErrors = document.getElementById('clearValidationErrors');
+            if (clearValidationErrors) {
+                clearValidationErrors.addEventListener('click', () => {
+                    console.log('🗑️ Botón clearValidationErrors clickeado');
+                    this.clearValidationErrors();
+                });
+                console.log('✅ Event listener para clearValidationErrors agregado');
+            }
+
+            const prevValidationErrors = document.getElementById('prevValidationErrors');
+            if (prevValidationErrors) {
+                prevValidationErrors.addEventListener('click', () => {
+                    if (this.validationErrorsPage > 0) {
+                        this.validationErrorsPage--;
+                        this.loadValidationErrors();
+                    }
+                });
+            }
+
+            const nextValidationErrors = document.getElementById('nextValidationErrors');
+            if (nextValidationErrors) {
+                nextValidationErrors.addEventListener('click', () => {
+                    this.validationErrorsPage++;
+                    this.loadValidationErrors();
+                });
+            }
+
+            const deleteThisValidationError = document.getElementById('deleteThisValidationError');
+            if (deleteThisValidationError) {
+                deleteThisValidationError.addEventListener('click', () => {
+                    this.deleteValidationError(this.currentValidationErrorId);
+                });
+            }
+
             // Configurar actualización automática cada 30 segundos
             this.setupTestAutoRefresh();
-            
+
             console.log('✅ Event listeners para pestaña Test configurados');
         } catch (error) {
             console.error('❌ Error configurando event listeners para pestaña Test:', error);
@@ -11914,16 +12071,19 @@ ${JSON.stringify(data, null, 2)}`;
     async loadTestData() {
         try {
             console.log('📊 Cargando datos para pestaña Test...');
-            
+
             // Actualizar estado de los servicios
             await this.updateServiceStatus();
-            
+
             // Cargar estadísticas de pruebas
             this.loadTestStatistics();
-            
+
             // Cargar log de errores
             await this.loadErrorLog();
-            
+
+            // Cargar errores de validación
+            await this.loadValidationErrors();
+
             console.log('✅ Datos de pestaña Test cargados');
         } catch (error) {
             console.error('❌ Error cargando datos para pestaña Test:', error);
@@ -12218,52 +12378,443 @@ ${JSON.stringify(data, null, 2)}`;
     async clearTestErrors() {
         try {
             console.log('🧹 Limpiando errores de la pestaña Test...');
-            
+
             const response = await fetch('/api/test-monitoring/errors', {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 // Limpiar contadores de errores en la UI
                 const evseErrorCount = document.getElementById('evse-error-count');
                 const chargingErrorCount = document.getElementById('charging-error-count');
-                
+
                 if (evseErrorCount) {
                     evseErrorCount.textContent = '0';
                 }
-                
+
                 if (chargingErrorCount) {
                     chargingErrorCount.textContent = '0';
                 }
-                
+
                 // Limpiar log de errores
                 this.clearErrorLog();
-                
+
                 // Ocultar badge de error
                 this.hideErrorBadge();
-                
+
                 this.showNotification('Errores limpiados exitosamente', 'success');
-                
+
                 console.log('✅ Errores limpiados desde el backend');
             } else {
                 throw new Error(result.error || 'Error desconocido');
             }
-            
+
         } catch (error) {
             console.error('❌ Error limpiando errores de la pestaña Test:', error);
             this.showNotification('Error limpiando errores: ' + error.message, 'error');
         }
     }
-    
+
+    /**
+     * Carga los errores de validación desde la API
+     */
+    async loadValidationErrors() {
+        try {
+            const limit = 20;
+            const offset = (this.validationErrorsPage || 0) * limit;
+
+            const response = await fetch(`${this.baseUrl}/api/validation-errors?limit=${limit}&offset=${offset}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Update total count
+            const totalElement = document.getElementById('validationErrorsTotal');
+            if (totalElement) {
+                totalElement.textContent = data.pagination?.total || 0;
+            }
+
+            // Update navbar badge count
+            this.updateValidationErrorsBadge(data.pagination?.total || 0);
+
+            // Update pagination buttons
+            const prevBtn = document.getElementById('prevValidationErrors');
+            const nextBtn = document.getElementById('nextValidationErrors');
+
+            if (prevBtn) {
+                prevBtn.disabled = offset === 0;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = offset + limit >= (data.pagination?.total || 0);
+            }
+
+            // Update table
+            const tableBody = document.getElementById('validationErrorsTable');
+            if (!tableBody) return;
+
+            if (!data.data || data.data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            <i class="bi bi-check-circle text-success"></i> No hay errores de validación registrados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.data.map(error => {
+                const timestamp = new Date(error.timestamp).toLocaleString('es-ES');
+                const errorCount = Array.isArray(error.validation_errors) ? error.validation_errors.length : 0;
+                const errorSummary = Array.isArray(error.validation_errors)
+                    ? error.validation_errors.map(e => e.field).slice(0, 2).join(', ') + (errorCount > 2 ? '...' : '')
+                    : 'N/A';
+
+                return `
+                    <tr>
+                        <td><small class="font-monospace">${error.id}</small></td>
+                        <td><small class="font-monospace">${error.endpoint || 'N/A'}</small></td>
+                        <td><span class="badge bg-${this.getMethodBadgeColor(error.method)}">${error.method || 'N/A'}</span></td>
+                        <td>
+                            <small class="text-danger">
+                                <i class="bi bi-exclamation-circle"></i> ${errorCount} error${errorCount !== 1 ? 'es' : ''}
+                                ${errorCount > 0 ? `<br><span class="text-muted">${errorSummary}</span>` : ''}
+                            </small>
+                        </td>
+                        <td><small>${timestamp}</small></td>
+                        <td>
+                            <button class="btn btn-outline-info btn-sm" onclick="window.dashboardApp.viewValidationErrorDetail(${error.id})" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('❌ Error cargando errores de validación:', error);
+            const tableBody = document.getElementById('validationErrorsTable');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Error cargando datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    /**
+     * Muestra los detalles de un error de validación en un modal
+     */
+    async viewValidationErrorDetail(errorId) {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/validation-errors/${errorId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const error = result.data;
+
+            // Store current error ID for deletion
+            this.currentValidationErrorId = errorId;
+
+            // Populate modal
+            document.getElementById('errorDetailEndpoint').textContent = error.endpoint || 'N/A';
+            document.getElementById('errorDetailMethod').textContent = error.method || 'N/A';
+            document.getElementById('errorDetailIp').textContent = error.ip_address || 'N/A';
+            document.getElementById('errorDetailUserAgent').textContent = error.user_agent || 'N/A';
+            document.getElementById('errorDetailTimestamp').textContent = new Date(error.timestamp).toLocaleString('es-ES');
+
+            // Validation errors table
+            const errorsTable = document.getElementById('errorDetailValidationErrors');
+            if (error.validation_errors && error.validation_errors.length > 0) {
+                errorsTable.innerHTML = error.validation_errors.map(err => `
+                    <tr>
+                        <td><code>${err.field || 'N/A'}</code></td>
+                        <td>${err.message || 'N/A'}</td>
+                        <td><small class="text-muted">${err.type || 'N/A'}</small></td>
+                    </tr>
+                `).join('');
+            } else {
+                errorsTable.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No hay errores</td></tr>';
+            }
+
+            // Request body
+            const requestBody = document.getElementById('errorDetailRequestBody');
+            try {
+                const parsedBody = JSON.parse(error.request_body);
+                requestBody.textContent = JSON.stringify(parsedBody, null, 2);
+            } catch {
+                requestBody.textContent = error.request_body || 'N/A';
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('validationErrorDetailModal'));
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error cargando detalles del error:', error);
+            this.showNotification('Error cargando detalles: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Elimina un error de validación específico
+     */
+    async deleteValidationError(errorId) {
+        try {
+            if (!confirm('¿Estás seguro de que quieres eliminar este error de validación?')) {
+                return;
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/validation-errors/${errorId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Error eliminado exitosamente', 'success');
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('validationErrorDetailModal'));
+            if (modal) {
+                modal.hide();
+            }
+
+            // Reload errors list
+            await this.loadValidationErrors();
+
+        } catch (error) {
+            console.error('❌ Error eliminando error de validación:', error);
+            this.showNotification('Error eliminando: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Limpia todos los errores de validación
+     */
+    async clearValidationErrors() {
+        try {
+            if (!confirm('¿Estás seguro de que quieres borrar TODOS los errores de validación?')) {
+                return;
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/validation-errors`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Todos los errores han sido eliminados', 'success');
+            this.validationErrorsPage = 0;
+            await this.loadValidationErrors();
+
+        } catch (error) {
+            console.error('❌ Error limpiando errores de validación:', error);
+            this.showNotification('Error limpiando errores: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Obtiene el color del badge según el método HTTP
+     */
+    getMethodBadgeColor(method) {
+        const colors = {
+            'GET': 'primary',
+            'POST': 'success',
+            'PUT': 'warning',
+            'PATCH': 'info',
+            'DELETE': 'danger'
+        };
+        return colors[method] || 'secondary';
+    }
+
+    /**
+     * Actualiza el contador de errores de validación en el navbar
+     */
+    updateValidationErrorsBadge(count) {
+        const badge = document.getElementById('validation-errors-count');
+        const badgeContainer = document.getElementById('validation-errors-count-badge');
+
+        if (badge && badgeContainer) {
+            const previousCount = parseInt(badge.textContent) || 0;
+            badge.textContent = count || 0;
+
+            // Si hay errores, mostrar el badge, sino ocultarlo
+            if (count > 0) {
+                badgeContainer.style.display = 'inline';
+
+                // Agregar animación si el contador aumentó
+                if (count > previousCount) {
+                    badge.classList.add('badge-pulse');
+                    setTimeout(() => {
+                        badge.classList.remove('badge-pulse');
+                    }, 1000);
+                }
+            } else {
+                // Ocultar si no hay errores
+                badgeContainer.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Actualiza periódicamente el contador de errores de validación
+     */
+    async updateValidationErrorsCount() {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/validation-errors?limit=1&offset=0`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.updateValidationErrorsBadge(data.pagination?.total || 0);
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando contador de errores de validación:', error);
+        }
+    }
+
+    /**
+     * Inicia la actualización automática del contador de errores de validación
+     */
+    startValidationErrorsPolling() {
+        // Actualizar inmediatamente
+        this.updateValidationErrorsCount();
+
+        // Actualizar cada 30 segundos
+        if (this.validationErrorsPollingInterval) {
+            clearInterval(this.validationErrorsPollingInterval);
+        }
+        this.validationErrorsPollingInterval = setInterval(() => {
+            this.updateValidationErrorsCount();
+        }, 30000); // 30 segundos
+    }
+
+    /**
+     * Actualiza el banner de sesión activa en el navbar
+     */
+    async updateActiveSessionBanner() {
+        try {
+            const banner = document.getElementById('active-session-banner');
+            const message = document.getElementById('active-session-message');
+
+            if (!banner || !message) {
+                console.log('⚠️ Banner o mensaje no encontrado');
+                return;
+            }
+
+            // Verificar sesiones activas del CPO (nuestras sesiones)
+            const cpoActiveSessions = this.allSessions.filter(s => s.status === 'ACTIVE');
+
+            // Verificar sesiones externas activas (eMSP sobre nosotros)
+            let emspActiveSessions = [];
+            try {
+                const response = await fetch(`${this.baseUrl}/ocpi/emsp/2.2/sessions?status=ACTIVE`, {
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    emspActiveSessions = (data.data || []).filter(s => s.status === 'ACTIVE');
+                    console.log('📊 Sesiones eMSP activas encontradas:', emspActiveSessions.length);
+                } else {
+                    console.warn('⚠️ Error obteniendo sesiones eMSP:', response.status);
+                }
+            } catch (error) {
+                console.error('Error obteniendo sesiones eMSP:', error);
+            }
+
+            // Construir mensaje
+            const messages = [];
+
+            if (cpoActiveSessions.length > 0) {
+                cpoActiveSessions.forEach(session => {
+                    messages.push(`⚡ CPO → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por CPO: ${session.id.substring(0, 8)}...)`);
+                });
+            }
+
+            if (emspActiveSessions.length > 0) {
+                emspActiveSessions.forEach(session => {
+                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.emsp_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
+                });
+            }
+
+            console.log(`📢 Total sesiones activas: CPO=${cpoActiveSessions.length}, eMSP=${emspActiveSessions.length}`);
+
+            if (messages.length > 0) {
+                message.textContent = messages.join('  •  ');
+                banner.style.display = 'block';
+                console.log('✅ Banner mostrado:', messages.join('  •  '));
+            } else {
+                banner.style.display = 'none';
+                console.log('ℹ️ Banner oculto - no hay sesiones activas');
+            }
+
+        } catch (error) {
+            console.error('❌ Error actualizando banner de sesión activa:', error);
+        }
+    }
+
+    /**
+     * Inicia la actualización automática del banner de sesiones activas
+     */
+    startActiveSessionBannerPolling() {
+        // Actualizar inmediatamente
+        this.updateActiveSessionBanner();
+
+        // Actualizar cada 10 segundos
+        if (this.activeSessionBannerPollingInterval) {
+            clearInterval(this.activeSessionBannerPollingInterval);
+        }
+        this.activeSessionBannerPollingInterval = setInterval(() => {
+            this.updateActiveSessionBanner();
+        }, 10000); // 10 segundos
+    }
+
     /**
      * Activa o desactiva todos los jobs
      */
