@@ -367,9 +367,9 @@ async function validateSessionPutMiddleware(req, res, next) {
 }
 
 /**
- * Session PATCH body validator (all fields optional)
+ * Session PATCH body validator (all fields optional except last_updated)
  * Allows partial updates according to OCPI 2.2 spec
- * Note: last_updated is optional to support non-compliant eMSPs
+ * Note: OCPI 2.2 requires last_updated in ALL PATCH requests
  */
 const sessionPatchBodySchema = Joi.object({
   country_code: ciString(2).optional(),
@@ -389,13 +389,14 @@ const sessionPatchBodySchema = Joi.object({
   charging_periods: Joi.array().items(chargingPeriodSchema).optional(),
   total_cost: priceSchema.optional(),
   status: Joi.string().valid(...SESSION_STATUSES).optional(),
-  last_updated: dateTime().optional()
+  last_updated: dateTime().required()
     .messages({
+      'any.required': 'last_updated is required in PATCH requests (OCPI 2.2 specification)',
       'string.isoDate': 'last_updated must be a valid ISO 8601 datetime'
     })
-}).min(1) // At least 1 field to update
+}).min(2) // At least last_updated + 1 other field
   .messages({
-    'object.min': 'PATCH request must include at least one field to update'
+    'object.min': 'PATCH request must include at least one field to update besides last_updated'
   });
 
 /**
@@ -519,11 +520,6 @@ async function validateSessionPatchMiddleware(req, res, next) {
       timestamp: new Date().toISOString(),
       errors: validation.errors
     });
-  }
-
-  // If last_updated is not provided, add current timestamp
-  if (!validation.value.last_updated) {
-    validation.value.last_updated = new Date().toISOString();
   }
 
   // Store validated data in request for use in route handler
