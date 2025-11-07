@@ -49,11 +49,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Logs de depuración en consola del navegador para facilitar troubleshooting
 
 ### Changed
-- **Validador de Session PATCH**: Modificado para mayor flexibilidad con eMSPs no conformes
-  - Campo `last_updated` cambiado de requerido a opcional en peticiones PATCH
-  - Auto-generación de timestamp cuando `last_updated` no está presente
-  - Requisito mínimo reducido de 2 campos a 1 campo para permitir actualizaciones más granulares
-  - Comentarios actualizados indicando soporte para eMSPs no conformes con OCPI 2.2 estricto
+- **Validador de Session PATCH**: Reforzada validación estricta según especificación OCPI 2.2
+  - Campo `last_updated` es OBLIGATORIO en peticiones PATCH según estándar OCPI 2.2
+  - Mensaje de error claro indicando el requerimiento del estándar OCPI
+  - Requisito mínimo: `last_updated` + al menos 1 campo adicional para actualizar
+  - Validación estricta para garantizar conformidad con OCPI 2.2
 
 ### Fixed
 - **Corrección de inserción de sessions**: Corregido manejo de `total_cost` para evitar errores de tipo en PostgreSQL
