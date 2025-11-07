@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-01-07
+
+### Fixed
+- **Error 500 en pestaña Test**: Corregido error que impedía cargar la sección de errores de validación en el dashboard
+  - La tabla `validation_errors` no existía en bases de datos existentes
+  - Agregada tabla `validation_errors` al script `init_database.sql` para instalaciones nuevas
+  - Tabla incluye todos los campos necesarios: endpoint, method, request_body, validation_errors (JSONB), ip_address, user_agent, timestamp
+  - Índices optimizados en `timestamp` y `endpoint` para consultas eficientes
+  - Comentarios descriptivos en todas las columnas para documentación
+
+### Added
+- **Script de migración**: Creado `migrate_validation_errors_table.sql` para actualizar bases de datos existentes
+  - Permite migrar bases de datos que ya están en producción sin perder datos
+  - Script idempotente con `CREATE TABLE IF NOT EXISTS` para ejecución segura
+  - Incluye verificación final para confirmar éxito de la migración
+
 ## [2.0.0] - 2025-01-17
 
 ### Added
