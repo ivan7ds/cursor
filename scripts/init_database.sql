@@ -162,6 +162,28 @@ CREATE TABLE IF NOT EXISTS ocpi_tokens (
     metadata JSON
 );
 
+-- Create validation_errors table for tracking validation failures
+CREATE TABLE IF NOT EXISTS validation_errors (
+    id SERIAL PRIMARY KEY,
+    endpoint VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    request_body TEXT,
+    validation_errors JSONB NOT NULL,
+    ip_address VARCHAR(50),
+    user_agent TEXT,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Add comments to validation_errors columns
+COMMENT ON COLUMN validation_errors.endpoint IS 'API endpoint that received the invalid request';
+COMMENT ON COLUMN validation_errors.method IS 'HTTP method (GET, POST, PUT, PATCH, DELETE)';
+COMMENT ON COLUMN validation_errors.request_body IS 'JSON string of the request body that failed validation';
+COMMENT ON COLUMN validation_errors.validation_errors IS 'Array of validation error details from Joi';
+COMMENT ON COLUMN validation_errors.ip_address IS 'IP address of the client that sent the request';
+COMMENT ON COLUMN validation_errors.user_agent IS 'User agent string from the request';
+COMMENT ON COLUMN validation_errors.timestamp IS 'When the validation error occurred';
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_locations_country_party ON locations(country_code, party_id);
 CREATE INDEX IF NOT EXISTS idx_locations_last_updated ON locations(last_updated);
@@ -188,6 +210,8 @@ CREATE INDEX IF NOT EXISTS idx_credentials_external_party_id ON credentials(exte
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_token ON ocpi_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_party ON ocpi_tokens(party_id, country_code);
 CREATE INDEX IF NOT EXISTS idx_ocpi_tokens_active ON ocpi_tokens(is_active);
+CREATE INDEX IF NOT EXISTS idx_validation_errors_timestamp ON validation_errors(timestamp);
+CREATE INDEX IF NOT EXISTS idx_validation_errors_endpoint ON validation_errors(endpoint);
 
 -- Create foreign key constraints
 ALTER TABLE evses ADD CONSTRAINT fk_evses_location_id 
