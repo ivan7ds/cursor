@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-01-24
+
+### Added
+- **Variable de entorno para protección SSRF**: Implementada configuración `ENABLE_SSRF_PROTECTION` para controlar protección contra SSRF
+  - Por defecto habilitada (`true`) para mantener seguridad en producción
+  - Configurable a `false` para entornos de desarrollo que requieren acceso a localhost
+  - Aplicada en función `validateAndSanitizeUrl` en endpoint de handshake OCPI
+  - Permite conexiones a URLs locales (localhost, 127.0.0.1) cuando está deshabilitada
+  - Documentada en archivo `env.example` para facilitar configuración
+
+### Fixed
+- **Fecha "Invalid Date" en tabla Tokens**: Corregido problema en pestaña Tokens del dashboard
+  - Endpoint `/ocpi/emsp/2.2/tokens` ahora incluye campo `created_at` en consulta SQL
+  - Frontend puede mostrar correctamente la fecha de creación de tokens
+  - Eliminado error "Invalid Date" en columna "Creado" de la tabla
+
 ## [2.0.1] - 2025-01-07
 
 ### Fixed

@@ -14,41 +14,46 @@ const { URL } = require('url');
 function validateAndSanitizeUrl(url) {
     try {
         const parsedUrl = new URL(url);
-        
+
         // Solo permitir HTTPS y HTTP
         if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
             return null;
         }
-        
-        // Bloquear URLs internas y locales
-        const hostname = parsedUrl.hostname.toLowerCase();
-        const blockedHosts = [
-            'localhost',
-            '127.0.0.1',
-            '0.0.0.0',
-            '::1',
-            '0:0:0:0:0:0:0:1',
-            '169.254.169.254', // AWS metadata
-            '10.0.0.0/8',
-            '172.16.0.0/12',
-            '192.168.0.0/16'
-        ];
-        
-        // Verificar hosts bloqueados
-        for (const blockedHost of blockedHosts) {
-            if (hostname === blockedHost || hostname.startsWith(blockedHost)) {
+
+        // Verificar si la protección SSRF está habilitada (por defecto: true)
+        const ssrfProtectionEnabled = process.env.ENABLE_SSRF_PROTECTION !== 'false';
+
+        if (ssrfProtectionEnabled) {
+            // Bloquear URLs internas y locales
+            const hostname = parsedUrl.hostname.toLowerCase();
+            const blockedHosts = [
+                'localhost',
+                '127.0.0.1',
+                '0.0.0.0',
+                '::1',
+                '0:0:0:0:0:0:0:1',
+                '169.254.169.254', // AWS metadata
+                '10.0.0.0/8',
+                '172.16.0.0/12',
+                '192.168.0.0/16'
+            ];
+
+            // Verificar hosts bloqueados
+            for (const blockedHost of blockedHosts) {
+                if (hostname === blockedHost || hostname.startsWith(blockedHost)) {
+                    return null;
+                }
+            }
+
+            // Verificar rangos de IP privadas
+            if (isPrivateIP(hostname)) {
                 return null;
             }
         }
-        
-        // Verificar rangos de IP privadas
-        if (isPrivateIP(hostname)) {
-            return null;
-        }
-        
+
         // Retornar URL sanitizada
         return parsedUrl.toString();
-        
+
     } catch (error) {
         return null;
     }

@@ -483,7 +483,7 @@ router.get('/tokens', authMiddleware, async (req, res) => {
         
         // Consultar tokens de la tabla tokens donde party_id sea IPD
         const [results] = await sequelize.query(`
-            SELECT 
+            SELECT
                 id,
                 country_code,
                 party_id,
@@ -498,8 +498,9 @@ router.get('/tokens', authMiddleware, async (req, res) => {
                 language,
                 default_profile_type,
                 energy_contract,
-                last_updated
-            FROM tokens 
+                last_updated,
+                created_at
+            FROM tokens
             WHERE party_id = '${process.env.OCPI_PARTY_ID}'
             ORDER BY last_updated DESC
         `);
