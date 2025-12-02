@@ -7,6 +7,35 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-12-02
+
+### Added
+- **Funcionalidad de eliminación de tokens**: Implementado sistema completo para eliminar tokens individuales o múltiples
+  - Columna de checkbox en cada fila de la tabla de tokens para selección individual
+  - Checkbox en el header de la tabla para seleccionar/deseleccionar todos los tokens de la página
+  - Botón "Seleccionar Todos" en el header de la pestaña Tokens
+  - Botón "Eliminar Seleccionados" que se habilita automáticamente cuando hay tokens seleccionados
+  - Confirmación antes de eliminar tokens (individual o múltiple)
+  - Eliminación en paralelo de múltiples tokens usando `Promise.allSettled`
+  - Notificaciones de éxito/error con contador de tokens eliminados
+  - Recarga automática de la lista después de eliminar tokens
+  - Estado visual del checkbox principal (indeterminado cuando hay selección parcial)
+
+### Changed
+- **Formulario de creación de tokens**: Mejorado formulario de registro de tokens con validaciones OCPI 2.2
+  - Campo "ID de Contrato" marcado como obligatorio (requerido según OCPI 2.2)
+  - Campo "Contrato de Energía" actualizado con estructura de campos separados
+  - Campo "Nombre del Proveedor" (supplier_name) obligatorio cuando se completa el contrato de energía
+  - Campo "ID del Contrato de Energía" (contract_id) opcional dentro del objeto energy_contract
+  - Validación condicional: si se completa el contrato de energía, supplier_name es obligatorio
+  - Texto de ayuda explicando los requisitos del contrato de energía
+  - Construcción correcta del objeto `energy_contract` según especificación OCPI 2.2
+
+### Fixed
+- **Validación de campos de token**: Corregida validación para cumplir estrictamente con OCPI 2.2
+  - Validación en frontend y backend para garantizar que contract_id sea obligatorio
+  - Validación condicional de energy_contract con supplier_name obligatorio cuando se proporciona
+
 ## [2.1.0] - 2025-01-24
 
 ### Added

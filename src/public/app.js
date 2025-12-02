@@ -1005,6 +1005,30 @@ class DashboardApp {
                 console.warn('⚠️ Elemento createTokenBtn no encontrado');
             }
 
+            // Botón para seleccionar todos los tokens
+            const selectAllTokensBtn = document.getElementById('selectAllTokensBtn');
+            if (selectAllTokensBtn) {
+                selectAllTokensBtn.addEventListener('click', () => {
+                    console.log('☑️ Botón selectAllTokensBtn clickeado');
+                    this.toggleSelectAllTokens();
+                });
+                console.log('✅ Event listener para selectAllTokensBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento selectAllTokensBtn no encontrado');
+            }
+
+            // Botón para eliminar tokens seleccionados
+            const deleteSelectedTokensBtn = document.getElementById('deleteSelectedTokensBtn');
+            if (deleteSelectedTokensBtn) {
+                deleteSelectedTokensBtn.addEventListener('click', () => {
+                    console.log('🗑️ Botón deleteSelectedTokensBtn clickeado');
+                    this.deleteSelectedTokens();
+                });
+                console.log('✅ Event listener para deleteSelectedTokensBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento deleteSelectedTokensBtn no encontrado');
+            }
+
             const tokensPrevPage = document.getElementById('tokensPrevPage');
             if (tokensPrevPage) {
                 tokensPrevPage.addEventListener('click', () => {
@@ -3339,7 +3363,7 @@ class DashboardApp {
         if (tokens.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-muted">
+                    <td colspan="8" class="text-center text-muted">
                         <i class="bi ${totalTokens > 0 ? 'bi-funnel' : 'bi-inbox'}"></i> ${totalTokens > 0 ? 'No se encontraron tokens para esta página' : 'No hay tokens disponibles'}
                     </td>
                 </tr>
@@ -3349,6 +3373,9 @@ class DashboardApp {
 
         tbody.innerHTML = tokens.map(token => `
             <tr class="fade-in">
+                <td>
+                    <input type="checkbox" class="token-checkbox" data-token-id="${token.id}" data-token-uid="${token.uid}">
+                </td>
                 <td><code>${this.truncateToken(token.uid)}</code></td>
                 <td><code>${token.party_id}</code></td>
                 <td>${token.country_code}</td>
@@ -3363,7 +3390,157 @@ class DashboardApp {
             </tr>
         `).join('');
         
+        // Configurar event listeners para los checkboxes
+        this.setupTokenCheckboxes();
+        
         console.log(`✅ ${tokens.length} tokens renderizados en la página actual`);
+    }
+
+    setupTokenCheckboxes() {
+        try {
+            // Checkbox principal para seleccionar todos
+            const selectAllCheckbox = document.getElementById('selectAllTokensCheckbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', (e) => {
+                    const isChecked = e.target.checked;
+                    const checkboxes = document.querySelectorAll('.token-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                    });
+                    this.updateDeleteButtonState();
+                });
+            }
+
+            // Checkboxes individuales
+            const checkboxes = document.querySelectorAll('.token-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    this.updateSelectAllCheckbox();
+                    this.updateDeleteButtonState();
+                });
+            });
+
+            // Actualizar estado inicial
+            this.updateSelectAllCheckbox();
+            this.updateDeleteButtonState();
+        } catch (error) {
+            console.error('❌ Error configurando checkboxes de tokens:', error);
+        }
+    }
+
+    updateSelectAllCheckbox() {
+        try {
+            const selectAllCheckbox = document.getElementById('selectAllTokensCheckbox');
+            const checkboxes = document.querySelectorAll('.token-checkbox');
+            
+            if (selectAllCheckbox && checkboxes.length > 0) {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando checkbox de seleccionar todos:', error);
+        }
+    }
+
+    updateDeleteButtonState() {
+        try {
+            const deleteBtn = document.getElementById('deleteSelectedTokensBtn');
+            const checkboxes = document.querySelectorAll('.token-checkbox:checked');
+            
+            if (deleteBtn) {
+                deleteBtn.disabled = checkboxes.length === 0;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando estado del botón eliminar:', error);
+        }
+    }
+
+    toggleSelectAllTokens() {
+        try {
+            const selectAllCheckbox = document.getElementById('selectAllTokensCheckbox');
+            if (selectAllCheckbox) {
+                const isCurrentlyChecked = selectAllCheckbox.checked;
+                selectAllCheckbox.checked = !isCurrentlyChecked;
+                selectAllCheckbox.dispatchEvent(new Event('change'));
+            }
+        } catch (error) {
+            console.error('❌ Error alternando selección de todos los tokens:', error);
+        }
+    }
+
+    getSelectedTokenIds() {
+        try {
+            const checkboxes = document.querySelectorAll('.token-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.getAttribute('data-token-id'));
+        } catch (error) {
+            console.error('❌ Error obteniendo IDs de tokens seleccionados:', error);
+            return [];
+        }
+    }
+
+    async deleteSelectedTokens() {
+        try {
+            const selectedIds = this.getSelectedTokenIds();
+            
+            if (selectedIds.length === 0) {
+                this.showNotification('No hay tokens seleccionados para eliminar', 'warning');
+                return;
+            }
+
+            // Confirmar eliminación
+            const confirmMessage = selectedIds.length === 1 
+                ? `¿Está seguro de que desea eliminar el token seleccionado?`
+                : `¿Está seguro de que desea eliminar ${selectedIds.length} tokens seleccionados?`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            console.log(`🗑️ Eliminando ${selectedIds.length} tokens...`);
+            
+            // Eliminar tokens uno por uno
+            const deletePromises = selectedIds.map(tokenId => 
+                fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens/${tokenId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                    }
+                })
+            );
+
+            const results = await Promise.allSettled(deletePromises);
+            
+            // Contar éxitos y errores
+            let successCount = 0;
+            let errorCount = 0;
+            
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value.ok) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    console.error(`❌ Error eliminando token ${selectedIds[index]}:`, result.reason || result.value);
+                }
+            });
+
+            // Mostrar resultado
+            if (errorCount === 0) {
+                this.showNotification(`${successCount} token(s) eliminado(s) exitosamente`, 'success');
+            } else if (successCount > 0) {
+                this.showNotification(`${successCount} token(s) eliminado(s), ${errorCount} error(es)`, 'warning');
+            } else {
+                this.showNotification(`Error al eliminar tokens`, 'error');
+            }
+
+            // Recargar lista de tokens
+            this.loadTokens();
+            
+        } catch (error) {
+            console.error('❌ Error eliminando tokens seleccionados:', error);
+            this.showNotification(`Error al eliminar tokens: ${error.message}`, 'error');
+        }
     }
 
     renderTokensPage() {
@@ -8889,6 +9066,10 @@ class DashboardApp {
             // Limpiar todos los campos
             document.getElementById('createTokenForm').reset();
             
+            // Limpiar campos del contrato de energía (por si acaso)
+            document.getElementById('tokenEnergySupplierName').value = '';
+            document.getElementById('tokenEnergyContractId').value = '';
+            
             // Generar nuevo UID
             this.generateTokenUid();
             
@@ -8970,6 +9151,18 @@ class DashboardApp {
                 return false;
             }
             
+            // Validación adicional: si se completa el contrato de energía, supplier_name es obligatorio
+            const supplierName = document.getElementById('tokenEnergySupplierName').value.trim();
+            const energyContractId = document.getElementById('tokenEnergyContractId').value.trim();
+            
+            if (supplierName || energyContractId) {
+                if (!supplierName) {
+                    this.showNotification('El nombre del proveedor es obligatorio cuando se completa el contrato de energía', 'error');
+                    document.getElementById('tokenEnergySupplierName').focus();
+                    return false;
+                }
+            }
+            
             return true;
         } catch (error) {
             console.error('❌ Error validando formulario de token:', error);
@@ -8979,26 +9172,46 @@ class DashboardApp {
 
     collectTokenFormData() {
         try {
+            // Construir objeto energy_contract si se proporciona información
+            let energy_contract = null;
+            const supplierName = document.getElementById('tokenEnergySupplierName').value.trim();
+            const energyContractId = document.getElementById('tokenEnergyContractId').value.trim();
+            
+            if (supplierName || energyContractId) {
+                // Si se completa algún campo del contrato de energía, supplier_name es obligatorio
+                if (!supplierName) {
+                    throw new Error('El nombre del proveedor es obligatorio cuando se completa el contrato de energía');
+                }
+                
+                energy_contract = {
+                    supplier_name: supplierName
+                };
+                
+                if (energyContractId) {
+                    energy_contract.contract_id = energyContractId;
+                }
+            }
+            
             const formData = {
                 uid: document.getElementById('tokenUid').value,
                 type: document.getElementById('tokenType').value,
                 auth_method: document.getElementById('tokenAuthMethod').value,
                 issuer: document.getElementById('tokenIssuer').value,
-                contract_id: document.getElementById('tokenContractId').value || null,
+                contract_id: document.getElementById('tokenContractId').value,
                 valid: document.getElementById('tokenValid').value === 'true',
                 whitelist: document.getElementById('tokenWhitelist').value,
                 visual_number: document.getElementById('tokenVisualNumber').value || null,
                 group_id: document.getElementById('tokenGroupId').value || null,
                 language: document.getElementById('tokenLanguage').value || null,
                 default_profile_type: document.getElementById('tokenDefaultProfileType').value || null,
-                energy_contract: document.getElementById('tokenEnergyContract').value || null
+                energy_contract: energy_contract
             };
             
             console.log('📊 Datos de token recopilados:', formData);
             return formData;
         } catch (error) {
             console.error('❌ Error recopilando datos de token:', error);
-            return null;
+            throw error; // Re-lanzar para que se muestre en la validación
         }
     }
 
