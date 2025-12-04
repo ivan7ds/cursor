@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+
 const { Credentials } = require('../models');
 const logger = require('../utils/logger');
+
 const axios = require('axios');
+
 const { URL } = require('url');
 
 /**
@@ -376,7 +379,7 @@ router.post('/connect-to-organization', async (req, res) => {
         if (token !== credentialsResponse.data.token) {
             await Credentials.update(
                 { valid: false },
-                { where: { token: token } }
+                { where: { token } }
             );
         }
         
@@ -486,7 +489,7 @@ router.post('/generate-credentials', async (req, res) => {
         const handshakeCredentials = {
             id: uuidv4(),
             token: initialToken,
-            url: url,
+            url,
             business_details: ourCredentials.business_details,
             party_id: partyId,
             country_code: countryCode,
@@ -518,7 +521,7 @@ router.post('/generate-credentials', async (req, res) => {
                 external_organization: {
                     party_id: partyId,
                     country_code: countryCode,
-                    url: url
+                    url
                 },
                 // Instrucciones para el operador externo
                 instructions: {

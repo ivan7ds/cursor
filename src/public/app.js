@@ -62,6 +62,8 @@ class DashboardApp {
         this.validationErrorsPage = 0; // Página actual de errores de validación
         this.currentValidationErrorId = null; // ID del error de validación actual en el modal
         this.validationErrorsPollingInterval = null; // Intervalo para actualizar contador de errores
+        this.applicationErrorsPage = 0; // Página actual de errores de aplicación
+        this.applicationErrorsVisible = false; // Estado de visibilidad de errores de aplicación
         this.activeSessionBannerPollingInterval = null; // Intervalo para actualizar banner de sesiones activas
         this.testServiceToggleConfigs = {
             evseNotificationService: {
@@ -11995,30 +11997,6 @@ class DashboardApp {
                 console.warn('⚠️ Elemento clearErrorLog no encontrado');
             }
             
-            // Botón de actualizar tarifas
-            const refreshTariffs = document.getElementById('refreshTariffs');
-            if (refreshTariffs) {
-                refreshTariffs.addEventListener('click', () => {
-                    console.log('💰 Botón refreshTariffs clickeado');
-                    this.loadTariffs();
-                });
-                console.log('✅ Event listener para refreshTariffs agregado');
-            } else {
-                console.warn('⚠️ Elemento refreshTariffs no encontrado');
-            }
-            
-            // Botón de mostrar/ocultar tarifas
-            const toggleTariffsView = document.getElementById('toggleTariffsView');
-            if (toggleTariffsView) {
-                toggleTariffsView.addEventListener('click', () => {
-                    console.log('👁️ Botón toggleTariffsView clickeado');
-                    this.toggleTariffsView();
-                });
-                console.log('✅ Event listener para toggleTariffsView agregado');
-            } else {
-                console.warn('⚠️ Elemento toggleTariffsView no encontrado');
-            }
-            
             // Event listeners para errores de validación
             const refreshValidationErrors = document.getElementById('refreshValidationErrors');
             if (refreshValidationErrors) {
@@ -12060,6 +12038,52 @@ class DashboardApp {
             if (deleteThisValidationError) {
                 deleteThisValidationError.addEventListener('click', () => {
                     this.deleteValidationError(this.currentValidationErrorId);
+                });
+            }
+
+            // Event listeners para errores de aplicación
+            const refreshApplicationErrors = document.getElementById('refreshApplicationErrors');
+            if (refreshApplicationErrors) {
+                refreshApplicationErrors.addEventListener('click', () => {
+                    console.log('🔄 Botón refreshApplicationErrors clickeado');
+                    this.loadApplicationErrors();
+                });
+                console.log('✅ Event listener para refreshApplicationErrors agregado');
+            }
+
+            const toggleApplicationErrorsView = document.getElementById('toggleApplicationErrorsView');
+            if (toggleApplicationErrorsView) {
+                toggleApplicationErrorsView.addEventListener('click', () => {
+                    console.log('👁️ Botón toggleApplicationErrorsView clickeado');
+                    this.toggleApplicationErrorsView();
+                });
+                console.log('✅ Event listener para toggleApplicationErrorsView agregado');
+            }
+
+            const clearApplicationErrors = document.getElementById('clearApplicationErrors');
+            if (clearApplicationErrors) {
+                clearApplicationErrors.addEventListener('click', () => {
+                    console.log('🗑️ Botón clearApplicationErrors clickeado');
+                    this.clearApplicationErrors();
+                });
+                console.log('✅ Event listener para clearApplicationErrors agregado');
+            }
+
+            const prevApplicationErrors = document.getElementById('prevApplicationErrors');
+            if (prevApplicationErrors) {
+                prevApplicationErrors.addEventListener('click', () => {
+                    if (this.applicationErrorsPage > 0) {
+                        this.applicationErrorsPage--;
+                        this.loadApplicationErrors();
+                    }
+                });
+            }
+
+            const nextApplicationErrors = document.getElementById('nextApplicationErrors');
+            if (nextApplicationErrors) {
+                nextApplicationErrors.addEventListener('click', () => {
+                    this.applicationErrorsPage++;
+                    this.loadApplicationErrors();
                 });
             }
 
@@ -12296,6 +12320,11 @@ class DashboardApp {
 
             // Cargar errores de validación
             await this.loadValidationErrors();
+
+            // Cargar errores de aplicación (solo si están visibles)
+            if (this.applicationErrorsVisible) {
+                await this.loadApplicationErrors();
+            }
 
             console.log('✅ Datos de pestaña Test cargados');
         } catch (error) {
@@ -12867,6 +12896,162 @@ class DashboardApp {
     }
 
     /**
+     * Carga los errores de aplicación desde la API
+     */
+    async loadApplicationErrors() {
+        try {
+            const limit = 20;
+            const offset = (this.applicationErrorsPage || 0) * limit;
+
+            const response = await fetch(`${this.baseUrl}/api/application-errors?limit=${limit}&offset=${offset}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Update total count
+            const totalElement = document.getElementById('applicationErrorsTotal');
+            if (totalElement) {
+                totalElement.textContent = data.total || 0;
+            }
+
+            // Update pagination buttons
+            const prevBtn = document.getElementById('prevApplicationErrors');
+            const nextBtn = document.getElementById('nextApplicationErrors');
+
+            if (prevBtn) {
+                prevBtn.disabled = offset === 0;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = offset + limit >= (data.total || 0);
+            }
+
+            // Update table
+            const tableBody = document.getElementById('applicationErrorsTableBody');
+            if (!tableBody) return;
+
+            if (!data.data || data.data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="bi bi-check-circle text-success"></i> No hay errores de aplicación registrados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.data.map(error => {
+                const timestamp = new Date(error.timestamp).toLocaleString('es-ES');
+                const statusBadge = error.status_code 
+                    ? `<span class="badge bg-${error.status_code >= 500 ? 'danger' : error.status_code >= 400 ? 'warning' : 'secondary'}">${error.status_code}</span>`
+                    : '<span class="badge bg-secondary">N/A</span>';
+                const directionBadge = error.direction === 'INBOUND' 
+                    ? '<span class="badge bg-info">Entrada</span>'
+                    : '<span class="badge bg-primary">Salida</span>';
+
+                return `
+                    <tr>
+                        <td><small class="font-monospace">${error.id}</small></td>
+                        <td><small>${error.error_type || 'N/A'}</small></td>
+                        <td>${directionBadge}</td>
+                        <td><small class="font-monospace text-truncate d-inline-block" style="max-width: 300px;" title="${error.endpoint || 'N/A'}">${error.endpoint || 'N/A'}</small></td>
+                        <td><span class="badge bg-${this.getMethodBadgeColor(error.method)}">${error.method || 'N/A'}</span></td>
+                        <td>${statusBadge}</td>
+                        <td><small class="text-danger">${this.truncateText(error.error_message || 'N/A', 50)}</small></td>
+                        <td><small>${timestamp}</small></td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('❌ Error cargando errores de aplicación:', error);
+            const tableBody = document.getElementById('applicationErrorsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Error cargando datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    /**
+     * Alterna la visibilidad de la sección de errores de aplicación
+     */
+    toggleApplicationErrorsView() {
+        try {
+            const container = document.getElementById('applicationErrorsContainer');
+            const button = document.getElementById('toggleApplicationErrorsView');
+            const buttonText = document.getElementById('toggleApplicationErrorsViewText');
+            const icon = button?.querySelector('i');
+
+            if (!container || !button) return;
+
+            this.applicationErrorsVisible = !this.applicationErrorsVisible;
+
+            if (this.applicationErrorsVisible) {
+                container.style.display = 'block';
+                if (buttonText) buttonText.textContent = 'Ocultar';
+                if (icon) {
+                    icon.className = 'bi bi-eye-slash';
+                }
+                // Cargar errores si es la primera vez que se muestra
+                this.loadApplicationErrors();
+            } else {
+                container.style.display = 'none';
+                if (buttonText) buttonText.textContent = 'Mostrar';
+                if (icon) {
+                    icon.className = 'bi bi-eye';
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error alternando vista de errores de aplicación:', error);
+        }
+    }
+
+    /**
+     * Limpia todos los errores de aplicación
+     */
+    async clearApplicationErrors() {
+        try {
+            if (!confirm('¿Estás seguro de que quieres borrar TODOS los errores de aplicación?')) {
+                return;
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/application-errors`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Todos los errores de aplicación han sido eliminados', 'success');
+            this.applicationErrorsPage = 0;
+            await this.loadApplicationErrors();
+
+        } catch (error) {
+            console.error('❌ Error limpiando errores de aplicación:', error);
+            this.showNotification('Error limpiando errores: ' + error.message, 'error');
+        }
+    }
+
+    /**
      * Obtiene el color del badge según el método HTTP
      */
     getMethodBadgeColor(method) {
@@ -12878,6 +13063,15 @@ class DashboardApp {
             'DELETE': 'danger'
         };
         return colors[method] || 'secondary';
+    }
+
+    /**
+     * Trunca un texto a una longitud máxima
+     */
+    truncateText(text, maxLength) {
+        if (!text) return 'N/A';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
     }
 
     /**
@@ -13190,33 +13384,6 @@ class DashboardApp {
         } catch (error) {
             console.error('❌ Error cargando historial de pruebas:', error);
             this.showNotification('Error cargando historial: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Alterna la vista de tarifas sincronizadas
-     */
-    async toggleTariffsView() {
-        try {
-            const tariffsContainer = document.getElementById('tariffsContainer');
-            const toggleTariffsViewBtn = document.getElementById('toggleTariffsView');
-            const toggleTariffsViewText = document.getElementById('toggleTariffsViewText');
-            
-            if (tariffsContainer && toggleTariffsViewBtn) {
-                if (tariffsContainer.style.display === 'none') {
-                    // Mostrar tarifas
-                    await this.loadTariffs();
-                    tariffsContainer.style.display = 'block';
-                    toggleTariffsViewText.textContent = 'Ocultar';
-                } else {
-                    // Ocultar tarifas
-                    tariffsContainer.style.display = 'none';
-                    toggleTariffsViewText.textContent = 'Mostrar';
-                }
-            }
-        } catch (error) {
-            console.error('❌ Error alternando vista de tarifas:', error);
-            this.showNotification('Error mostrando tarifas: ' + error.message, 'error');
         }
     }
     

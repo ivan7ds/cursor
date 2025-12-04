@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+
 const { OCPIToken } = require('../models');
 const logger = require('../utils/logger');
 
@@ -45,7 +46,7 @@ class OCPITokenService {
         partyId,
         countryCode,
         tokenId: tokenRecord.id,
-        tokenPrefix: token.substring(0, 8) + '...'
+        tokenPrefix: `${token.substring(0, 8)  }...`
       });
       
       return {
@@ -71,7 +72,7 @@ class OCPITokenService {
   static async validateToken(token) {
     try {
       // Primero buscar en la tabla OCPIToken
-      let tokenRecord = await OCPIToken.findOne({
+      const tokenRecord = await OCPIToken.findOne({
         where: {
           token,
           is_active: true

@@ -1,9 +1,10 @@
 const express = require('express');
+
 const router = express.Router();
 const logger = require('../utils/logger');
 
 // GET /api/config/ocpi-base-url
-router.get('/ocpi-base-url', (req, res) => {
+router.get('/ocpi-base-url', (_req, res) => {
     try {
         const ocpiBaseUrl = process.env.OCPI_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
         logger.info(`🌐 Serving OCPI_BASE_URL: ${ocpiBaseUrl}`);
@@ -15,7 +16,7 @@ router.get('/ocpi-base-url', (req, res) => {
 });
 
 // GET /api/config/ocpi-settings
-router.get('/ocpi-settings', (req, res) => {
+router.get('/ocpi-settings', (_req, res) => {
     try {
         const settings = {
             partyId: process.env.OCPI_PARTY_ID || 'IPD',

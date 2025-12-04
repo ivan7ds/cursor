@@ -1,5 +1,5 @@
-const logger = require('../utils/logger');
 const { Token, EmspToken } = require('../models');
+const logger = require('../utils/logger');
 
 /**
  * Servicio de autorización en tiempo real para tokens OCPI

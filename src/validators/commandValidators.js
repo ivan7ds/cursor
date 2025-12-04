@@ -1,5 +1,7 @@
 const Joi = require('joi');
+
 const { ciString, dateTime } = require('../utils/ocpiValidators');
+
 const { tokenPutBodySchema } = require('./tokenValidators');
 
 /**

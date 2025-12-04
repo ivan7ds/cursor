@@ -336,8 +336,8 @@ class CDRSendingService {
                 success: true,
                 cdr_id: cdrPayload.id,
                 sent_to: organizations.length,
-                successful: successful,
-                failed: failed,
+                successful,
+                failed,
                 results: results.map(r => r.status === 'fulfilled' ? r.value : { error: r.reason })
             };
 

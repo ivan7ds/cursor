@@ -1,5 +1,5 @@
-const logger = require('../utils/logger');
 const OCPITokenService = require('../services/ocpiTokenService');
+const logger = require('../utils/logger');
 
 // Token OCPI por defecto para desarrollo (se usará solo si no hay tokens en BD)
 const DEFAULT_OCPI_TOKEN = process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
@@ -46,7 +46,7 @@ const authMiddleware = async (req, res, next) => {
         logger.warn('Authentication failed: Invalid token', { 
           ip: req.ip, 
           path: req.path,
-          providedToken: providedToken ? providedToken.substring(0, 10) + '...' : 'none'
+          providedToken: providedToken ? `${providedToken.substring(0, 10)  }...` : 'none'
         });
         
         return res.status(401).json({
@@ -73,7 +73,7 @@ const authMiddleware = async (req, res, next) => {
           logger.warn('Authentication failed: Temporary token not allowed for this endpoint', { 
             ip: req.ip, 
             path: req.path,
-            providedToken: providedToken ? providedToken.substring(0, 10) + '...' : 'none'
+            providedToken: providedToken ? `${providedToken.substring(0, 10)  }...` : 'none'
           });
           
           return res.status(403).json({

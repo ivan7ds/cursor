@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+
 const { Location, EVSE } = require('../models');
-const logger = require('../utils/logger');
 const emspNotificationService = require('../services/emspNotificationService');
+const logger = require('../utils/logger');
 const { logLocationData, logArrayData } = require('../utils/loggingUtils');
 
 /**
@@ -94,7 +95,7 @@ router.get('/', async (req, res) => {
     logger.info('Querying locations with EVSEs...');
     
     // Always use include for consistent EVSE loading
-    let locations = await Location.findAll({
+    const locations = await Location.findAll({
       where,
       attributes: ['id', 'country_code', 'party_id', 'name', 'address', 'city', 'postal_code', 'state', 'country', 'coordinates', 'related_locations', 'parking_type', 'directions', 'operator', 'suboperator', 'owner', 'facilities', 'time_zone', 'opening_times', 'charging_when_closed', 'images', 'energy_mix', 'last_updated', 'publish'],
       include: [{
@@ -282,7 +283,7 @@ router.get('/', async (req, res) => {
       queryParams.set('limit', limitInt.toString());
       
       const nextPageUrl = `${baseUrl}?${queryParams.toString()}`;
-      headers['Link'] = `<${nextPageUrl}>; rel="next"`;
+      headers.Link = `<${nextPageUrl}>; rel="next"`;
     }
     
     res.set(headers);

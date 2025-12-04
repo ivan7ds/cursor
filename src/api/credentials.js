@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+
 const { Credentials } = require('../models');
 const logger = require('../utils/logger');
 
@@ -171,7 +172,7 @@ router.post('/', async (req, res) => {
     if (!tempCredentials) {
       logger.warn('Handshake failed: Invalid or expired temporary token', {
         ip: req.ip,
-        providedToken: authToken.substring(0, 10) + '...'
+        providedToken: `${authToken.substring(0, 10)  }...`
       });
       
       return res.status(401).json({
@@ -187,8 +188,8 @@ router.post('/', async (req, res) => {
 
     // Actualizar la entrada del token temporal con el token del operador externo
     await tempCredentials.update({
-      token: token, // Reemplazar token temporal con el token del operador
-      url: url,
+      token, // Reemplazar token temporal con el token del operador
+      url,
       business_details: businessDetails,
       party_id: externalRole.party_id,
       country_code: externalRole.country_code,
@@ -200,7 +201,7 @@ router.post('/', async (req, res) => {
     logger.info('Temporary token converted to permanent external token', {
       partyId: externalRole.party_id,
       countryCode: externalRole.country_code,
-      externalToken: token.substring(0, 10) + '...'
+      externalToken: `${token.substring(0, 10)  }...`
     });
 
     // Generar nuestro token para la organización externa
@@ -210,7 +211,7 @@ router.post('/', async (req, res) => {
     const ourCredentials = await Credentials.create({
       id: uuidv4(),
       token: ourToken,
-      url: url, // URL de la organización externa
+      url, // URL de la organización externa
       business_details: {
         name: process.env.OCPI_PARTY_ID,
         website: `https://www.${process.env.OCPI_PARTY_ID.toLowerCase()}.com`
@@ -225,7 +226,7 @@ router.post('/', async (req, res) => {
 
     logger.info('Our credentials created for external organization', {
       externalPartyId: externalRole.party_id,
-      ourToken: ourToken.substring(0, 10) + '...'
+      ourToken: `${ourToken.substring(0, 10)  }...`
     });
     
     // Construir la URL base para nuestra respuesta
@@ -267,7 +268,7 @@ router.post('/', async (req, res) => {
     logger.info('Handshake completed successfully', {
       externalPartyId: externalRole.party_id,
       externalCountryCode: externalRole.country_code,
-      ourToken: ourToken.substring(0, 10) + '...'
+      ourToken: `${ourToken.substring(0, 10)  }...`
     });
 
     res.status(200).json(response);

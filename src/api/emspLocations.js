@@ -1,8 +1,9 @@
 const express = require('express');
+
 const router = express.Router();
-const logger = require('../utils/logger');
-const EVSE = require('../models/EVSE');
 const EmspEVSE = require('../models/EmspEVSE');
+const EVSE = require('../models/EVSE');
+const logger = require('../utils/logger');
 const {
   validateLocationPutMiddleware,
   validateLocationPatchMiddleware
@@ -157,7 +158,7 @@ router.put('/:country_code/:party_id/:location_id', validateLocationPutMiddlewar
                         id: evseData.uid,
                         emsp_party_id: party_id,
                         emsp_country_code: country_code,
-                        location_id: location_id,
+                        location_id,
                         evse_id: evseData.evse_id || '',
                         status: evseData.status,
                         capabilities: evseData.capabilities || [],
@@ -341,7 +342,7 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
         });
 
         // Usar el location_id de los parámetros (el operador externo nos lo envía)
-        let actualLocationId = location_id;
+        const actualLocationId = location_id;
 
         // Verificar si la ubicación existe en emsp_locations, si no, crear una
         const { sequelize } = require('../database/connection');

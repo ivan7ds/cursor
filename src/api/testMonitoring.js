@@ -1,10 +1,11 @@
 const express = require('express');
+
 const router = express.Router();
 const logger = require('../utils/logger');
 
 // Almacenamiento temporal de errores de jobs (en producción esto debería ser en base de datos)
 let jobErrors = [];
-let serviceStatus = {
+const serviceStatus = {
     evseNotificationService: {
         status: 'active',
         lastRun: null,
@@ -43,7 +44,7 @@ let serviceStatus = {
 };
 
 // Estadísticas de pruebas (datos reales)
-let testStatistics = {
+const testStatistics = {
     totalTests: 0,
     passedTests: 0,
     failedTests: 0,
@@ -363,7 +364,7 @@ router.get('/status', async (req, res) => {
             success: true,
             data: {
                 services: servicesSnapshot,
-                testStatistics: testStatistics,
+                testStatistics,
                 lastUpdated: new Date().toISOString()
             }
         });

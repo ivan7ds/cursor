@@ -1,7 +1,8 @@
 const axios = require('axios');
+
+const { logJobExecution, logJobError } = require('../api/testMonitoring');
 const { sequelize } = require('../database/connection');
 const logger = require('../utils/logger');
-const { logJobExecution, logJobError } = require('../api/testMonitoring');
 
 class EMSPTokensSyncService {
   constructor() {

@@ -1443,46 +1443,69 @@
                             </div>
                         </div>
 
-                        <!-- Tarifas Sincronizadas Recientemente -->
+                        <!-- Errores de Aplicación -->
                         <div class="row mb-4">
                             <div class="col-md-12">
-                                <h6>Tarifas Sincronizadas Recientemente</h6>
                                 <div class="card">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <span>Últimas Tarifas de EMSPs</span>
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-exclamation-octagon-fill text-danger"></i> Errores de Aplicación (API Requests/Responses)
+                                        </h6>
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshTariffs">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshApplicationErrors">
                                                 <i class="bi bi-arrow-clockwise"></i> Actualizar
                                             </button>
-                                            <button type="button" class="btn btn-outline-info btn-sm" id="toggleTariffsView">
-                                                <i class="bi bi-eye"></i> <span id="toggleTariffsViewText">Mostrar</span>
+                                            <button type="button" class="btn btn-outline-info btn-sm" id="toggleApplicationErrorsView">
+                                                <i class="bi bi-eye"></i> <span id="toggleApplicationErrorsViewText">Mostrar</span>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" id="clearApplicationErrors">
+                                                <i class="bi bi-trash"></i> Borrar Todos
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="card-body" id="tariffsContainer" style="display: none;">
+                                    <div class="card-body" id="applicationErrorsContainer" style="display: none;">
                                         <div class="table-responsive">
-                                            <table class="table table-striped table-hover" id="tariffsTable">
-                                                <thead class="table-dark">
+                                            <table class="table table-striped table-hover table-sm">
+                                                <thead>
                                                     <tr>
-                                                        <th>EMSP</th>
-                                                        <th>ID Tarifa</th>
-                                                        <th>Tipo</th>
-                                                        <th>Moneda</th>
-                                                        <th>Elementos</th>
-                                                        <th>Última Actualización</th>
+                                                        <th style="width: 5%">ID</th>
+                                                        <th style="width: 10%">Tipo</th>
+                                                        <th style="width: 10%">Dirección</th>
+                                                        <th style="width: 25%">Endpoint</th>
+                                                        <th style="width: 8%">Método</th>
+                                                        <th style="width: 8%">Status</th>
+                                                        <th style="width: 25%">Mensaje</th>
+                                                        <th style="width: 9%">Timestamp</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody id="tariffsTableBody">
+                                                <tbody id="applicationErrorsTableBody">
                                                     <tr>
-                                                        <td colspan="6" class="text-center text-muted">Cargando tarifas...</td>
+                                                        <td colspan="8" class="text-center text-muted">
+                                                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                                                <span class="visually-hidden">Cargando...</span>
+                                                            </div>
+                                                            Cargando errores de aplicación...
+                                                        </td>
                                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div id="applicationErrorsPagination" class="d-flex justify-content-between align-items-center mt-3">
+                                            <div>
+                                                <small class="text-muted">Total: <span id="applicationErrorsTotal">0</span> errores</small>
+                                            </div>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="prevApplicationErrors" disabled>
+                                                    <i class="bi bi-chevron-left"></i> Anterior
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="nextApplicationErrors" disabled>
+                                                    Siguiente <i class="bi bi-chevron-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Estadísticas de Pruebas -->

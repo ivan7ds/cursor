@@ -1,6 +1,7 @@
 const axios = require('axios');
-const logger = require('../utils/logger');
+
 const { logJobExecution } = require('../api/testMonitoring');
+const logger = require('../utils/logger');
 
 class EMSPLocationsSyncService {
   constructor() {

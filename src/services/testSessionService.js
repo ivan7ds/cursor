@@ -1,9 +1,10 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+
+const { logJobExecution, logJobError } = require('../api/testMonitoring');
 const { sequelize } = require('../database/connection');
 const { EVSE, Location, Token, Session, CDR } = require('../models');
 const logger = require('../utils/logger');
-const { logJobExecution, logJobError } = require('../api/testMonitoring');
 
 class TestSessionService {
     constructor() {
@@ -223,7 +224,7 @@ class TestSessionService {
             const invalidToken = {
                 country_code: process.env.OCPI_COUNTRY_CODE,
                 party_id: process.env.OCPI_PARTY_ID,
-                uid: 'INVALID_TOKEN_' + Date.now(),
+                uid: `INVALID_TOKEN_${  Date.now()}`,
                 type: 'APP_USER',
                 contract_id: 'INVALID_CONTRACT',
                 issuer: process.env.OCPI_PARTY_ID,
@@ -296,7 +297,7 @@ class TestSessionService {
                     const sessionId = response.data.data?.session_id || `session_${Date.now()}`;
                     return {
                         success: true,
-                        sessionId: sessionId,
+                        sessionId,
                         message: 'Session accepted'
                     };
                 } else {

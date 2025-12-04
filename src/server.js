@@ -1,24 +1,14 @@
-const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
+const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const compression = require('compression');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 
-const { sequelize } = require('./database/connection');
-const { redisClient } = require('./database/redis');
-const { Session } = require('./models');
-const rateLimiter = require('./middleware/rateLimiter');
-const { authMiddleware, optionalAuthMiddleware } = require('./middleware/auth');
-const tempTokenAuth = require('./middleware/tempTokenAuth');
-const errorHandler = require('./middleware/errorHandler');
-const requestLogger = require('./middleware/requestLogger');
-const logger = require('./utils/logger');
 
 // Import EVSE Notification Service
-const evseNotificationService = require('./services/evseNotificationService');
 const chargingNotificationService = require('./services/chargingNotificationService');
 const emspLocationsSyncService = require('./services/emspLocationsSyncService');
 const emspTariffsSyncService = require('./services/emspTariffsSyncService');
@@ -46,6 +36,16 @@ const emspLocationsRoutes = require('./api/emspLocations');
 const emspTariffsRoutes = require('./api/emspTariffs');
 const { router: emspActionsRoutes } = require('./api/emspActions');
 const { router: testMonitoringRoutes } = require('./api/testMonitoring');
+const { sequelize } = require('./database/connection');
+const { redisClient } = require('./database/redis');
+const { authMiddleware, optionalAuthMiddleware } = require('./middleware/auth');
+const errorHandler = require('./middleware/errorHandler');
+const rateLimiter = require('./middleware/rateLimiter');
+const requestLogger = require('./middleware/requestLogger');
+const tempTokenAuth = require('./middleware/tempTokenAuth');
+const { Session } = require('./models');
+const evseNotificationService = require('./services/evseNotificationService');
+const logger = require('./utils/logger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -174,6 +174,7 @@ app.use('/api/ext-sessions', authMiddleware, require('./api/extSessions'));
 app.use('/api/charging-logs', require('./api/chargingLogs'));
 app.use('/api/handshake', authMiddleware, require('./api/handshake'));
 app.use('/api/config', configRoutes);
+app.use('/api/application-errors', require('./api/applicationErrors'));
 
   // ===== RUTAS DE MONITOREO DE TESTS =====
   // Estas rutas permiten monitorear el estado de los jobs y pruebas (SIN AUTENTICACIÓN)
@@ -196,6 +197,7 @@ app.use('/api/connections', authMiddleware, require('./api/connections'));
 
   app.use('/logs', logsRoutes);
   app.use('/api/validation-errors', authMiddleware, require('./api/validationErrors'));
+  app.use('/api/application-errors', authMiddleware, require('./api/applicationErrors'));
 
 // Error handling middleware
 app.use(errorHandler);

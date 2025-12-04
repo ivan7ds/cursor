@@ -1,9 +1,11 @@
 const express = require('express');
+
 const router = express.Router();
 const { Session, EVSE, Credentials, CDR, Location } = require('../models');
-const logger = require('../utils/logger');
-const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 const cdrSendingService = require('../services/cdrSendingService');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const logger = require('../utils/logger');
+
 const axios = require('axios');
 
 /**

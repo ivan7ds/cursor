@@ -1,7 +1,9 @@
 const express = require('express');
+
 const router = express.Router();
-const { ValidationError } = require('../models');
 const { Op } = require('sequelize');
+
+const { ValidationError } = require('../models');
 const logger = require('../utils/logger');
 
 /**

@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { sequelize } = require('../database/connection');
 const { authMiddleware } = require('../middleware/auth');
@@ -10,7 +11,7 @@ const EmspSession = require('../models/EmspSession')(sequelize);
 // POST /emsp/actions/save-cpo-locations - Guardar locations de un CPO externo
 router.post('/save-cpo-locations', authMiddleware, async (req, res) => {
     try {
-        const { cpoUrl, cpoToken, cpoVersion, locations } = req.body;
+        const { cpoUrl, locations } = req.body;
         
         if (!cpoUrl || !locations || !Array.isArray(locations)) {
             return res.status(400).json({
@@ -23,7 +24,7 @@ router.post('/save-cpo-locations', authMiddleware, async (req, res) => {
         console.log(`🌐 Guardando ${locations.length} locations del CPO: ${cpoUrl}`);
         
         let savedCount = 0;
-        let errors = [];
+        const errors = [];
 
         for (const location of locations) {
             try {
@@ -194,7 +195,7 @@ router.post('/save-cpo-evses', authMiddleware, async (req, res) => {
         console.log(`🌐 Guardando ${evses.length} EVSEs del CPO: ${cpoUrl}`);
         
         let savedCount = 0;
-        let errors = [];
+        const errors = [];
 
         for (const evse of evses) {
             try {
@@ -289,7 +290,7 @@ router.post('/save-emsp-tokens', authMiddleware, async (req, res) => {
         console.log(`🔑 Guardando ${tokens.length} tokens de nuestro eMSP`);
         
         let savedCount = 0;
-        let errors = [];
+        const errors = [];
 
         for (const token of tokens) {
             try {
@@ -399,7 +400,7 @@ router.post('/save-cpo-tariffs', authMiddleware, async (req, res) => {
         console.log(`🌐 Guardando ${tariffs.length} tariffs del CPO externo`);
         
         let savedCount = 0;
-        let errors = [];
+        const errors = [];
 
         for (const tariff of tariffs) {
             try {
@@ -662,7 +663,7 @@ router.get('/get-external-sessions', authMiddleware, async (req, res) => {
                 organizations_consulted: organizations.length,
                 sessions_saved: savedSessionsCount,
                 sessions_duplicates: duplicateSessionsCount,
-                errors: errors,
+                errors,
                 timestamp: new Date().toISOString()
             },
             timestamp: new Date().toISOString()
@@ -842,7 +843,7 @@ router.get('/get-external-locations', authMiddleware, async (req, res) => {
                 organizations_consulted: organizations.length,
                 locations_saved: savedLocationsCount,
                 locations_duplicates: duplicateLocationsCount,
-                errors: errors,
+                errors,
                 timestamp: new Date().toISOString()
             },
             timestamp: new Date().toISOString()
@@ -972,7 +973,7 @@ router.get('/get-external-tariffs', authMiddleware, async (req, res) => {
                 organizations_consulted: organizations.length,
                 tariffs_saved: savedTariffsCount,
                 tariffs_duplicates: duplicateTariffsCount,
-                errors: errors,
+                errors,
                 timestamp: new Date().toISOString()
             },
             timestamp: new Date().toISOString()
@@ -1112,7 +1113,7 @@ router.get('/get-external-cdrs', authMiddleware, async (req, res) => {
                 organizations_consulted: organizations.length,
                 cdrs_saved: savedCDRsCount,
                 cdrs_duplicates: duplicateCDRsCount,
-                errors: errors,
+                errors,
                 timestamp: new Date().toISOString()
             },
             timestamp: new Date().toISOString()
@@ -1244,7 +1245,7 @@ router.get('/get-external-tokens', authMiddleware, async (req, res) => {
                 organizations_consulted: organizations.length,
                 tokens_saved: savedTokensCount,
                 tokens_duplicates: duplicateTokensCount,
-                errors: errors,
+                errors,
                 timestamp: new Date().toISOString()
             },
             timestamp: new Date().toISOString()

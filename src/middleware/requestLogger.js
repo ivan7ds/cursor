@@ -46,7 +46,7 @@ const requestLogger = (req, res, next) => {
     'ocpi-token': req.headers['ocpi-token'] ? `${req.headers['ocpi-token'].substring(0, 20)}...` : undefined,
     'content-type': req.headers['content-type'],
     'user-agent': req.headers['user-agent'],
-    'accept': req.headers['accept']
+    'accept': req.headers.accept
   };
   
   // Filtrar headers undefined
@@ -91,7 +91,7 @@ const requestLogger = (req, res, next) => {
   };
   
   // Capturar cuando la respuesta se envía
-  res.on('finish', () => {
+  res.on('finish', async () => {
     const endTime = Date.now();
     const responseTime = endTime - startTime;
     
@@ -105,13 +105,32 @@ const requestLogger = (req, res, next) => {
       statusMessage: res.statusMessage,
       responseTime: `${responseTime}ms`,
       requestHeaders: relevantHeaders,
-      requestBody: requestBody,
-      responseHeaders: responseHeaders,
-      responseBody: responseBody,
+      requestBody,
+      responseHeaders,
+      responseBody,
       ip: req.ip,
       userAgent: req.get('User-Agent'),
       query: Object.keys(req.query).length > 0 ? req.query : undefined
     });
+    
+    // Log application error if status code >= 400
+    if (res.statusCode >= 400) {
+      const { logApplicationError } = require('../utils/applicationErrorLogger');
+      await logApplicationError({
+        error_type: res.statusCode >= 500 ? 'SERVER_ERROR' : 'API_RESPONSE',
+        direction: 'INBOUND',
+        endpoint: req.originalUrl || req.url,
+        method: req.method,
+        status_code: res.statusCode,
+        error_message: res.statusMessage || `HTTP ${res.statusCode}`,
+        request_body: requestBody,
+        response_body: responseBody,
+        request_headers: relevantHeaders,
+        response_headers: responseHeaders,
+        ip_address: req.ip || req.connection?.remoteAddress || null,
+        user_agent: req.get('user-agent') || null
+      });
+    }
     
     // Log resumido para debugging rápido (solo si no es una petición del navegador)
     const userAgent = req.get('User-Agent') || '';

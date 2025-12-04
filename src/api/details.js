@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const logger = require('../utils/logger');
 
@@ -130,7 +131,7 @@ router.get('/', async (req, res) => {
       status_code: 1000,
       data: {
         version: "2.2",
-        endpoints: endpoints
+        endpoints
       },
       timestamp: new Date().toISOString()
     };

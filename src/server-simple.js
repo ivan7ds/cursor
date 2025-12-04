@@ -1,8 +1,8 @@
-const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
+const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const compression = require('compression');
 require('dotenv').config();
 
 const app = express();

@@ -1,10 +1,12 @@
+const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+
+const { logJobExecution, logJobError } = require('../api/testMonitoring');
 const { sequelize } = require('../database/connection');
 const { Location, EVSE } = require('../models');
 const logger = require('../utils/logger');
-const { logJobExecution, logJobError } = require('../api/testMonitoring');
+
 const emspNotificationService = require('./emspNotificationService');
-const axios = require('axios');
 
 class TestLocationEVSECreationService {
   constructor() {

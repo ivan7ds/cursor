@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { sequelize } = require('../database/connection');
 
 const Session = sequelize.define('Session', {

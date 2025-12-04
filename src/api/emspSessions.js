@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const logger = require('../utils/logger');
 const {
@@ -85,7 +86,7 @@ router.put('/:country_code/:party_id/:session_id', validateSessionPutMiddleware,
             where: {
                 emsp_party_id: party_id,
                 emsp_country_code: country_code,
-                session_id: session_id
+                session_id
             }
         });
 
@@ -119,7 +120,7 @@ router.put('/:country_code/:party_id/:session_id', validateSessionPutMiddleware,
         const payload = {
             emsp_party_id: party_id,
             emsp_country_code: country_code,
-            session_id: session_id,
+            session_id,
             evse_uid: sessionData.evse_uid || existingSession?.evse_uid || '',
             connector_id: sessionData.connector_id ?? existingSession?.connector_id ?? '',
             id_token: sessionData.cdr_token?.uid || existingSession?.id_token || '',
@@ -286,7 +287,7 @@ router.patch('/:country_code/:party_id/:session_id', validateSessionPatchMiddlew
             where: {
                 emsp_country_code: country_code,
                 emsp_party_id: party_id,
-                session_id: session_id
+                session_id
             }
         });
 

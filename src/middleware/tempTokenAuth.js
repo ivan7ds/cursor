@@ -1,5 +1,5 @@
-const logger = require('../utils/logger');
 const { Credentials } = require('../models');
+const logger = require('../utils/logger');
 
 /**
  * Middleware de autenticación para tokens temporales
@@ -28,7 +28,7 @@ const tempTokenAuth = async (req, res, next) => {
         // Buscar el token en la base de datos
         const credentials = await Credentials.findOne({
             where: {
-                token: token,
+                token,
                 valid: true,
                 temp: true
             }
@@ -39,7 +39,7 @@ const tempTokenAuth = async (req, res, next) => {
                 ip: req.ip,
                 path: req.path,
                 method: req.method,
-                providedToken: token.substring(0, 10) + '...'
+                providedToken: `${token.substring(0, 10)  }...`
             });
             
             return res.status(401).json({
@@ -72,7 +72,7 @@ const tempTokenAuth = async (req, res, next) => {
                 ip: req.ip,
                 path: req.path,
                 method: req.method,
-                providedToken: token.substring(0, 10) + '...'
+                providedToken: `${token.substring(0, 10)  }...`
             });
             
             return res.status(403).json({

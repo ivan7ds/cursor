@@ -1,6 +1,8 @@
 const express = require('express');
+
 const router = express.Router();
 const logger = require('../utils/logger');
+
 const { broadcastChargingLog } = require('./logs');
 
 // Almacenar logs de recarga en memoria
@@ -101,7 +103,7 @@ router.get('/', async (req, res) => {
 });
 
 // DELETE /api/charging-logs - Limpiar logs
-router.delete('/', async (req, res) => {
+router.delete('/', async (_req, res) => {
     try {
         chargingLogs = [];
         

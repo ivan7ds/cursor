@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+
 const { EVSE, Location } = require('../models');
-const logger = require('../utils/logger');
 const emspNotificationService = require('../services/emspNotificationService');
+const logger = require('../utils/logger');
 
 /**
  * @swagger
@@ -281,7 +282,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const evse = await EVSE.findOne({
       where: { 
-        id: id,
+        id,
         deleted_at: null 
       }
     });
@@ -371,7 +372,7 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
     const evse = await EVSE.findOne({
       where: { 
-        id: id,
+        id,
         deleted_at: null 
       }
     });

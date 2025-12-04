@@ -1,7 +1,8 @@
 const express = require('express');
+
 const router = express.Router();
-const logger = require('../utils/logger');
 const AuthorizationService = require('../services/authorizationService');
+const logger = require('../utils/logger');
 
 /**
  * POST /ocpi/cpo/2.2/tokens/{token_uid}/authorize

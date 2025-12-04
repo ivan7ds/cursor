@@ -1,16 +1,18 @@
 const { sequelize } = require('../database/connection');
-const Location = require('./Location');
-const EVSE = require('./EVSE');
-const Session = require('./Session');
+
 const CDR = require('./CDR');
+const Credentials = require('./Credentials');
+const EmspEVSE = require('./EmspEVSE');
+const EmspSession = require('./EmspSession')(sequelize);
+const EmspToken = require('./EmspToken');
+const EVSE = require('./EVSE');
+const Location = require('./Location');
+const OCPIToken = require('./OCPIToken');
+const Session = require('./Session');
 const Tariff = require('./Tariff');
 const Token = require('./Token');
-const EmspToken = require('./EmspToken');
-const EmspSession = require('./EmspSession')(sequelize);
-const EmspEVSE = require('./EmspEVSE');
-const Credentials = require('./Credentials');
-const OCPIToken = require('./OCPIToken');
 const ValidationError = require('./ValidationError');
+const ApplicationError = require('./ApplicationError');
 
 // Define relationships
 Location.hasMany(EVSE, { 
@@ -62,5 +64,6 @@ module.exports = {
   EmspEVSE,
   Credentials,
   OCPIToken,
-  ValidationError
+  ValidationError,
+  ApplicationError
 };

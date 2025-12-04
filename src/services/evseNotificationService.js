@@ -1,7 +1,8 @@
 const axios = require('axios');
+
+const { logJobError, logJobExecution } = require('../api/testMonitoring');
 const { Credentials, EVSE, Session } = require('../models');
 const logger = require('../utils/logger');
-const { logJobError, logJobExecution } = require('../api/testMonitoring');
 
 class EVSENotificationService {
   /**
@@ -13,6 +14,7 @@ class EVSENotificationService {
     if (!url) return url;
     return url.replace(/\/$/, '');
   }
+
   constructor() {
     this.notificationInterval = null;
     this.isRunning = false;
@@ -275,7 +277,7 @@ class EVSENotificationService {
     try {
       await EVSE.update(
         { 
-          status: status,
+          status,
           last_updated: new Date()
         },
         { 

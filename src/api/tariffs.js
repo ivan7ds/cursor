@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
+
 const { Tariff } = require('../models');
 const logger = require('../utils/logger');
 const {
@@ -182,7 +183,7 @@ router.post('/', async (req, res) => {
 
     const tariff = await Tariff.create(tariffData);
     
-    let updatedEvsesCount = 0;
+    const updatedEvsesCount = 0;
     
     // PRIMERO: Notificar a EMSPs sobre la nueva tarifa
     try {

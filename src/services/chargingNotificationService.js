@@ -1,8 +1,9 @@
-const { Session, EVSE, Tariff, Credentials } = require('../models');
 const axios = require('axios');
-const logger = require('../utils/logger');
-const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+
 const { logJobError, logJobExecution } = require('../api/testMonitoring');
+const { Session, EVSE, Tariff, Credentials } = require('../models');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const logger = require('../utils/logger');
 
 class ChargingNotificationService {
   /**
@@ -14,6 +15,7 @@ class ChargingNotificationService {
     if (!url) return url;
     return url.replace(/\/$/, '');
   }
+
   constructor() {
     this.interval = null;
     this.isRunning = false;
@@ -186,7 +188,7 @@ class ChargingNotificationService {
       // Actualizar sesión en base de datos
       logger.info(`🔄 Updating session ${session.id} with kwh: ${kwh}. Total cost: ${totalCost.excl_vat}`);
       await session.update({
-        kwh: kwh,
+        kwh,
         total_cost: totalCost.excl_vat,
         last_updated: now
       });
@@ -196,7 +198,7 @@ class ChargingNotificationService {
       await this.notifyEMSPAboutChargingUpdate(session, kwh, totalCost, tariffId);
 
       logger.info(`✅ Charging update sent for session ${session.id}`, {
-        kwh: kwh,
+        kwh,
         total_cost: totalCost,
         tariff_id: tariffId
       });
@@ -251,7 +253,7 @@ class ChargingNotificationService {
       // Preparar payload PATCH
       const now = new Date().toISOString();
       const payload = {
-        kwh: kwh,
+        kwh,
         total_cost: totalCost,
         charging_periods: [
           {

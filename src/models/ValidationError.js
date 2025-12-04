@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { sequelize } = require('../database/connection');
 
 const ValidationError = sequelize.define('ValidationError', {

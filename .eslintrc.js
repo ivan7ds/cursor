@@ -1,0 +1,205 @@
+module.exports = {
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: 'module'
+  },
+  plugins: ['eslint-comments', 'import', 'node', 'promise'],
+  extends: [
+    'standard',
+    'plugin:eslint-comments/recommended',
+    'plugin:import/recommended',
+    'plugin:node/recommended',
+    'plugin:promise/recommended',
+    'prettier'
+  ],
+  root: true,
+  env: {
+    node: true,
+    jest: true,
+    es2022: true
+  },
+  rules: {
+    // Promise and async rules
+    'no-async-promise-executor': 'error',
+    'no-await-in-loop': 'error',
+    'no-promise-executor-return': 'error',
+    'require-atomic-updates': 'error',
+    'no-return-await': 'error',
+    'prefer-promise-reject-errors': 'error',
+    'no-throw-literal': 'error',
+    'promise/always-return': 'error',
+    'promise/catch-or-return': 'error',
+    'promise/no-nesting': 'warn',
+    'promise/no-promise-in-callback': 'warn',
+    'promise/no-return-wrap': 'error',
+    'promise/param-names': 'error',
+    'promise/prefer-await-to-callbacks': 'warn',
+    'promise/prefer-await-to-then': 'warn',
+
+    // ESLint comments
+    'eslint-comments/require-description': ['error', { ignore: ['eslint-disable-next-line'] }],
+
+    // Unused variables
+    'no-unused-vars': [
+      'error',
+      {
+        args: 'all',
+        argsIgnorePattern: '^_',
+        caughtErrors: 'all',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true
+      }
+    ],
+
+    // Clean code rules
+    'max-lines': ['warn', 300],
+    'max-lines-per-function': ['error', 45],
+    'max-nested-callbacks': ['error', 4],
+    'max-params': ['error', 4],
+    'max-statements': ['error', 20],
+    'max-depth': ['error', 4],
+    'complexity': ['warn', 10],
+
+    // Import rules
+    'import/order': [
+      'warn',
+      {
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+        'newlines-between': 'always',
+        alphabetize: { order: 'asc', caseInsensitive: true }
+      }
+    ],
+    'import/no-unresolved': 'off', // Disabled as it requires module resolution config
+
+    // Node rules
+    'node/no-unpublished-require': 'off', // Allow require in dev dependencies
+    'node/no-missing-require': 'off', // Disabled as it requires module resolution config
+
+    // Code style
+    'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+    'prefer-const': 'error',
+    'no-var': 'error',
+    'object-shorthand': 'warn',
+    'prefer-arrow-callback': 'warn',
+    'prefer-template': 'warn',
+
+    // Allow snake_case for OCPI fields (part of the specification)
+    camelcase: [
+      'error',
+      {
+        properties: 'always',
+        ignoreDestructuring: true,
+        ignoreImports: true,
+        ignoreGlobals: true,
+        allow: [
+          // OCPI standard fields
+          'country_code',
+          'party_id',
+          'session_id',
+          'location_id',
+          'evse_id',
+          'evse_uid',
+          'token_uid',
+          'connector_id',
+          'tariff_id',
+          'cdr_id',
+          'auth_id',
+          'last_updated',
+          'start_date_time',
+          'end_date_time',
+          'total_cost',
+          'total_energy',
+          'total_time',
+          'total_parking_time',
+          'total_fixed_cost',
+          'total_energy_cost',
+          'total_time_cost',
+          'total_parking_cost',
+          'total_tax_cost',
+          'excl_vat',
+          'incl_vat',
+          'visual_number',
+          'group_id',
+          'contract_id',
+          'energy_contract',
+          'supplier_name',
+          'default_profile_type',
+          'auth_method',
+          'charging_periods',
+          'tariff_alt_text',
+          'price_components',
+          'step_size',
+          'day_of_week',
+          'start_time',
+          'end_time',
+          'min_duration',
+          'max_duration',
+          'min_current',
+          'max_current',
+          'min_power',
+          'max_power',
+          'min_energy',
+          'max_energy',
+          'ocpi_version',
+          'ocpi_token',
+          'ocpi_party_id',
+          'ocpi_country_code',
+          'emsp_party_id',
+          'emsp_country_code',
+          'status_code',
+          'status_message',
+          'created_at',
+          'updated_at',
+          'response_url',
+          'business_details',
+          'deleted_at',
+          'end_datetime',
+          'physical_reference',
+          'emsp_url',
+          'postal_code',
+          'new_status',
+          'energy_mix',
+          'start_datetime',
+          'time_zone',
+          'is_active',
+          'id_token',
+          'cdr_token',
+          'related_locations',
+          'parking_restrictions',
+          'opening_times',
+          'floor_level',
+          'expires_at',
+          'command_id',
+          'authorization_reference',
+          'auth_result',
+          'evse_status',
+          'notification_status',
+          'notification_error',
+          'current_status',
+          'environ_impact',
+          'energy_product_name',
+          'tariff_alt_url',
+          'min_price',
+          'max_price',
+          'response_time',
+          'response_data'
+        ]
+      }
+    ]
+  },
+  ignorePatterns: [
+    '.eslintrc.js',
+    '*.config.js',
+    'dist/',
+    'build/',
+    'node_modules/',
+    'coverage/',
+    'logs/',
+    'backups/',
+    'src/public/',
+    '*.min.js'
+  ]
+}
+

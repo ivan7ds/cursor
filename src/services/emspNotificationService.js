@@ -11,6 +11,7 @@ class EMSPNotificationService {
         if (!url) return url;
         return url.replace(/\/$/, '');
     }
+
     /**
      * Notificar a todos los EMSPs sobre una nueva location
      * @param {Object} locationData - Datos de la location creada
@@ -189,7 +190,7 @@ class EMSPNotificationService {
             const locationPayload = this.prepareLocationPayload(locationData);
             
             const response = await fetch(endpoint, {
-                method: method,
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Token ${organization.token}`,
@@ -350,7 +351,7 @@ class EMSPNotificationService {
             }
             
             const response = await fetch(endpoint, {
-                method: method,
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Token ${organization.token}`,
@@ -578,7 +579,7 @@ class EMSPNotificationService {
             const payload = this.buildTokenPayload(tokenData);
             
             const response = await fetch(url, {
-                method: method,
+                method,
                 headers: {
                     'Authorization': `Token ${organization.token}`,
                     'Content-Type': 'application/json'
@@ -617,7 +618,7 @@ class EMSPNotificationService {
             logger.info(`📋 Preparando payload ${method} para tarifa ${tariffData.id}:`, payload);
             
             const response = await fetch(url, {
-                method: method,
+                method,
                 headers: {
                     'Authorization': `Token ${organization.token}`,
                     'Content-Type': 'application/json'
@@ -677,7 +678,7 @@ class EMSPNotificationService {
             id: tariffData.id,
             currency: tariffData.currency,
             type: tariffData.type,
-            elements: elements,
+            elements,
             start_date_time: tariffData.start_date_time || null,
             end_date_time: tariffData.end_date_time || null,
             last_updated: tariffData.last_updated || new Date().toISOString()

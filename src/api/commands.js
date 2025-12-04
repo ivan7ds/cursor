@@ -2,17 +2,15 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
-const { EVSE, Location, Token, Credentials, Session, CDR } = require('../models');
-const logger = require('../utils/logger');
+
+const { EVSE, Location, Credentials, Session, CDR } = require('../models');
 const AuthorizationService = require('../services/authorizationService');
-const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 const cdrSendingService = require('../services/cdrSendingService');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const logger = require('../utils/logger');
 const {
   validateStartSessionMiddleware,
-  validateStopSessionMiddleware,
-  validateReserveNowMiddleware,
-  validateCancelReservationMiddleware,
-  validateUnlockConnectorMiddleware
+  validateStopSessionMiddleware
 } = require('../validators/commandValidators');
 
 /**
@@ -22,13 +20,13 @@ const {
  * @param {string} message - Mensaje descriptivo del resultado
  * @param {string} tokenUid - UID del token utilizado
  */
-async function notifyCommandResult(responseUrl, result, message, tokenUid) {
+async function notifyCommandResult(responseUrl, result, _message, tokenUid) {
   try {
     // Buscar las credenciales del EMSP basándose en la URL de respuesta
     const emspCredentials = await Credentials.findOne({
       where: {
         url: {
-          [require('sequelize').Op.like]: '%' + new URL(responseUrl).hostname + '%'
+          [require('sequelize').Op.like]: `%${  new URL(responseUrl).hostname  }%`
         }
       }
     });
@@ -46,16 +44,16 @@ async function notifyCommandResult(responseUrl, result, message, tokenUid) {
     }
 
     const payload = {
-      result: result
+      result
     };
 
     logger.info('📤 Sending command result notification', {
       response_url: responseUrl,
-      result: result,
+      result,
       token_uid: tokenUid,
       emsp_party_id: emspCredentials.party_id,
       emsp_country_code: emspCredentials.country_code,
-      payload: payload
+      payload
     });
 
     const response = await axios.post(responseUrl, payload, {
@@ -69,7 +67,7 @@ async function notifyCommandResult(responseUrl, result, message, tokenUid) {
 
     logger.info('✅ Command result notification sent successfully', {
       response_url: responseUrl,
-      result: result,
+      result,
       status_code: response.status,
       emsp_party_id: emspCredentials.party_id,
       response_time: response.headers['x-response-time'] || 'N/A'
@@ -80,7 +78,7 @@ async function notifyCommandResult(responseUrl, result, message, tokenUid) {
   } catch (error) {
     logger.error('❌ Failed to send command result notification', {
       response_url: responseUrl,
-      result: result,
+      result,
       error: error.message,
       status_code: error.response?.status,
       response_data: error.response?.data
@@ -218,7 +216,7 @@ router.post('/START_SESSION', validateStartSessionMiddleware, async (req, res) =
     const evse = await EVSE.findOne({
       where: {
         id: evse_uid,
-        location_id: location_id,
+        location_id,
         deleted_at: null
       }
     });
@@ -355,11 +353,11 @@ router.post('/START_SESSION', validateStartSessionMiddleware, async (req, res) =
 
     // Crear sesión en la base de datos usando la información del token del eMSP
     const sessionId = uuidv4();
-    const session = await Session.create({
+    await Session.create({
       id: sessionId,
       country_code: token.country_code || process.env.OCPI_COUNTRY_CODE || 'ES',
       party_id: token.party_id || process.env.OCPI_PARTY_ID || 'IPD',
-      evse_uid: evse_uid,
+      evse_uid,
       connector_id: evse.connectors && evse.connectors[0] ? evse.connectors[0].id : null,
       id_token: token.uid,
       start_datetime: new Date(),
@@ -373,12 +371,12 @@ router.post('/START_SESSION', validateStartSessionMiddleware, async (req, res) =
 
     // Crear CDR con los datos del token entrante
     const cdrId = uuidv4();
-    const cdr = await CDR.create({
+    await CDR.create({
       id: cdrId,
       country_code: token.country_code,
       party_id: token.party_id,
       session_id: sessionId,
-      evse_uid: evse_uid,
+      evse_uid,
       connector_id: evse.connectors && evse.connectors[0] ? evse.connectors[0].id : null,
       id_token: token.uid,
       start_datetime: new Date(),
@@ -759,7 +757,7 @@ router.post('/STOP_SESSION', validateStopSessionMiddleware, async (req, res) => 
 
     // Actualizar el CDR asociado
     const cdr = await CDR.findOne({
-      where: { session_id: session_id }
+      where: { session_id }
     });
 
     if (cdr) {
@@ -774,7 +772,7 @@ router.post('/STOP_SESSION', validateStopSessionMiddleware, async (req, res) => 
 
       logger.info('✅ CDR actualizado al finalizar sesión', {
         cdr_id: cdr.id,
-        session_id: session_id,
+        session_id,
         total_time_seconds: totalTimeSeconds
       });
     }

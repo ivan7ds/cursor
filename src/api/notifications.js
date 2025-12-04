@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const evseNotificationService = require('../services/evseNotificationService');
 const logger = require('../utils/logger');
@@ -99,7 +100,7 @@ router.post('/start', async (req, res) => {
       status_code: 1000,
       data: {
         message: 'EVSE Notification Service started successfully',
-        status: status
+        status
       },
       timestamp: new Date().toISOString()
     });
@@ -154,7 +155,7 @@ router.post('/stop', async (req, res) => {
       status_code: 1000,
       data: {
         message: 'EVSE Notification Service stopped successfully',
-        status: status
+        status
       },
       timestamp: new Date().toISOString()
     });

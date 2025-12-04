@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { sequelize } = require('../database/connection');
 
 const OCPIToken = sequelize.define('OCPIToken', {

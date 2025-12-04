@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { sequelize } = require('../database/connection');
 const { authMiddleware } = require('../middleware/auth');
