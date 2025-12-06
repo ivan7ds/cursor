@@ -3,6 +3,20 @@ const { v4: uuidv4 } = require('uuid');
 const { OCPIToken } = require('../models');
 const logger = require('../utils/logger');
 
+const {
+  generateSecureToken,
+  createTokenRecord,
+  buildTokenResponse
+} = require('./ocpiTokenService/tokenGenerationHelpers');
+const {
+  findTokenInOCPIToken,
+  findTokenInCredentials,
+  buildCredentialsTokenResponse,
+  checkAndDeactivateExpiredToken,
+  updateTokenLastUsed,
+  buildOCPITokenResponse
+} = require('./ocpiTokenService/validationHelpers');
+
 /**
  * Servicio para gestionar tokens OCPI
  */
@@ -17,46 +31,22 @@ class OCPITokenService {
    */
   static async generateToken(partyId, countryCode, options = {}) {
     try {
-      // Desactivar tokens anteriores para este party_id
       await this.deactivatePreviousTokens(partyId, countryCode);
       
-      // Generar nuevo token
-      const token = this.generateSecureToken();
+      const token = generateSecureToken();
       const tokenId = uuidv4();
       const now = new Date();
       
-      // Crear registro en base de datos
-      const tokenRecord = await OCPIToken.create({
-        id: tokenId,
-        token,
-        party_id: partyId,
-        country_code: countryCode,
-        is_active: true,
-        expires_at: options.expiresAt || null,
-        created_at: now,
-        metadata: {
-          description: `Token generated for ${partyId} (${countryCode})`,
-          generated_at: now.toISOString(),
-          generated_by: 'OCPI_CPO_SYSTEM',
-          ...options.metadata
-        }
-      });
+      const tokenRecord = await createTokenRecord({ tokenId, token, partyId, countryCode, now, options });
       
       logger.info('New OCPI token generated', {
         partyId,
         countryCode,
         tokenId: tokenRecord.id,
-        tokenPrefix: `${token.substring(0, 8)  }...`
+        tokenPrefix: `${token.substring(0, 8)}...`
       });
       
-      return {
-        id: tokenRecord.id,
-        token,
-        party_id: partyId,
-        country_code: countryCode,
-        created_at: tokenRecord.created_at,
-        expires_at: tokenRecord.expires_at
-      };
+      return buildTokenResponse(tokenRecord, token);
       
     } catch (error) {
       logger.error('Error generating OCPI token:', error);
@@ -71,62 +61,23 @@ class OCPITokenService {
    */
   static async validateToken(token) {
     try {
-      // Primero buscar en la tabla OCPIToken
-      const tokenRecord = await OCPIToken.findOne({
-        where: {
-          token,
-          is_active: true
-        }
-      });
+      const tokenRecord = await findTokenInOCPIToken(token);
       
-      // Si no se encuentra en OCPIToken, buscar en la tabla credentials
       if (!tokenRecord) {
-        const { sequelize } = require('../database/connection');
-        const [credentialsResult] = await sequelize.query(`
-          SELECT token, party_id, country_code, valid, temp, created_at, updated_at 
-          FROM credentials 
-          WHERE token = ? AND valid = true
-        `, {
-          replacements: [token]
-        });
-        
-        if (credentialsResult && credentialsResult.length > 0) {
-          const cred = credentialsResult[0];
-          return {
-            id: cred.token, // Usar el token como ID
-            party_id: cred.party_id,
-            country_code: cred.country_code,
-            valid: cred.valid,
-            temp: cred.temp,
-            created_at: cred.created_at,
-            expires_at: null, // Los tokens de credentials no expiran
-            type: 'credentials'
-          };
+        const cred = await findTokenInCredentials(token);
+        if (cred) {
+          return buildCredentialsTokenResponse(cred);
         }
-        
         return null;
       }
       
-      // Verificar si el token ha expirado
-      if (tokenRecord.expires_at && new Date() > tokenRecord.expires_at) {
-        logger.warn('Token expired', { tokenId: tokenRecord.id, partyId: tokenRecord.party_id });
-        await this.deactivateToken(tokenRecord.id);
+      const isExpired = await checkAndDeactivateExpiredToken(tokenRecord);
+      if (isExpired) {
         return null;
       }
       
-      // Actualizar último uso
-      await tokenRecord.update({
-        last_used_at: new Date()
-      });
-      
-      return {
-        id: tokenRecord.id,
-        party_id: tokenRecord.party_id,
-        country_code: tokenRecord.country_code,
-        created_at: tokenRecord.created_at,
-        expires_at: tokenRecord.expires_at,
-        type: 'ocpi_token'
-      };
+      await updateTokenLastUsed(tokenRecord);
+      return buildOCPITokenResponse(tokenRecord);
       
     } catch (error) {
       logger.error('Error validating OCPI token:', error);
@@ -206,15 +157,7 @@ class OCPITokenService {
    * @returns {string} Token generado
    */
   static generateSecureToken() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = 'OCPI_';
-    
-    // Generar 59 caracteres aleatorios (5 + 59 = 64)
-    for (let i = 0; i < 59; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    
-    return result;
+    return generateSecureToken();
   }
   
   /**
@@ -255,9 +198,9 @@ class OCPITokenService {
         }
       });
       
-      for (const token of expiredTokens) {
-        await this.deactivateToken(token.id);
-      }
+      // Desactivar todos los tokens expirados en paralelo
+      const deactivationPromises = expiredTokens.map(token => this.deactivateToken(token.id));
+      await Promise.allSettled(deactivationPromises);
       
       if (expiredTokens.length > 0) {
         logger.info('Expired tokens cleaned up', { count: expiredTokens.length });

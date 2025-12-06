@@ -1,0 +1,102 @@
+const { tariffPutPathSchema, tariffPutBodySchema } = require('./tariffBodySchemas');
+
+/**
+ * Valida los parámetros de ruta para PUT de Tariff
+ * @param {Object} params - Parámetros de ruta
+ * @returns {Object} Resultado de validación
+ */
+function validateTariffPutPath(params) {
+  const pathValidation = tariffPutPathSchema.validate(params, {
+    abortEarly: false,
+    stripUnknown: false
+  });
+
+  if (pathValidation.error) {
+    return {
+      valid: false,
+      errors: pathValidation.error.details.map(detail => ({
+        field: detail.path.join('.'),
+        message: detail.message,
+        type: detail.type
+      })),
+      value: null
+    };
+  }
+
+  return {
+    valid: true,
+    value: pathValidation.value
+  };
+}
+
+/**
+ * Valida el body para PUT de Tariff
+ * @param {Object} body - Body de la petición
+ * @returns {Object} Resultado de validación
+ */
+function validateTariffPutBody(body) {
+  const bodyValidation = tariffPutBodySchema.validate(body, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (bodyValidation.error) {
+    return {
+      valid: false,
+      errors: bodyValidation.error.details.map(detail => ({
+        field: detail.path.join('.'),
+        message: detail.message,
+        type: detail.type
+      })),
+      value: null
+    };
+  }
+
+  return {
+    valid: true,
+    value: bodyValidation.value
+  };
+}
+
+/**
+ * Valida que los parámetros de ruta coincidan con los valores del body
+ * @param {Object} pathParams - Parámetros de ruta validados
+ * @param {Object} bodyData - Datos del body validados
+ * @returns {Array} Array de errores de coincidencia (vacío si no hay errores)
+ */
+function validateTariffPutPathBodyMatch(pathParams, bodyData) {
+  const matchErrors = [];
+
+  if (pathParams.country_code.toUpperCase() !== bodyData.country_code.toUpperCase()) {
+    matchErrors.push({
+      field: 'country_code',
+      message: `country_code in path (${pathParams.country_code}) does not match body (${bodyData.country_code})`,
+      type: 'mismatch'
+    });
+  }
+
+  if (pathParams.party_id.toUpperCase() !== bodyData.party_id.toUpperCase()) {
+    matchErrors.push({
+      field: 'party_id',
+      message: `party_id in path (${pathParams.party_id}) does not match body (${bodyData.party_id})`,
+      type: 'mismatch'
+    });
+  }
+
+  if (pathParams.tariff_id.toUpperCase() !== bodyData.id.toUpperCase()) {
+    matchErrors.push({
+      field: 'id',
+      message: `tariff_id in path (${pathParams.tariff_id}) does not match body id (${bodyData.id})`,
+      type: 'mismatch'
+    });
+  }
+
+  return matchErrors;
+}
+
+module.exports = {
+    validateTariffPutPath,
+    validateTariffPutBody,
+    validateTariffPutPathBodyMatch
+};
+

@@ -116,7 +116,7 @@ router.get('/:id', async (req, res) => {
  *     summary: Delete all validation errors
  *     tags: [Validation Errors]
  */
-router.delete('/', async (req, res) => {
+router.delete('/', async (_req, res) => {
   try {
     const deletedCount = await ValidationError.destroy({
       where: {},
@@ -128,6 +128,7 @@ router.delete('/', async (req, res) => {
     res.status(200).json({
       status_code: 1000,
       status_message: `Successfully deleted all validation errors`,
+      // eslint-disable-next-line camelcase -- Campo en snake_case según convención de API
       deleted_count: deletedCount,
       timestamp: new Date().toISOString()
     });

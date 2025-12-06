@@ -99,7 +99,7 @@ function addToMemory(level, message, meta = {}) {
   if (global.broadcastLogFunction) {
     try {
       global.broadcastLogFunction(logEntry);
-    } catch (error) {
+    } catch (_error) {
       // Ignore if broadcast function not available
     }
   }

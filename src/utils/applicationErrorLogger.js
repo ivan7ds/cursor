@@ -1,4 +1,11 @@
 const { ApplicationError } = require('../models');
+
+const {
+  buildBasicErrorData,
+  buildErrorBodyData,
+  buildErrorHeadersData,
+  buildAdditionalErrorData
+} = require('./applicationErrorLogger/errorDataHelpers');
 const logger = require('./logger');
 
 /**
@@ -18,40 +25,20 @@ const logger = require('./logger');
  * @param {string} params.ip_address - IP address (optional)
  * @param {string} params.user_agent - User agent string (optional)
  */
-async function logApplicationError({
-  error_type,
-  direction,
-  endpoint,
-  method,
-  status_code,
-  error_message,
-  error_stack,
-  request_body,
-  response_body,
-  request_headers,
-  response_headers,
-  ip_address,
-  user_agent
-}) {
+async function logApplicationError(params) {
   try {
+    const basicData = buildBasicErrorData(params);
+    const bodyData = buildErrorBodyData(params.request_body, params.response_body);
+    const headersData = buildErrorHeadersData(params.request_headers, params.response_headers);
+    const additionalData = buildAdditionalErrorData(params.ip_address, params.user_agent);
+
     await ApplicationError.create({
-      error_type: error_type || 'UNKNOWN',
-      direction: direction || 'INBOUND',
-      endpoint: endpoint || null,
-      method: method || null,
-      status_code: status_code || null,
-      error_message: error_message || 'Unknown error',
-      error_stack: error_stack || null,
-      request_body: request_body ? (typeof request_body === 'string' ? request_body : JSON.stringify(request_body)) : null,
-      response_body: response_body ? (typeof response_body === 'string' ? response_body : JSON.stringify(response_body)) : null,
-      request_headers: request_headers || null,
-      response_headers: response_headers || null,
-      ip_address: ip_address || null,
-      user_agent: user_agent || null,
-      timestamp: new Date()
+      ...basicData,
+      ...bodyData,
+      ...headersData,
+      ...additionalData
     });
   } catch (error) {
-    // Don't throw error if logging fails, just log it
     logger.error('Failed to log application error to database:', error);
   }
 }

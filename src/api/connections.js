@@ -46,7 +46,7 @@ const logger = require('../utils/logger');
  *                   type: string
  *                   format: date-time
  */
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     logger.info('Loading OCPI connections for frontend');
     

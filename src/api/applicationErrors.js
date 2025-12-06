@@ -1,8 +1,7 @@
 const express = require('express');
-
-const router = express.Router();
 const { Op } = require('sequelize');
 
+const router = express.Router();
 const { ApplicationError } = require('../models');
 const logger = require('../utils/logger');
 
@@ -39,12 +38,14 @@ const logger = require('../utils/logger');
  */
 router.get('/', async (req, res) => {
   try {
-    const { limit = 100, offset = 0, error_type, direction, status_code } = req.query;
+    const { limit = 100, offset = 0, error_type: errorType, direction, status_code: statusCode } = req.query;
 
     const where = {};
-    if (error_type) where.error_type = { [Op.like]: `%${error_type}%` };
+    // eslint-disable-next-line camelcase
+    if (errorType) where.error_type = { [Op.like]: `%${errorType}%` };
     if (direction) where.direction = direction;
-    if (status_code) where.status_code = parseInt(status_code);
+    // eslint-disable-next-line camelcase
+    if (statusCode) where.status_code = parseInt(statusCode);
 
     const { count, rows } = await ApplicationError.findAndCountAll({
       where,
@@ -181,7 +182,7 @@ router.delete('/:id', async (req, res) => {
  *     summary: Delete all application errors
  *     tags: [Application Errors]
  */
-router.delete('/', async (req, res) => {
+router.delete('/', async (_req, res) => {
   try {
     await ApplicationError.destroy({ where: {} });
 

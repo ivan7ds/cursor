@@ -1,21 +1,23 @@
 const OCPITokenService = require('../services/ocpiTokenService');
 const logger = require('../utils/logger');
 
-// Token OCPI por defecto para desarrollo (se usará solo si no hay tokens en BD)
-const DEFAULT_OCPI_TOKEN = process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
-
 /**
  * Middleware de autenticación OCPI
  * Valida que la petición incluya el token correcto en las cabeceras
  */
+const {
+  extractToken,
+  validateToken,
+  checkTempTokenPermission,
+  buildTokenObject,
+  DEFAULT_OCPI_TOKEN
+} = require('./auth/authHelpers');
+
 const authMiddleware = async (req, res, next) => {
   try {
-    // Obtener el token de las cabeceras
-    const authHeader = req.headers.authorization;
-    const token = req.headers['ocpi-token'] || req.headers['OCPI-Token'];
+    const providedToken = extractToken(req);
     
-    // Verificar si se proporcionó algún token
-    if (!authHeader && !token) {
+    if (!providedToken) {
       logger.warn('Authentication failed: No token provided', { 
         ip: req.ip, 
         path: req.path,
@@ -29,68 +31,34 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Verificar el token en Authorization header (formato: "Token {token}")
-    let providedToken = null;
-    if (authHeader && authHeader.startsWith('Token ')) {
-      providedToken = authHeader.substring(6); // Remover "Token " del inicio
-    } else if (token) {
-      providedToken = token;
-    }
-
-    // Validar el token usando el servicio OCPI
-    const tokenInfo = await OCPITokenService.validateToken(providedToken);
+    const tokenInfo = await validateToken(providedToken);
     
-    if (!tokenInfo) {
-      // Si no se encuentra en BD, verificar el token por defecto (para compatibilidad)
-      if (providedToken !== DEFAULT_OCPI_TOKEN) {
-        logger.warn('Authentication failed: Invalid token', { 
-          ip: req.ip, 
-          path: req.path,
-          providedToken: providedToken ? `${providedToken.substring(0, 10)  }...` : 'none'
-        });
-        
-        return res.status(401).json({
-          status_code: 2001,
-          status_message: 'Authentication failed: Invalid token',
-          timestamp: new Date().toISOString()
-        });
-      }
-    } else {
-      // Si el token es temporal, verificar si está permitido en este endpoint
-      if (tokenInfo.temp === true) {
-        // Endpoints que permiten tokens temporales (handshake)
-        const tempTokenAllowedPaths = [
-          '/ocpi/versions',
-          '/ocpi/cpo/2.2/details', 
-          '/ocpi/cpo/2.2/credentials'
-        ];
-        
-        const isTempTokenAllowed = tempTokenAllowedPaths.some(path => 
-          req.originalUrl.startsWith(path)
-        );
-        
-        if (!isTempTokenAllowed) {
-          logger.warn('Authentication failed: Temporary token not allowed for this endpoint', { 
-            ip: req.ip, 
-            path: req.path,
-            providedToken: providedToken ? `${providedToken.substring(0, 10)  }...` : 'none'
-          });
-          
-          return res.status(403).json({
-            status_code: 2002,
-            status_message: 'Forbidden: This endpoint requires a permanent token',
-            timestamp: new Date().toISOString()
-          });
-        }
-      }
+    if (!tokenInfo && providedToken !== DEFAULT_OCPI_TOKEN) {
+      logger.warn('Authentication failed: Invalid token', { 
+        ip: req.ip, 
+        path: req.path,
+        providedToken: `${providedToken.substring(0, 10)}...`
+      });
+      
+      return res.status(401).json({
+        status_code: 2001,
+        status_message: 'Authentication failed: Invalid token',
+        timestamp: new Date().toISOString()
+      });
     }
 
-    // Token válido, agregar información del token a la request
-    req.ocpiToken = tokenInfo || { 
-      party_id: process.env.OCPI_PARTY_ID || 'IPD', 
-      country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
-      type: 'default' 
-    };
+    const permissionError = checkTempTokenPermission(tokenInfo, req.originalUrl);
+    if (permissionError) {
+      logger.warn('Authentication failed: Temporary token not allowed for this endpoint', { 
+        ip: req.ip, 
+        path: req.path,
+        providedToken: `${providedToken.substring(0, 10)}...`
+      });
+      
+      return res.status(permissionError.status).json(permissionError.json);
+    }
+
+    req.ocpiToken = buildTokenObject(tokenInfo);
     
     logger.info('Authentication successful', { 
       ip: req.ip, 

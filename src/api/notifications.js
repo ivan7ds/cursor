@@ -38,7 +38,7 @@ const logger = require('../utils/logger');
  *                   type: string
  *                   format: date-time
  */
-router.get('/status', async (req, res) => {
+router.get('/status', async (_req, res) => {
   try {
     logger.ocpi('/notifications/status', 'GET', {});
     
@@ -89,7 +89,7 @@ router.get('/status', async (req, res) => {
  *                   type: string
  *                   format: date-time
  */
-router.post('/start', async (req, res) => {
+router.post('/start', async (_req, res) => {
   try {
     logger.ocpi('/notifications/start', 'POST', {});
     
@@ -144,7 +144,7 @@ router.post('/start', async (req, res) => {
  *                   type: string
  *                   format: date-time
  */
-router.post('/stop', async (req, res) => {
+router.post('/stop', async (_req, res) => {
   try {
     logger.ocpi('/notifications/stop', 'POST', {});
     
@@ -199,7 +199,7 @@ router.post('/stop', async (req, res) => {
  *                   type: string
  *                   format: date-time
  */
-router.post('/test', async (req, res) => {
+router.post('/test', async (_req, res) => {
   try {
     logger.ocpi('/notifications/test', 'POST', {});
     

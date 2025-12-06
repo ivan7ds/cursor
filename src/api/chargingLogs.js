@@ -8,6 +8,56 @@ const { broadcastChargingLog } = require('./logs');
 // Almacenar logs de recarga en memoria
 let chargingLogs = [];
 
+/**
+ * Crea una entrada de log con timestamp
+ * @param {string} message - Mensaje del log
+ * @param {string} type - Tipo de log
+ * @param {string} sessionId - ID de sesión
+ * @returns {Object} Entrada de log
+ */
+function createLogEntry(message, type, sessionId) {
+  const now = new Date();
+  const timestamp = now.toLocaleTimeString('es-ES', { 
+    hour12: false, 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    fractionalSecondDigits: 3
+  });
+
+  return {
+    id: Date.now() + Math.random(),
+    timestamp,
+    message,
+    type,
+    sessionId,
+    createdAt: now
+  };
+}
+
+/**
+ * Mantiene solo los últimos 100 logs en memoria
+ */
+function limitLogsMemory() {
+  if (chargingLogs.length > 100) {
+    chargingLogs = chargingLogs.slice(-100);
+  }
+}
+
+/**
+ * Maneja errores al agregar log de carga
+ * @param {Error} error - Error ocurrido
+ * @param {Object} res - Response object
+ */
+function handleChargingLogError(error, res) {
+  logger.error('❌ Error adding charging log:', error);
+  res.status(500).json({
+    status_code: 2000,
+    status_message: 'Internal server error',
+    timestamp: new Date().toISOString()
+  });
+}
+
 // POST /api/charging-logs - Enviar log a la consola de recarga
 router.post('/', async (req, res) => {
     try {
@@ -21,34 +71,9 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Agregar timestamp
-        const now = new Date();
-        const timestamp = now.toLocaleTimeString('es-ES', { 
-            hour12: false, 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit',
-            fractionalSecondDigits: 3
-        });
-
-        const logEntry = {
-            id: Date.now() + Math.random(),
-            timestamp,
-            message,
-            type,
-            sessionId,
-            createdAt: now
-        };
-
-        // Agregar a la lista de logs
+        const logEntry = createLogEntry(message, type, sessionId);
         chargingLogs.push(logEntry);
-
-        // Mantener solo los últimos 100 logs para evitar memoria excesiva
-        if (chargingLogs.length > 100) {
-            chargingLogs = chargingLogs.slice(-100);
-        }
-
-        // Enviar también al sistema de streaming de logs
+        limitLogsMemory();
         broadcastChargingLog(logEntry);
 
         logger.info(`📝 Charging log added: ${message}`, { type, sessionId });
@@ -60,12 +85,7 @@ router.post('/', async (req, res) => {
         });
 
     } catch (error) {
-        logger.error('❌ Error adding charging log:', error);
-        res.status(500).json({
-            status_code: 2000,
-            status_message: 'Internal server error',
-            timestamp: new Date().toISOString()
-        });
+        handleChargingLogError(error, res);
     }
 });
 

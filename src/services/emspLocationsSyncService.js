@@ -1,7 +1,13 @@
 const axios = require('axios');
 
-const { logJobExecution } = require('../api/testMonitoring');
+const { logJobExecution, logJobError } = require('../api/testMonitoring');
 const logger = require('../utils/logger');
+
+const {
+  locationExists,
+  updateLocation,
+  createLocation
+} = require('./emspLocationsSyncService/locationHelpers');
 
 class EMSPLocationsSyncService {
   constructor() {
@@ -84,20 +90,35 @@ class EMSPLocationsSyncService {
 
       logger.info(`📡 Found ${emsps.length} connected EMSPs, starting sync...`);
       
-      let successCount = 0;
-      let errorCount = 0;
-
-      // Procesar cada EMSP
-      for (const emsp of emsps) {
+      // Crear promesas para procesar todos los EMSPs en paralelo
+      const emspPromises = emsps.map(async (emsp) => {
         try {
           await this.syncSingleEMSPLocations(emsp);
-          successCount++;
           logger.info(`✅ Successfully synced locations for EMSP ${emsp.party_id} (${emsp.country_code})`);
+          return { success: true, emsp };
         } catch (error) {
-          errorCount++;
           logger.error(`❌ Error syncing locations for EMSP ${emsp.party_id} (${emsp.country_code}):`, error.message);
+          return { success: false, emsp, error };
         }
-      }
+      });
+
+      // Ejecutar todas las promesas y contar resultados
+      const results = await Promise.allSettled(emspPromises);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      results.forEach((settledResult) => {
+        if (settledResult.status === 'fulfilled') {
+          if (settledResult.value.success) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } else {
+          errorCount++;
+        }
+      });
 
       const message = `Synced ${successCount} EMSPs successfully, ${errorCount} errors`;
       logger.info(`📊 EMSP Locations Sync completed: ${message}`);
@@ -143,40 +164,25 @@ class EMSPLocationsSyncService {
    * Sincroniza las locations de un EMSP específico
    */
   async syncSingleEMSPLocations(emsp) {
+    const { party_id, country_code, token, url } = emsp || {};
+    
     try {
-      const { party_id, country_code, token, url } = emsp;
-      
       logger.info(`🔄 Syncing locations for EMSP ${party_id} (${country_code})...`);
 
-      // Construir URL del endpoint de locations del CPO (para obtener locations del EMSP)
-      const locationsUrl = `${url}/ocpi/cpo/2.2/locations/`;
+      const locationsUrl = buildLocationsUrl(url);
+      const headers = buildLocationsHeaders(token);
       
-      // Hacer petición GET a las locations del EMSP
       const response = await axios.get(locationsUrl, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000 // 10 segundos timeout
+        headers,
+        timeout: 10000
       });
 
       if (response.status === 200 && response.data.status_code === 1000) {
         const locations = response.data.data || [];
-        
         logger.info(`📍 Found ${locations.length} locations for EMSP ${party_id} (${country_code})`);
 
-        // Verificar si devuelve 0 locations - esto se considera un error
-        if (locations.length === 0) {
-          const errorMessage = `No locations found for EMSP ${party_id} (${country_code}) - this is considered an error`;
-          logger.error(`❌ ${errorMessage}`);
-          logJobError('EMSP Locations Sync Service', errorMessage, 'error');
-          throw new Error(errorMessage);
-        }
-        
-        // Procesar cada location recibida
-        for (const location of locations) {
-          await this.processEMSPLocation(location, party_id, country_code);
-        }
+        validateLocationsResponse(locations, party_id, country_code);
+        await processAllLocations(locations, party_id, country_code, this.processEMSPLocation.bind(this));
 
         logger.info(`✅ Successfully processed ${locations.length} locations for EMSP ${party_id} (${country_code})`);
       } else {
@@ -184,7 +190,7 @@ class EMSPLocationsSyncService {
       }
 
     } catch (error) {
-      logger.error(`❌ Error syncing locations for EMSP ${party_id} (${country_code}):`, error.message);
+      logger.error(`❌ Error syncing locations for EMSP ${party_id || 'unknown'} (${country_code || 'unknown'}):`, error.message);
       logger.error(`❌ Full error:`, JSON.stringify(error, null, 2));
       throw error;
     }
@@ -195,107 +201,12 @@ class EMSPLocationsSyncService {
    */
   async processEMSPLocation(location, party_id, country_code) {
     try {
-      const { sequelize } = require('../database/connection');
+      const exists = await locationExists(location.id);
       
-      // Verificar si la location ya existe
-      const [existingLocation] = await sequelize.query(`
-        SELECT id FROM emsp_locations WHERE id = ?
-      `, {
-        replacements: [location.id],
-        type: sequelize.QueryTypes.SELECT
-      });
-
-      if (existingLocation) {
-        // Actualizar location existente
-        await sequelize.query(`
-          UPDATE emsp_locations SET
-            emsp_party_id = ?,
-            emsp_country_code = ?,
-            location_id = ?,
-            name = ?,
-            address = ?,
-            city = ?,
-            postal_code = ?,
-            country = ?,
-            coordinates = ?,
-            evses = ?,
-            directions = ?,
-            operator = ?,
-            suboperator = ?,
-            owner = ?,
-            facilities = ?,
-            time_zone = ?,
-            opening_times = ?,
-            charging_when_closed = ?,
-            images = ?,
-            energy_mix = ?,
-            last_updated = ?
-          WHERE id = ?
-        `, {
-          replacements: [
-            party_id,
-            country_code,
-            location.id,
-            location.name || 'Unknown',
-            location.address || 'Address not provided',
-            location.city || 'Unknown',
-            location.postal_code || '00000',
-            location.country || country_code,
-            JSON.stringify(location.coordinates || {}),
-            JSON.stringify(location.evses || []),
-            JSON.stringify(location.directions || []),
-            JSON.stringify(location.operator || {}),
-            JSON.stringify(location.suboperator || {}),
-            JSON.stringify(location.owner || {}),
-            JSON.stringify(location.facilities || []),
-            location.time_zone || 'Europe/Madrid',
-            JSON.stringify(location.opening_times || {}),
-            location.charging_when_closed || false,
-            JSON.stringify(location.images || []),
-            JSON.stringify(location.energy_mix || {}),
-            location.last_updated || new Date().toISOString(),
-            location.id
-          ]
-        });
-
-        logger.debug(`🔄 Updated location ${location.id} for EMSP ${party_id}`);
+      if (exists) {
+        await updateLocation(location, party_id, country_code);
       } else {
-        // Crear nueva location
-        await sequelize.query(`
-          INSERT INTO emsp_locations (
-            id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
-            postal_code, country, coordinates, evses, directions, operator, 
-            suboperator, owner, facilities, time_zone, opening_times, 
-            charging_when_closed, images, energy_mix, last_updated
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, {
-          replacements: [
-            location.id,
-            party_id,
-            country_code,
-            location.id,
-            location.name || 'Unknown',
-            location.address || 'Address not provided',
-            location.city || 'Unknown',
-            location.postal_code || '00000',
-            location.country || country_code,
-            JSON.stringify(location.coordinates || {}),
-            JSON.stringify(location.evses || []),
-            JSON.stringify(location.directions || []),
-            JSON.stringify(location.operator || {}),
-            JSON.stringify(location.suboperator || {}),
-            JSON.stringify(location.owner || {}),
-            JSON.stringify(location.facilities || []),
-            location.time_zone || 'Europe/Madrid',
-            JSON.stringify(location.opening_times || {}),
-            location.charging_when_closed || false,
-            JSON.stringify(location.images || []),
-            JSON.stringify(location.energy_mix || {}),
-            location.last_updated || new Date().toISOString()
-          ]
-        });
-
-        logger.debug(`➕ Created location ${location.id} for EMSP ${party_id}`);
+        await createLocation(location, party_id, country_code);
       }
 
     } catch (error) {

@@ -45,98 +45,67 @@ const logger = require('../utils/logger');
  *                   type: string
  *                   format: date-time
  */
+/**
+ * Construye los endpoints CPO
+ * @param {string} cleanBaseUrl - URL base limpia
+ * @returns {Array} Array de endpoints CPO
+ */
+function buildCpoEndpoints(cleanBaseUrl) {
+  return [
+    { identifier: "cdrs", role: "SENDER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/cdrs/` },
+    { identifier: "commands", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/commands/` },
+    { identifier: "credentials", role: "SENDER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/credentials/` },
+    { identifier: "credentials", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/credentials/` },
+    { identifier: "locations", role: "SENDER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/locations/` },
+    { identifier: "sessions", role: "SENDER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/sessions/` },
+    { identifier: "tariffs", role: "SENDER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/tariffs/` },
+    { identifier: "tokens", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/cpo/2.2/tokens/` }
+  ];
+}
+
+/**
+ * Construye los endpoints eMSP
+ * @param {string} cleanBaseUrl - URL base limpia
+ * @returns {Array} Array de endpoints eMSP
+ */
+function buildEmspEndpoints(cleanBaseUrl) {
+  return [
+    { identifier: "locations", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/emsp/2.2/locations/` },
+    { identifier: "sessions", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/emsp/2.2/sessions/` },
+    { identifier: "cdrs", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/emsp/2.2/cdrs/` },
+    { identifier: "tokens", role: "SENDER", url: `${cleanBaseUrl}/ocpi/emsp/2.2/tokens/` },
+    { identifier: "tariffs", role: "RECEIVER", url: `${cleanBaseUrl}/ocpi/emsp/2.2/tariffs/` }
+  ];
+}
+
+/**
+ * Construye todos los endpoints OCPI
+ * @param {string} cleanBaseUrl - URL base limpia
+ * @returns {Array} Array completo de endpoints
+ */
+function buildAllEndpoints(cleanBaseUrl) {
+  return [
+    ...buildCpoEndpoints(cleanBaseUrl),
+    ...buildEmspEndpoints(cleanBaseUrl)
+  ];
+}
+
 router.get('/', async (req, res) => {
   try {
     logger.ocpi('/details', 'GET', { query: req.query });
     
-    // Get base URL from environment variable or fallback to request
     const baseUrl = process.env.OCPI_BASE_URL || `${req.protocol}://${req.get('host')}`;
-    
-    // Remove trailing slash if present
     const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-    
-    // Define available OCPI version with all endpoints for both CPO and eMSP roles
-    const endpoints = [
-      // CPO endpoints (SENDER role)
-      {
-        identifier: "cdrs",
-        role: "SENDER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/cdrs/`
-      },
-      {
-        identifier: "commands",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/commands/`
-      },
-      {
-        identifier: "credentials",
-        role: "SENDER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/credentials/`
-      },
-      {
-        identifier: "credentials",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/credentials/`
-      },
-      {
-        identifier: "locations",
-        role: "SENDER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/locations/`
-      },
-      {
-        identifier: "sessions",
-        role: "SENDER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/sessions/`
-      },
-      {
-        identifier: "tariffs",
-        role: "SENDER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/tariffs/`
-      },
-      {
-        identifier: "tokens",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/cpo/2.2/tokens/`
-      },
-      // eMSP endpoints
-      {
-        identifier: "locations",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/emsp/2.2/locations/`
-      },
-      {
-        identifier: "sessions",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/emsp/2.2/sessions/`
-      },
-      {
-        identifier: "cdrs",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/emsp/2.2/cdrs/`
-      },
-      {
-        identifier: "tokens",
-        role: "SENDER",
-        url: `${cleanBaseUrl}/ocpi/emsp/2.2/tokens/`
-      },
-      {
-        identifier: "tariffs",
-        role: "RECEIVER",
-        url: `${cleanBaseUrl}/ocpi/emsp/2.2/tariffs/`
-      }
-    ];
+    const endpoints = buildAllEndpoints(cleanBaseUrl);
 
-    // Return response with status_code, data (containing version and endpoints), and timestamp wrapper
-    const response = {
+    res.status(200).json({
       status_code: 1000,
       data: {
         version: "2.2",
         endpoints
       },
       timestamp: new Date().toISOString()
-    };
-
-    res.status(200).json(response);
+    });
   } catch (error) {
     logger.error('Error getting details:', error);
     res.status(500).json({
