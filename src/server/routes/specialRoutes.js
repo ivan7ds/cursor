@@ -78,9 +78,9 @@ function setupSpecialRoutes(app) {
   setupAppConfigRoute(app);
   setupHealthRoute(app);
   setupTestEMSPLocationsRoute(app);
-  setup404Handler(app);
 }
 
 module.exports = {
-    setupSpecialRoutes
+    setupSpecialRoutes,
+    setup404Handler
 };
