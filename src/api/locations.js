@@ -13,6 +13,10 @@ const {
   calculatePaginationInfo,
   buildPaginationHeaders
 } = require('./locations/paginationHelpers');
+const {
+  queryLocationsWithEVSEs,
+  processLocationsForResponse
+} = require('./locations/queryHelpers');
 const { cleanLocation } = require('./locations/transformers');
 
 /**

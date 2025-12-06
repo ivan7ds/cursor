@@ -414,7 +414,7 @@ export class EVSEsModule {
                     if (container.children.length > 1) {
                         newConnector.remove();
                     } else {
-                        this.showNotification('Debe mantener al menos un conector', 'warning');
+                        this.app.showNotification('Debe mantener al menos un conector', 'warning');
                     }
                 });
             }
@@ -485,7 +485,7 @@ export class EVSEsModule {
             
         } catch (error) {
             console.error('❌ Error cargando locations para EVSE:', error);
-            this.showNotification(`Error al cargar locations: ${error.message}`, 'error');
+            this.app.showNotification(`Error al cargar locations: ${error.message}`, 'error');
         }
     }
 
@@ -509,7 +509,7 @@ export class EVSEsModule {
             console.log('✅ EVSE creado exitosamente:', result);
             
             // Mostrar notificación de éxito
-            this.showNotification('EVSE creado exitosamente', 'success');
+            this.app.showNotification('EVSE creado exitosamente', 'success');
             
             // Cerrar modal
             this.closeEvseModal();
@@ -521,7 +521,7 @@ export class EVSEsModule {
             
         } catch (error) {
             console.error('❌ Error guardando EVSE:', error);
-            this.showNotification(`Error al crear EVSE: ${error.message}`, 'error');
+            this.app.showNotification(`Error al crear EVSE: ${error.message}`, 'error');
         }
     }
 
@@ -536,14 +536,14 @@ export class EVSEsModule {
             // Verificar que al menos un capability esté seleccionado
             const capabilities = document.querySelectorAll('input[type="checkbox"]:checked');
             if (capabilities.length === 0) {
-                this.showNotification('Debe seleccionar al menos una capability', 'warning');
+                this.app.showNotification('Debe seleccionar al menos una capability', 'warning');
                 return false;
             }
             
             // Verificar que al menos un conector esté configurado
             const connectors = document.querySelectorAll('.evse-connector');
             if (connectors.length === 0) {
-                this.showNotification('Debe configurar al menos un conector', 'warning');
+                this.app.showNotification('Debe configurar al menos un conector', 'warning');
                 return false;
             }
             

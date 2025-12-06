@@ -516,33 +516,78 @@ export class CPOModule {
   resetEmspDataState() {
         console.log('🧹 Reiniciando estado local de datos eMSP');
 
-        this.allEmspLocations = [];
-        this.filteredEmspLocations = [];
-        this.emspLocationsEvseCountMap = {};
-        this.emspLocationNameMap = {};
-        this.emspEvseIdMap = {};
-        this.currentEmspLocationsPage = 1;
-        this.renderEmspLocationsPage();
+        // Resetear estado en app (donde realmente está almacenado)
+        this.app.allEmspLocations = [];
+        this.app.filteredEmspLocations = [];
+        this.app.emspLocationsEvseCountMap = {};
+        this.app.emspLocationNameMap = {};
+        this.app.emspEvseIdMap = {};
+        this.app.currentEmspLocationsPage = 1;
+
+        this.app.allEmspEvses = [];
+        this.app.filteredEmspEvses = [];
+        this.app.currentEmspEvsesPage = 1;
+        this.app.emspEvsesFilters = { status: '', party: '', search: '' };
+
+        this.app.allEmspTariffs = [];
+        this.app.filteredEmspTariffs = [];
+        this.app.currentEmspTariffsPage = 1;
+
+        this.app.allEmspTokens = [];
+        this.app.filteredEmspTokens = [];
+        this.app.currentEmspTokensPage = 1;
+        this.app.emspTokensFilters = { search: '', issuer: '', type: '', valid: '', whitelist: '' };
+
+        // Llamar a métodos de renderizado del módulo EMSP
+        if (this.app && this.app.emspModule) {
+            try {
+                if (typeof this.app.emspModule.renderEmspLocationsPage === 'function') {
+                    this.app.emspModule.renderEmspLocationsPage();
+                } else {
+                    console.warn('⚠️ renderEmspLocationsPage no está disponible en emspModule');
+                }
+            } catch (error) {
+                console.error('❌ Error renderizando EMSP locations:', error);
+            }
+
+            try {
+                if (typeof this.app.emspModule.renderEmspEvsesPage === 'function') {
+                    this.app.emspModule.renderEmspEvsesPage();
+                } else {
+                    console.warn('⚠️ renderEmspEvsesPage no está disponible en emspModule');
+                }
+            } catch (error) {
+                console.error('❌ Error renderizando EMSP EVSEs:', error);
+            }
+
+            try {
+                if (typeof this.app.emspModule.renderEmspTariffsPage === 'function') {
+                    this.app.emspModule.renderEmspTariffsPage();
+                } else {
+                    console.warn('⚠️ renderEmspTariffsPage no está disponible en emspModule');
+                }
+            } catch (error) {
+                console.error('❌ Error renderizando EMSP tariffs:', error);
+            }
+
+            try {
+                // renderEmspTokensPage está en tokensModule, no en emspModule
+                if (this.app.tokensModule && typeof this.app.tokensModule.renderEmspTokensPage === 'function') {
+                    this.app.tokensModule.renderEmspTokensPage();
+                } else {
+                    console.warn('⚠️ renderEmspTokensPage no está disponible en tokensModule');
+                }
+            } catch (error) {
+                console.error('❌ Error renderizando EMSP tokens:', error);
+            }
+        } else {
+            console.warn('⚠️ emspModule no está disponible en app');
+        }
+
+        // Actualizar contadores
         this.app.updateCount('emspLocationsCount', 0);
-
-        this.allEmspEvses = [];
-        this.filteredEmspEvses = [];
-        this.currentEmspEvsesPage = 1;
-        this.emspEvsesFilters = { status: '', party: '', search: '' };
-        this.renderEmspEvsesPage();
         this.app.updateCount('emspEvsesCount', 0);
-
-        this.allEmspTariffs = [];
-        this.filteredEmspTariffs = [];
-        this.currentEmspTariffsPage = 1;
-        this.renderEmspTariffsPage();
         this.app.updateCount('emspTariffsCount', 0);
-
-        this.allEmspTokens = [];
-        this.filteredEmspTokens = [];
-        this.currentEmspTokensPage = 1;
-        this.emspTokensFilters = { search: '', issuer: '', type: '', valid: '', whitelist: '' };
-        this.renderEmspTokensPage();
         this.app.updateCount('emspTokensCount', 0);
     }
 
@@ -781,7 +826,7 @@ export class CPOModule {
                         ${evse.status}
                     </span>
                 </td>
-                <td>${evse.location_id ? this.truncateToken(evse.location_id) : 'N/A'}</td>
+                <td>${evse.location_id ? this.app.ui.truncateToken(evse.location_id) : 'N/A'}</td>
                 <td>
                     <button class="btn btn-sm ${evse.status === 'AVAILABLE' ? 'btn-success' : 'btn-secondary'}" 
                             onclick="window.dashboardApp.startChargingWithEvse('${evse.id}', '${evse.location_id}')"
@@ -1599,6 +1644,17 @@ export class CPOModule {
             this.logToChargingConsole('🧹 Token personalizado limpiado, se usará token de la base de datos', 'token')
           }
         })
+      }
+
+      const clearEmspData = document.getElementById('clearEmspData')
+      if (clearEmspData) {
+        clearEmspData.addEventListener('click', () => {
+          console.log('🧨 Botón clearEmspData clickeado')
+          this.clearEmspDataWithConfirmation()
+        })
+        console.log('✅ Event listener para clearEmspData agregado')
+      } else {
+        console.warn('⚠️ Elemento clearEmspData no encontrado')
       }
 
       console.log('✅ Event listeners CPO configurados')

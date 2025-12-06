@@ -428,6 +428,32 @@ class DashboardApp {
       })
     }
 
+    // Botón para eliminar conexiones seleccionadas
+    const deleteConnectionBtn = document.getElementById('deleteConnectionBtn')
+    if (deleteConnectionBtn) {
+      deleteConnectionBtn.addEventListener('click', () => {
+        console.log('🗑️ Botón deleteConnectionBtn clickeado')
+        if (this.locationsPaginationModule && this.locationsPaginationModule.deleteSelectedConnections) {
+          this.locationsPaginationModule.deleteSelectedConnections()
+        } else {
+          console.error('❌ deleteSelectedConnections no está disponible en locationsPaginationModule')
+        }
+      })
+      console.log('✅ Event listener para deleteConnectionBtn agregado')
+    } else {
+      console.warn('⚠️ Elemento deleteConnectionBtn no encontrado')
+    }
+
+    // Botón para actualizar conexiones
+    const refreshConnections = document.getElementById('refreshConnections')
+    if (refreshConnections) {
+      refreshConnections.addEventListener('click', () => {
+        if (this.loadConnections) {
+          this.loadConnections()
+        }
+      })
+    }
+
     // Event listeners para cambio de pestañas
     const tabs = document.querySelectorAll('#dashboardTabs button[data-bs-toggle="tab"]')
     tabs.forEach(tab => {
@@ -583,6 +609,13 @@ class DashboardApp {
     // Delegar a cpoModule
     if (this.cpoModule) {
       this.cpoModule.setupCpoEventListeners()
+    }
+  }
+
+  async startChargingWithEvse (evseUid, locationId) {
+    // Delegar a cpoModule
+    if (this.cpoModule) {
+      return this.cpoModule.startChargingWithEvse(evseUid, locationId)
     }
   }
 
