@@ -16,6 +16,8 @@ const {
   buildCDRLocation,
   buildCDRCostInfo
 } = require('./cdrSendingService/cdrPayloadHelpers');
+const { sanitizeUrl: sanitizeUrlHelper, buildUrl } = require('../utils/urlSanitizer');
+const { getOurCredentials } = require('../api/handshake/utils');
 
 class CDRSendingService {
     /**
@@ -24,8 +26,7 @@ class CDRSendingService {
      * @returns {string} URL sin barras finales
      */
     sanitizeUrl(url) {
-        if (!url) return url;
-        return url.replace(/\/$/, '');
+        return sanitizeUrlHelper(url);
     }
 
     /**
@@ -35,7 +36,7 @@ class CDRSendingService {
     async getConfiguredOrganizations() {
         try {
             const organizations = await sequelize.query(`
-                SELECT id, token, url, party_id, country_code, business_details
+                SELECT id, token, url, party_id, country_code, business_details, token_base64_encoded
                 FROM credentials 
                 WHERE url IS NOT NULL 
                 AND token IS NOT NULL
@@ -46,7 +47,20 @@ class CDRSendingService {
                 type: sequelize.QueryTypes.SELECT
             });
 
-            return organizations || [];
+            // Si una organización requiere Base64, usar nuestro token en lugar del token del operador
+            // El token del operador es para cuando ellos hacen peticiones a nosotros
+            // Nuestro token es para cuando nosotros hacemos peticiones a ellos
+            const ourCredentials = getOurCredentials();
+            return (organizations || []).map(org => {
+                if (org.token_base64_encoded) {
+                    return {
+                        ...org,
+                        // Usar nuestro token para peticiones salientes cuando Base64 está activado
+                        token: ourCredentials.token
+                    };
+                }
+                return org;
+            });
         } catch (error) {
             logger.error('❌ Error obteniendo organizaciones configuradas:', error);
             return [];
@@ -152,14 +166,15 @@ class CDRSendingService {
     async sendCDRToOrganization(organization, cdrPayload) {
         try {
             const cleanUrl = this.sanitizeUrl(organization.url);
-            const cdrEndpoint = `${cleanUrl}/ocpi/emsp/2.2/cdrs`;
+            const cdrEndpoint = buildUrl(cleanUrl, '/ocpi/emsp/2.2/cdrs');
             
             logger.info(`📤 Enviando CDR ${cdrPayload.id} a ${organization.party_id} (${cdrEndpoint})`);
 
+            const { buildAuthorizationHeader } = require('../utils/tokenEncoding');
             const response = await fetch(cdrEndpoint, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Token ${organization.token}`,
+                    'Authorization': buildAuthorizationHeader(organization.token, organization.token_base64_encoded || false),
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(cdrPayload)

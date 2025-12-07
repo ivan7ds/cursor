@@ -1,4 +1,7 @@
 const logger = require('../../../utils/logger');
+const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
+const { buildUrl } = require('../../../utils/urlSanitizer');
+const { sequelize } = require('../../../database/connection');
 
 /**
  * Obtiene locations de una organización externa
@@ -9,12 +12,12 @@ async function fetchLocationsFromOrganization(org) {
   try {
     logger.info(`🔍 Consultando locations de ${org.party_id} (${org.url})`);
 
-    const locationsUrl = `${org.url}/ocpi/cpo/2.2/locations`;
+    const locationsUrl = buildUrl(org.url, '/ocpi/cpo/2.2/locations');
 
     const response = await fetch(locationsUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Token ${org.token}`,
+        'Authorization': buildAuthorizationHeader(org.token, org.token_base64_encoded || false),
         'Content-Type': 'application/json'
       }
     });
@@ -45,22 +48,83 @@ async function fetchLocationsFromOrganization(org) {
  */
 async function saveLocation(location, org) {
   try {
-    await Location.create({
-      id: location.id,
-      country_code: location.country_code || org.country_code,
-      party_id: location.party_id || org.party_id,
-      name: location.name,
-      address: location.address,
-      city: location.city,
-      postal_code: location.postal_code,
-      state: location.state,
-      country: location.country,
-      coordinates: location.coordinates,
-      last_updated: location.last_updated ? new Date(location.last_updated) : new Date()
+    // Validar que time_zone esté presente (campo obligatorio según OCPI 2.2.1)
+    if (!location.time_zone) {
+      const error = new Error(`Location ${location.id} from ${org.party_id} is missing required field 'time_zone' (OCPI 2.2.1 violation)`);
+      error.ocpiViolation = true;
+      error.missingField = 'time_zone';
+      error.locationId = location.id;
+      error.organizationId = org.party_id;
+      throw error;
+    }
+
+    const partyId = location.party_id || org.party_id;
+    const countryCode = location.country_code || org.country_code;
+
+    // Guardar en emsp_locations (no en locations) para que aparezca en la pestaña Ext Locations
+    await sequelize.query(`
+      INSERT INTO emsp_locations (
+        id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
+        postal_code, country, coordinates, evses, directions, operator, 
+        suboperator, owner, facilities, time_zone, opening_times, 
+        charging_when_closed, images, energy_mix, last_updated
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT (id) 
+      DO UPDATE SET
+        emsp_party_id = EXCLUDED.emsp_party_id,
+        emsp_country_code = EXCLUDED.emsp_country_code,
+        location_id = EXCLUDED.location_id,
+        name = EXCLUDED.name,
+        address = EXCLUDED.address,
+        city = EXCLUDED.city,
+        postal_code = EXCLUDED.postal_code,
+        country = EXCLUDED.country,
+        coordinates = EXCLUDED.coordinates,
+        evses = EXCLUDED.evses,
+        directions = EXCLUDED.directions,
+        operator = EXCLUDED.operator,
+        suboperator = EXCLUDED.suboperator,
+        owner = EXCLUDED.owner,
+        facilities = EXCLUDED.facilities,
+        time_zone = EXCLUDED.time_zone,
+        opening_times = EXCLUDED.opening_times,
+        charging_when_closed = EXCLUDED.charging_when_closed,
+        images = EXCLUDED.images,
+        energy_mix = EXCLUDED.energy_mix,
+        last_updated = EXCLUDED.last_updated,
+        updated_at = NOW()
+    `, {
+      replacements: [
+        location.id,
+        partyId,
+        countryCode,
+        location.id,
+        location.name,
+        location.address,
+        location.city,
+        location.postal_code || null,
+        location.country,
+        JSON.stringify(location.coordinates),
+        JSON.stringify(location.evses || []),
+        location.directions ? JSON.stringify(location.directions) : null,
+        location.operator ? JSON.stringify(location.operator) : null,
+        location.suboperator ? JSON.stringify(location.suboperator) : null,
+        location.owner ? JSON.stringify(location.owner) : null,
+        location.facilities ? JSON.stringify(location.facilities) : null,
+        location.time_zone,
+        location.opening_times ? JSON.stringify(location.opening_times) : null,
+        location.charging_when_closed || null,
+        location.images ? JSON.stringify(location.images) : null,
+        location.energy_mix ? JSON.stringify(location.energy_mix) : null,
+        location.last_updated ? new Date(location.last_updated).toISOString() : new Date().toISOString()
+      ]
     });
+
     return { saved: true, duplicate: false };
   } catch (dbError) {
-    if (dbError.name === 'SequelizeUniqueConstraintError') {
+    // Verificar si es un error de constraint único (duplicado)
+    if (dbError.message && dbError.message.includes('duplicate key') || 
+        dbError.message && dbError.message.includes('unique constraint')) {
       return { saved: false, duplicate: true };
     } else {
       logger.error(`❌ Error guardando location ${location.id}:`, dbError.message);

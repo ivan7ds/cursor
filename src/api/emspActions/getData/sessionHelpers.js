@@ -1,6 +1,8 @@
 const logger = require('../../../utils/logger');
 const { sequelize } = require('../../../database/connection');
 const EmspSession = require('../../../models/EmspSession')(sequelize);
+const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
+const { buildUrl } = require('../../../utils/urlSanitizer');
 
 const {
   buildSessionBasicInfo,
@@ -20,12 +22,12 @@ async function fetchSessionsFromOrganization(org) {
   try {
     logger.info(`🔍 Consultando sesiones de ${org.party_id} (${org.url})`);
 
-    const sessionsUrl = `${org.url}/ocpi/cpo/2.2/sessions`;
+    const sessionsUrl = buildUrl(org.url, '/ocpi/cpo/2.2/sessions');
 
     const response = await fetch(sessionsUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Token ${org.token}`,
+        'Authorization': buildAuthorizationHeader(org.token, org.token_base64_encoded || false),
         'Content-Type': 'application/json'
       }
     });

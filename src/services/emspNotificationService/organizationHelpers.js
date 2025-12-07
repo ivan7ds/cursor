@@ -1,5 +1,6 @@
 const { sequelize } = require('../../database/connection');
 const logger = require('../../utils/logger');
+const { getOurCredentials } = require('../../api/handshake/utils');
 
 /**
  * Obtiene todas las organizaciones configuradas (excluyendo nuestro CPO)
@@ -12,26 +13,37 @@ async function getConfiguredOrganizations() {
                 party_id,
                 country_code,
                 token,
-                url
+                url,
+                token_base64_encoded
             FROM credentials
-            WHERE is_active = true
+            WHERE valid = true
             AND party_id != :ourPartyId
-            AND country_code != :ourCountryCode
             ORDER BY party_id, country_code
         `;
         
         const ourPartyId = process.env.OCPI_PARTY_ID || 'IPD';
-        const ourCountryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
         
         const [results] = await sequelize.query(query, {
             replacements: {
-                ourPartyId,
-                ourCountryCode
+                ourPartyId
             },
             type: sequelize.QueryTypes.SELECT
         });
         
-        return Array.isArray(results) ? results : [];
+        // Si una organización requiere Base64, usar nuestro token en lugar del token del operador
+        // El token del operador es para cuando ellos hacen peticiones a nosotros
+        // Nuestro token es para cuando nosotros hacemos peticiones a ellos
+        const ourCredentials = getOurCredentials();
+        return (Array.isArray(results) ? results : []).map(org => {
+            if (org.token_base64_encoded) {
+                return {
+                    ...org,
+                    // Usar nuestro token para peticiones salientes cuando Base64 está activado
+                    token: ourCredentials.token
+                };
+            }
+            return org;
+        });
     } catch (error) {
         logger.error('Error obteniendo organizaciones configuradas:', error);
         return [];

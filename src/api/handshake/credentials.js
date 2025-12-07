@@ -64,9 +64,17 @@ async function handleRejectedCredentials({ partyId, countryCode, sanitizedUrl, o
  * @param {Array} params.operatorEndpoints - Endpoints del operador
  * @param {string} params.token - Token temporal original
  */
-async function saveExternalCredentials({ credentialsResponse, partyId, countryCode, operatorEndpoints, token }) {
+const { sanitizeUrl } = require('../../utils/urlSanitizer');
+
+async function saveExternalCredentials({ credentialsResponse, partyId, countryCode, operatorEndpoints, token, tokenBase64Encoded }) {
   const externalUrl = new URL(credentialsResponse.data.data.url);
-  const baseUrl = `${externalUrl.protocol}//${externalUrl.host}`;
+  // Construir URL base sin barra final para evitar dobles barras al concatenar
+  let baseUrl = `${externalUrl.protocol}//${externalUrl.host}`;
+  if (externalUrl.port) {
+    baseUrl = `${externalUrl.protocol}//${externalUrl.hostname}:${externalUrl.port}`;
+  }
+  // Asegurar que no termine en barra usando la función helper
+  baseUrl = sanitizeUrl(baseUrl);
 
   const cpoRole = credentialsResponse.data.data.roles?.find(role => role.role === 'CPO');
   const businessDetails = cpoRole?.business_details || {
@@ -84,6 +92,7 @@ async function saveExternalCredentials({ credentialsResponse, partyId, countryCo
     valid: true,
     temp: false,
     external_party_id: partyId,
+    token_base64_encoded: !!tokenBase64Encoded,
     last_updated: new Date().toISOString()
   };
 

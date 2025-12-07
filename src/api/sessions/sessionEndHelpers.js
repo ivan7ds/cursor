@@ -3,6 +3,7 @@ const axios = require('axios');
 const { EVSE, CDR } = require('../../models');
 const EMSPCredentialsHelper = require('../../utils/emspCredentialsHelper');
 const logger = require('../../utils/logger');
+const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 /**
  * Obtiene las credenciales del EMSP para la sesión
@@ -80,7 +81,7 @@ async function getCDRForSession(sessionId) {
  */
 function buildSessionEndHeaders(emspCredentials) {
   return {
-    'Authorization': `Token ${emspCredentials.token}`,
+    'Authorization': buildAuthorizationHeader(emspCredentials.token, emspCredentials.token_base64_encoded || false),
     'Content-Type': 'application/json',
     'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
   };

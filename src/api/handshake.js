@@ -51,9 +51,15 @@ const { validateHandshakeInput, validateGenerateCredentialsInput } = require('./
  */
 router.post('/connect-to-organization', async (req, res) => {
     try {
-        const { url, token, partyId, countryCode } = req.body;
+        const { url, token, partyId, countryCode, tokenBase64Encoded } = req.body;
         
-        console.log('🔗 Iniciando handshake OCPI 2.2.1 con organización externa:', { url, partyId, countryCode });
+        console.log('🔗 Iniciando handshake OCPI 2.2.1 con organización externa:', { 
+            url, 
+            partyId, 
+            countryCode, 
+            tokenBase64Encoded,
+            tokenPreview: token ? `${token.substring(0, 10)}...${token.substring(token.length - 5)}` : 'missing'
+        });
         
         const validationError = validateHandshakeInput(req.body);
         if (validationError) {
@@ -67,7 +73,7 @@ router.post('/connect-to-organization', async (req, res) => {
         let operatorEndpoints;
         
         try {
-            const result = await executeHandshakeProcess({ sanitizedUrl, token, partyId, countryCode, ourCredentials });
+            const result = await executeHandshakeProcess({ sanitizedUrl, token, partyId, countryCode, ourCredentials, tokenBase64Encoded: !!tokenBase64Encoded });
             credentialsResponse = result.credentialsResponse;
             operatorEndpoints = result.operatorEndpoints;
         } catch (credentialsError) {

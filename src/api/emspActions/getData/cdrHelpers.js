@@ -1,5 +1,7 @@
 const { sequelize } = require('../../../database/connection');
 const logger = require('../../../utils/logger');
+const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
+const { buildUrl } = require('../../../utils/urlSanitizer');
 
 const {
   buildCDRBasicValues,
@@ -18,12 +20,12 @@ async function fetchCDRsFromOrganization(org) {
   try {
     logger.info(`🔍 Consultando CDRs de ${org.party_id} (${org.url})`);
 
-    const cdrsUrl = `${org.url}/ocpi/cpo/2.2/cdrs`;
+    const cdrsUrl = buildUrl(org.url, '/ocpi/cpo/2.2/cdrs');
 
     const response = await fetch(cdrsUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Token ${org.token}`,
+        'Authorization': buildAuthorizationHeader(org.token, org.token_base64_encoded || false),
         'Content-Type': 'application/json'
       }
     });

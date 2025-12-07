@@ -1,5 +1,7 @@
 const { sequelize } = require('../../../database/connection');
 const logger = require('../../../utils/logger');
+const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
+const { buildUrl } = require('../../../utils/urlSanitizer');
 
 
 /**
@@ -11,12 +13,12 @@ async function fetchTariffsFromOrganization(org) {
   try {
     logger.info(`🔍 Consultando tariffs de ${org.party_id} (${org.url})`);
 
-    const tariffsUrl = `${org.url}/ocpi/cpo/2.2/tariffs`;
+    const tariffsUrl = buildUrl(org.url, '/ocpi/cpo/2.2/tariffs');
 
     const response = await fetch(tariffsUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Token ${org.token}`,
+        'Authorization': buildAuthorizationHeader(org.token, org.token_base64_encoded || false),
         'Content-Type': 'application/json'
       }
     });

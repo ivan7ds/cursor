@@ -34,7 +34,8 @@ export class HandshakeModule {
                 url: document.getElementById('cpoUrl').value,
                 token: document.getElementById('cpoToken').value,
                 partyId: document.getElementById('cpoPartyId').value,
-                countryCode: document.getElementById('cpoCountryCode').value
+                countryCode: document.getElementById('cpoCountryCode').value,
+                tokenBase64Encoded: document.getElementById('cpoTokenBase64').checked
             };
             
             console.log('📋 Datos del formulario:', formData);

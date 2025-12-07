@@ -1,5 +1,7 @@
 const { sequelize } = require('../../../database/connection');
 const logger = require('../../../utils/logger');
+const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
+const { buildUrl } = require('../../../utils/urlSanitizer');
 
 
 /**
@@ -11,12 +13,12 @@ async function fetchTokensFromOrganization(org) {
   try {
     logger.info(`🔍 Consultando tokens de ${org.party_id} (${org.url})`);
 
-    const tokensUrl = `${org.url}/ocpi/emsp/2.2/tokens`;
+    const tokensUrl = buildUrl(org.url, '/ocpi/emsp/2.2/tokens');
 
     const response = await fetch(tokensUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Token ${org.token}`,
+        'Authorization': buildAuthorizationHeader(org.token, org.token_base64_encoded || false),
         'Content-Type': 'application/json'
       }
     });

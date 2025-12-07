@@ -1,6 +1,7 @@
 const { Session, EVSE } = require('../../../models');
 const EMSPCredentialsHelper = require('../../../utils/emspCredentialsHelper');
 const logger = require('../../../utils/logger');
+const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
 
 /**
  * Valida que la sesión y el EVSE existen
@@ -84,7 +85,7 @@ function buildSessionPayload({ session, sessionId, locationId, evseUid, token })
  */
 function buildSessionHeaders(emspCredentials) {
   return {
-    'Authorization': `Token ${emspCredentials.token}`,
+    'Authorization': buildAuthorizationHeader(emspCredentials.token, emspCredentials.token_base64_encoded || false),
     'Content-Type': 'application/json',
     'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
   };

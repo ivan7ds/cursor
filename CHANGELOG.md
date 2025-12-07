@@ -10,6 +10,12 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ## [2.2.0] - 2025-12-02
 
 ### Added
+- **Herramienta de detección de código muerto**: Integrada herramienta `knip` para detectar código no utilizado
+  - Configuración en `knip.config.js` con puntos de entrada y reglas personalizadas
+  - Scripts npm: `npm run knip`, `npm run knip:production`, `npm run knip:fix`
+  - Detección de archivos no utilizados, dependencias no utilizadas, exports e imports no utilizados
+  - Archivo `.knipignore` para exclusiones específicas
+  - Integración con la estructura del proyecto y exclusiones similares a ESLint
 - **Funcionalidad de eliminación de tokens**: Implementado sistema completo para eliminar tokens individuales o múltiples
   - Columna de checkbox en cada fila de la tabla de tokens para selección individual
   - Checkbox en el header de la tabla para seleccionar/deseleccionar todos los tokens de la página

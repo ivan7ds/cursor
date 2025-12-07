@@ -46,6 +46,11 @@ const Credentials = sequelize.define('Credentials', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
+  },
+  token_base64_encoded: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   tableName: 'credentials',

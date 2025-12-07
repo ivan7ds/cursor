@@ -1,19 +1,23 @@
 const { URL } = require('url');
 
 const axios = require('axios');
+const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 /**
  * Obtiene la versión OCPI y el endpoint de details
  * @param {string} sanitizedUrl - URL sanitizada
  * @param {string} token - Token de autenticación
+ * @param {boolean} tokenBase64Encoded - Flag indicando si el token debe codificarse en Base64
  * @returns {Promise<string>} Endpoint de details
  */
-async function getOcpiVersionAndDetailsEndpoint(sanitizedUrl, token) {
+async function getOcpiVersionAndDetailsEndpoint(sanitizedUrl, token, tokenBase64Encoded = false) {
   console.log('📡 Paso 1: Obteniendo versión OCPI...');
+  const authHeader = buildAuthorizationHeader(token, tokenBase64Encoded);
+  console.log('🔐 Authorization header:', tokenBase64Encoded ? `Token [BASE64_ENCODED]` : `Token ${token.substring(0, 10)}...`);
   const versionsUrl = `${sanitizedUrl.replace(/\/$/, '')}/ocpi/versions`;
   const versionsResponse = await axios.get(versionsUrl, {
     headers: {
-      'Authorization': `Token ${token}`,
+      'Authorization': authHeader,
       'Content-Type': 'application/json'
     }
   });
@@ -36,13 +40,14 @@ async function getOcpiVersionAndDetailsEndpoint(sanitizedUrl, token) {
  * Obtiene los detalles del operador externo
  * @param {string} detailsUrl - URL de details
  * @param {string} token - Token de autenticación
+ * @param {boolean} tokenBase64Encoded - Flag indicando si el token debe codificarse en Base64
  * @returns {Promise<Object>} Respuesta de details con endpoints
  */
-async function getOperatorDetails(detailsUrl, token) {
+async function getOperatorDetails(detailsUrl, token, tokenBase64Encoded = false) {
   console.log('📡 Paso 2: Obteniendo detalles del operador...');
   const detailsResponse = await axios.get(detailsUrl, {
     headers: {
-      'Authorization': `Token ${token}`,
+      'Authorization': buildAuthorizationHeader(token, tokenBase64Encoded),
       'Content-Type': 'application/json'
     }
   });
@@ -56,15 +61,16 @@ async function getOperatorDetails(detailsUrl, token) {
  * @param {string} credentialsUrl - URL de credentials
  * @param {Object} credentialsPayload - Payload de credenciales
  * @param {string} token - Token de autenticación
+ * @param {boolean} tokenBase64Encoded - Flag indicando si el token debe codificarse en Base64
  * @returns {Promise<Object>} Respuesta de credentials
  */
-async function sendCredentials(credentialsUrl, credentialsPayload, token) {
+async function sendCredentials(credentialsUrl, credentialsPayload, token, tokenBase64Encoded = false) {
   console.log('📡 Paso 3: Enviando credenciales...');
   console.log('📤 Enviando credenciales a organización externa:', credentialsPayload);
 
   const credentialsResponse = await axios.post(credentialsUrl, credentialsPayload, {
     headers: {
-      'Authorization': `Token ${token}`,
+      'Authorization': buildAuthorizationHeader(token, tokenBase64Encoded),
       'Content-Type': 'application/json'
     }
   });

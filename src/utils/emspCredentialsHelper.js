@@ -1,6 +1,7 @@
 const { Credentials } = require('../models');
 
 const logger = require('./logger');
+const { getOurCredentials } = require('../api/handshake/utils');
 
 /**
  * Helper para obtener credenciales del eMSP dinámicamente
@@ -34,6 +35,16 @@ class EMSPCredentialsHelper {
           country_code: tokenInfo.country_code,
           url: credentials.url
         });
+        
+        // Si requiere Base64, usar nuestro token para peticiones salientes
+        // El token del operador es para cuando ellos hacen peticiones a nosotros
+        if (credentials.token_base64_encoded) {
+          const ourCredentials = getOurCredentials();
+          return {
+            ...credentials.toJSON(),
+            token: ourCredentials.token
+          };
+        }
       } else {
         logger.warn('⚠️ EMSP credentials not found for token info', {
           party_id: tokenInfo.party_id,
@@ -78,6 +89,16 @@ class EMSPCredentialsHelper {
           country_code: session.country_code,
           url: credentials.url
         });
+        
+        // Si requiere Base64, usar nuestro token para peticiones salientes
+        // El token del operador es para cuando ellos hacen peticiones a nosotros
+        if (credentials.token_base64_encoded) {
+          const ourCredentials = getOurCredentials();
+          return {
+            ...credentials.toJSON(),
+            token: ourCredentials.token
+          };
+        }
       } else {
         logger.warn('⚠️ EMSP credentials not found for session info', {
           party_id: session.party_id,
@@ -122,6 +143,16 @@ class EMSPCredentialsHelper {
           country_code: cdr.country_code,
           url: credentials.url
         });
+        
+        // Si requiere Base64, usar nuestro token para peticiones salientes
+        // El token del operador es para cuando ellos hacen peticiones a nosotros
+        if (credentials.token_base64_encoded) {
+          const ourCredentials = getOurCredentials();
+          return {
+            ...credentials.toJSON(),
+            token: ourCredentials.token
+          };
+        }
       } else {
         logger.warn('⚠️ EMSP credentials not found for CDR info', {
           party_id: cdr.party_id,
@@ -152,7 +183,20 @@ class EMSPCredentialsHelper {
       });
 
       logger.info(`📋 Found ${credentials.length} valid EMSP credentials`);
-      return credentials;
+      
+      // Si una organización requiere Base64, usar nuestro token en lugar del token del operador
+      // El token del operador es para cuando ellos hacen peticiones a nosotros
+      // Nuestro token es para cuando nosotros hacemos peticiones a ellos
+      const ourCredentials = getOurCredentials();
+      return credentials.map(cred => {
+        if (cred.token_base64_encoded) {
+          return {
+            ...cred.toJSON(),
+            token: ourCredentials.token
+          };
+        }
+        return cred;
+      });
     } catch (error) {
       logger.error('❌ Error getting all valid EMSP credentials:', error);
       return [];

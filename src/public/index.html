@@ -442,6 +442,17 @@
                                                     <label for="cpoCountryCode" class="form-label">Código de País</label>
                                                     <input type="text" class="form-control" id="cpoCountryCode" placeholder="ES" maxlength="2" required>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="cpoTokenBase64" value="true">
+                                                        <label class="form-check-label" for="cpoTokenBase64">
+                                                            <i class="bi bi-shield-lock"></i> Token codificado en Base64
+                                                        </label>
+                                                        <small class="form-text text-muted d-block">
+                                                            Marca esta opción si el operador externo requiere tokens codificados en Base64 según OCPI 2.2
+                                                        </small>
+                                                    </div>
+                                                </div>
                                                 <button type="submit" class="btn btn-primary w-100">
                                                     <i class="bi bi-arrow-right"></i> Conectar
                                                 </button>

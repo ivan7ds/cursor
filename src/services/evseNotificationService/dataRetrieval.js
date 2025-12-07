@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 
 const { Credentials, EVSE, Session } = require('../../models');
 const logger = require('../../utils/logger');
+const { getOurCredentials } = require('../../api/handshake/utils');
 
 /**
  * Obtiene los eMSPs conectados
@@ -12,15 +13,20 @@ async function getConnectedEMSPs() {
       where: {
         url: {
           [Op.notLike]: '%example.com%'
-        }
+        },
+        valid: true
       }
     });
 
+    // Si una organización requiere Base64, usar nuestro token en lugar del token del operador
+    // El token del operador es para cuando ellos hacen peticiones a nosotros
+    // Nuestro token es para cuando nosotros hacemos peticiones a ellos
+    const ourCredentials = getOurCredentials();
     return credentials.map(cred => ({
       party_id: cred.party_id,
       country_code: cred.country_code,
       url: cred.url,
-      token: cred.token
+      token: cred.token_base64_encoded ? ourCredentials.token : cred.token
     }));
   } catch (error) {
     logger.error('Error getting connected eMSPs:', error);
