@@ -10,7 +10,7 @@ const logger = require('../../utils/logger');
  */
 async function validateTariffExists(sequelize, tariffId, countryCode, partyId) {
   const [existingTariff] = await sequelize.query(`
-    SELECT id FROM emsp_tariffs WHERE id = ?
+    SELECT id FROM external_operator_tariffs WHERE id = ?
   `, {
     replacements: [tariffId],
     type: sequelize.QueryTypes.SELECT
@@ -92,7 +92,7 @@ function buildTariffPatchFields(updateData) {
 async function executeTariffUpdate(sequelize, updateFields, replacements, tariffId) {
   replacements.push(tariffId);
   await sequelize.query(`
-    UPDATE emsp_tariffs SET ${updateFields.join(', ')} WHERE id = ?
+    UPDATE external_operator_tariffs SET ${updateFields.join(', ')} WHERE id = ?
   `, { replacements });
 }
 

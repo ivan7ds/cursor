@@ -76,8 +76,8 @@ function buildUpdateData(evseData) {
 function buildCreateData({ evseData, evse_uid, party_id, country_code, location_id }) {
   return {
     id: evse_uid,
-    emsp_party_id: party_id,
-    emsp_country_code: country_code,
+    external_operator_party_id: party_id,
+    external_operator_country_code: country_code,
     location_id,
     evse_id: getValueOrDefault(evseData.evse_id, ''),
     status: evseData.status,
@@ -120,7 +120,7 @@ function buildLogData({ evse_uid, location_id, status, party_id, country_code })
  */
 async function updateExistingEVSE({ existingEvse, evseData, evse_uid, location_id, party_id, country_code }) {
   await existingEvse.update(buildUpdateData(evseData));
-  logger.info('✅ EVSE externo actualizado en emsp_evses', 
+  logger.info('✅ EVSE externo actualizado en external_operator_evses', 
     buildLogData({ evse_uid, location_id, status: evseData.status, party_id, country_code })
   );
 }
@@ -136,7 +136,7 @@ async function updateExistingEVSE({ existingEvse, evseData, evse_uid, location_i
  */
 async function createNewEVSE({ evseData, evse_uid, party_id, country_code, location_id }) {
   await EmspEVSE.create(buildCreateData({ evseData, evse_uid, party_id, country_code, location_id }));
-  logger.info('✅ EVSE externo creado en emsp_evses', 
+  logger.info('✅ EVSE externo creado en external_operator_evses', 
     buildLogData({ evse_uid, location_id, status: evseData.status, party_id, country_code })
   );
 }

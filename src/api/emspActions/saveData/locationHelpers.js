@@ -40,16 +40,16 @@ async function saveLocation(location) {
   const values = prepareLocationValues(location);
   
   await sequelize.query(`
-    INSERT INTO emsp_locations (
-      id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
+    INSERT INTO external_operator_locations (
+      id, external_operator_party_id, external_operator_country_code, location_id, name, address, city, 
       postal_code, country, coordinates, evses, directions, operator, 
       suboperator, owner, facilities, time_zone, opening_times, 
       charging_when_closed, images, energy_mix, last_updated
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT (id) 
     DO UPDATE SET
-      emsp_party_id = EXCLUDED.emsp_party_id,
-      emsp_country_code = EXCLUDED.emsp_country_code,
+      external_operator_party_id = EXCLUDED.external_operator_party_id,
+      external_operator_country_code = EXCLUDED.external_operator_country_code,
       location_id = EXCLUDED.location_id,
       name = EXCLUDED.name,
       address = EXCLUDED.address,
@@ -83,15 +83,15 @@ async function saveLocation(location) {
  */
 async function saveEVSE(evse, location) {
   await sequelize.query(`
-    INSERT INTO emsp_evses (
-      id, emsp_party_id, emsp_country_code, location_id, evse_id, 
+    INSERT INTO external_operator_evses (
+      id, external_operator_party_id, external_operator_country_code, location_id, evse_id, 
       status, capabilities, connectors, physical_reference, 
       last_updated, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     ON CONFLICT (id) 
     DO UPDATE SET
-      emsp_party_id = EXCLUDED.emsp_party_id,
-      emsp_country_code = EXCLUDED.emsp_country_code,
+      external_operator_party_id = EXCLUDED.external_operator_party_id,
+      external_operator_country_code = EXCLUDED.external_operator_country_code,
       location_id = EXCLUDED.location_id,
       evse_id = EXCLUDED.evse_id,
       status = EXCLUDED.status,

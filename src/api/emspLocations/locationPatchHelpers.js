@@ -9,7 +9,7 @@ const logger = require('../../utils/logger');
  */
 async function locationExists(sequelize, locationId) {
   const [results] = await sequelize.query(
-    'SELECT id FROM emsp_locations WHERE id = ?',
+    'SELECT id FROM external_operator_locations WHERE id = ?',
     { replacements: [locationId] }
   );
   return results.length > 0;
@@ -89,7 +89,7 @@ function validatePatchFields({ updateFields, countryCode, partyId, locationId })
 async function executeLocationUpdate(sequelize, updateFields, replacements, locationId) {
   replacements.push(locationId);
   await sequelize.query(`
-    UPDATE emsp_locations SET ${updateFields.join(', ')} WHERE id = ?
+    UPDATE external_operator_locations SET ${updateFields.join(', ')} WHERE id = ?
   `, { replacements });
 }
 

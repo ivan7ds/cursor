@@ -1412,9 +1412,9 @@ export class CPOModule {
             if (response.ok) {
                 const data = await response.json();
                 if (data.data && data.data.length > 0) {
-                    // Buscar la sesión más reciente del CPO EFI (usando emsp_party_id)
+                    // Buscar la sesión más reciente del CPO EFI (usando external_operator_party_id)
                     const efiSessions = data.data.filter(session => 
-                        session.emsp_party_id === 'EFI'
+                        session.external_operator_party_id === 'EFI'
                     );
                     
                     if (efiSessions.length > 0) {

@@ -71,8 +71,8 @@ async function saveCDR(cdr, org) {
     ];
 
     const [result] = await sequelize.query(`
-      INSERT INTO emsp_cdrs (
-        id, emsp_party_id, emsp_country_code, cdr_id, session_id, evse_uid,
+      INSERT INTO external_operator_cdrs (
+        id, external_operator_party_id, external_operator_country_code, cdr_id, session_id, evse_uid,
         connector_id, id_token, start_datetime, end_datetime,
         total_energy, currency, total_cost, total_time, last_updated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

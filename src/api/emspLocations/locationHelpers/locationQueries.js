@@ -53,9 +53,9 @@ async function updateLocation({ sequelize, location_id, locationData, party_id, 
   values.push(location_id);
 
   await sequelize.query(`
-    UPDATE emsp_locations SET
-      emsp_party_id = ?,
-      emsp_country_code = ?,
+    UPDATE external_operator_locations SET
+      external_operator_party_id = ?,
+      external_operator_country_code = ?,
       name = ?,
       address = ?,
       city = ?,
@@ -84,7 +84,7 @@ async function updateLocation({ sequelize, location_id, locationData, party_id, 
     type: sequelize.QueryTypes.UPDATE
   });
 
-  logger.info(`✅ Location updated in emsp_locations: ${location_id}`);
+  logger.info(`✅ Location updated in external_operator_locations: ${location_id}`);
 }
 
 /**
@@ -101,8 +101,8 @@ async function createLocation({ sequelize, location_id, locationData, party_id, 
   values.unshift(location_id, party_id, country_code, location_id);
 
   await sequelize.query(`
-    INSERT INTO emsp_locations (
-      id, emsp_party_id, emsp_country_code, location_id, name, address, city,
+    INSERT INTO external_operator_locations (
+      id, external_operator_party_id, external_operator_country_code, location_id, name, address, city,
       postal_code, state, country, coordinates, related_locations, parking_type,
       time_zone, opening_times, charging_when_closed, images, energy_mix,
       directions, operator, suboperator, owner, facilities, publish,
@@ -113,7 +113,7 @@ async function createLocation({ sequelize, location_id, locationData, party_id, 
     type: sequelize.QueryTypes.INSERT
   });
 
-  logger.info(`✅ Location created in emsp_locations: ${location_id}`);
+  logger.info(`✅ Location created in external_operator_locations: ${location_id}`);
 }
 
 /**
@@ -124,7 +124,7 @@ async function createLocation({ sequelize, location_id, locationData, party_id, 
  */
 async function locationExists(sequelize, location_id) {
   const [results] = await sequelize.query(`
-    SELECT COUNT(*) as count FROM emsp_locations WHERE id = ?
+    SELECT COUNT(*) as count FROM external_operator_locations WHERE id = ?
   `, {
     replacements: [location_id],
     type: sequelize.QueryTypes.SELECT
@@ -146,15 +146,15 @@ async function ensureLocationExists({ sequelize, location_id, party_id, country_
   const exists = await locationExists(sequelize, location_id);
 
   if (!exists) {
-    logger.info(`📍 Creating new location in emsp_locations: ${location_id}`, {
+    logger.info(`📍 Creating new location in external_operator_locations: ${location_id}`, {
       country_code,
       party_id,
       location_id
     });
 
     await sequelize.query(`
-      INSERT INTO emsp_locations (
-        id, emsp_party_id, emsp_country_code, location_id, name, address, city,
+      INSERT INTO external_operator_locations (
+        id, external_operator_party_id, external_operator_country_code, location_id, name, address, city,
         postal_code, country, coordinates, time_zone, last_updated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, {
@@ -175,7 +175,7 @@ async function ensureLocationExists({ sequelize, location_id, party_id, country_
       type: sequelize.QueryTypes.INSERT
     });
 
-    logger.info(`✅ Created location in emsp_locations: ${location_id}`);
+    logger.info(`✅ Created location in external_operator_locations: ${location_id}`);
   }
 }
 

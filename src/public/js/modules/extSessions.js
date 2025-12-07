@@ -94,7 +94,7 @@ export class ExtSessionsModule {
                         </span>
                     </td>
                     <td>
-                        <span class="badge bg-info">${this.app.ui.escapeHtml(session.emsp_party_id || 'N/A')}</span>
+                        <span class="badge bg-info">${this.app.ui.escapeHtml(session.external_operator_party_id || 'N/A')}</span>
                     </td>
                     <td>
                         <span class="text-truncate d-inline-block" style="max-width: 100px;" 
@@ -174,7 +174,7 @@ export class ExtSessionsModule {
                       : null
                     const searchableParts = [
                         session.session_id,
-                        session.emsp_party_id,
+                        session.external_operator_party_id,
                         session.id_token,
                         session.evse_uid,
                         evseId,
@@ -511,7 +511,7 @@ export class ExtSessionsModule {
             .filter(Boolean)
             .map(id => {
               const tariff = (this.app.emspModule && this.app.emspModule.findEmspTariff
-                ? this.app.emspModule.findEmspTariff(session.emsp_country_code, session.emsp_party_id, id)
+                ? this.app.emspModule.findEmspTariff(session.external_operator_country_code, session.external_operator_party_id, id)
                 : null) || (this.app.emspModule && this.app.emspModule.findEmspTariff
                 ? this.app.emspModule.findEmspTariff(null, null, id)
                 : null)
@@ -584,7 +584,7 @@ export class ExtSessionsModule {
                 </div>
                 <div class="col-md-6">
                     <h6>Información Técnica</h6>
-                    <p><strong>Organización:</strong> ${session.emsp_party_id} (${session.emsp_country_code})</p>
+                    <p><strong>Organización:</strong> ${session.external_operator_party_id} (${session.external_operator_country_code})</p>
                     <p><strong>EVSE ID:</strong> ${(this.app.emspModule && this.app.emspModule.getEmspEvseId ? this.app.emspModule.getEmspEvseId(session.evse_uid) : null) || 'N/A'}</p>
                     <p><strong>EVSE UID:</strong> ${session.evse_uid || 'N/A'}</p>
                     <p><strong>Token ID:</strong> ${session.id_token || 'N/A'}</p>
@@ -665,9 +665,9 @@ export class ExtSessionsModule {
             console.log('🔍 Obteniendo información del CPO para sesión:', session.session_id);
             
             // Para sesiones externas, necesitamos encontrar el CPO externo que tiene estas sesiones
-            // Las sesiones tienen emsp_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
-            const targetPartyId = session.emsp_party_id;
-            const targetCountryCode = session.emsp_country_code;
+            // Las sesiones tienen external_operator_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
+            const targetPartyId = session.external_operator_party_id;
+            const targetCountryCode = session.external_operator_country_code;
             
             console.log('🎯 Buscando CPO externo para sesión de party_id:', targetPartyId, 'country_code:', targetCountryCode);
             console.log('ℹ️ Nota: Las sesiones externas son de nuestro CPO, necesitamos encontrar el CPO externo que las originó');
@@ -720,7 +720,7 @@ export class ExtSessionsModule {
                 if (sessionsData.data && Array.isArray(sessionsData.data)) {
                     // Buscar una sesión del mismo CPO
                     const matchingSession = sessionsData.data.find(s => 
-                        s.emsp_party_id === targetPartyId && s.emsp_country_code === targetCountryCode
+                        s.external_operator_party_id === targetPartyId && s.external_operator_country_code === targetCountryCode
                     );
                     
                     if (matchingSession && matchingSession.source_organization) {
@@ -2161,7 +2161,7 @@ export class ExtSessionsModule {
 
             if (emspActiveSessions.length > 0) {
                 emspActiveSessions.forEach(session => {
-                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.emsp_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
+                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.external_operator_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
                 });
             }
 

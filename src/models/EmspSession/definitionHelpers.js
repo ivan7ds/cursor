@@ -11,15 +11,15 @@ function defineBasicFields() {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
     },
-    emsp_party_id: {
+    external_operator_party_id: {
       type: DataTypes.STRING(10),
       allowNull: false,
-      comment: 'ID del operador EMSP (hasta 10 caracteres)'
+      comment: 'ID del operador externo (CPO, EMSP o ambos) - hasta 10 caracteres'
     },
-    emsp_country_code: {
+    external_operator_country_code: {
       type: DataTypes.STRING(2),
       allowNull: false,
-      comment: 'Código de país del EMSP (2 caracteres)'
+      comment: 'Código de país del operador externo (CPO, EMSP o ambos) - 2 caracteres'
     },
     session_id: {
       type: DataTypes.STRING(255),
@@ -112,7 +112,7 @@ function defineIndexes() {
   return [
     {
       unique: true,
-      fields: ['emsp_country_code', 'emsp_party_id', 'session_id']
+      fields: ['external_operator_country_code', 'external_operator_party_id', 'session_id']
     },
     {
       fields: ['status']

@@ -10,7 +10,7 @@ const logger = require('../../../utils/logger');
  */
 async function saveEVSE(evse, cpoUrl, cpoToken, cpoVersion) {
   await sequelize.query(`
-    INSERT INTO emsp_evses (
+    INSERT INTO external_operator_evses (
       cpo_url, cpo_token, cpo_version, evse_id, location_id, party_id, country_code,
       status, capabilities, connectors, floor_level, coordinates, physical_reference,
       directions, restrictions, last_updated, created_at, updated_at

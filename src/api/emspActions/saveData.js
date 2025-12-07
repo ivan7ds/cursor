@@ -105,7 +105,7 @@ function setupSaveEmspTokens(router) {
       const errors = [];
       const savedCount = await processTokens(tokens, errors);
 
-      logger.info(`✅ ${savedCount} tokens guardados exitosamente en emsp_tokens`);
+      logger.info(`✅ ${savedCount} tokens guardados exitosamente en external_operator_tokens`);
       res.status(200).json(buildSaveTokensResponse(savedCount, tokens.length, errors));
     } catch (error) {
       logger.error('❌ Error guardando tokens eMSP:', error);
@@ -139,7 +139,7 @@ function setupSaveCpoTariffs(router) {
       const errors = [];
       const savedCount = await processTariffs(tariffs, errors);
 
-      logger.info(`✅ ${savedCount} tariffs guardados exitosamente en emsp_tariffs`);
+      logger.info(`✅ ${savedCount} tariffs guardados exitosamente en external_operator_tariffs`);
       res.status(200).json(buildSaveTariffsResponse(savedCount, tariffs.length, errors, null));
     } catch (error) {
       logger.error('❌ Error guardando tariffs del CPO:', error);

@@ -72,14 +72,14 @@ async function saveTariff(tariff) {
   const values = prepareTariffValues(tariff);
   
   await sequelize.query(`
-    INSERT INTO emsp_tariffs (
-      id, emsp_party_id, emsp_country_code, tariff_id, currency, type, 
+    INSERT INTO external_operator_tariffs (
+      id, external_operator_party_id, external_operator_country_code, tariff_id, currency, type, 
       name, elements, start_date_time, end_date_time, last_updated, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     ON CONFLICT (id) 
     DO UPDATE SET
-      emsp_party_id = EXCLUDED.emsp_party_id,
-      emsp_country_code = EXCLUDED.emsp_country_code,
+      external_operator_party_id = EXCLUDED.external_operator_party_id,
+      external_operator_country_code = EXCLUDED.external_operator_country_code,
       tariff_id = EXCLUDED.tariff_id,
       currency = EXCLUDED.currency,
       type = EXCLUDED.type,

@@ -66,7 +66,7 @@ function setupContractsRoute(router) {
       logger.info('📍 GET /ocpi/emsp/2.2/contracts - Consultando contratos de eMSPs');
 
       const [results] = await sequelize.query(`
-            SELECT * FROM emsp_contracts 
+            SELECT * FROM external_operator_contracts 
             ORDER BY last_updated DESC
         `);
 
@@ -89,19 +89,19 @@ function setupContractsRoute(router) {
 }
 
 /**
- * GET /ocpi/emsp/2.2/tokens/stored - Obtener tokens almacenados en emsp_tokens
+ * GET /ocpi/emsp/2.2/tokens/stored - Obtener tokens almacenados en external_operator_tokens
  */
 function setupStoredTokensRoute(router) {
   router.get('/tokens/stored', authMiddleware, async (_req, res) => {
     try {
-      logger.info('📍 GET /ocpi/emsp/2.2/tokens/stored - Consultando tokens almacenados en emsp_tokens');
+      logger.info('📍 GET /ocpi/emsp/2.2/tokens/stored - Consultando tokens almacenados en external_operator_tokens');
 
-      // Consultar tokens de la tabla emsp_tokens
+      // Consultar tokens de la tabla external_operator_tokens
       const [results] = await sequelize.query(`
             SELECT 
                 id,
-                emsp_party_id as party_id,
-                emsp_country_code as country_code,
+                external_operator_party_id as party_id,
+                external_operator_country_code as country_code,
                 token_uid as uid,
                 type,
                 contract_id,
@@ -115,11 +115,11 @@ function setupStoredTokensRoute(router) {
                 energy_contract,
                 last_updated,
                 created_at
-            FROM emsp_tokens 
+            FROM external_operator_tokens 
             ORDER BY last_updated DESC
         `);
 
-      logger.info(`✅ ${results.length} tokens almacenados encontrados en emsp_tokens`);
+      logger.info(`✅ ${results.length} tokens almacenados encontrados en external_operator_tokens`);
 
       res.status(200).json({
         status_code: 1000,

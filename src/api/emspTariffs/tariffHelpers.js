@@ -8,7 +8,7 @@ const logger = require('../../utils/logger');
  */
 async function tariffExists(tariffId) {
   const [existingTariff] = await sequelize.query(`
-    SELECT id FROM emsp_tariffs WHERE id = ?
+    SELECT id FROM external_operator_tariffs WHERE id = ?
   `, {
     replacements: [tariffId],
     type: sequelize.QueryTypes.SELECT
@@ -54,9 +54,9 @@ async function updateTariff(tariffId, tariffData, partyId, countryCode) {
   values.push(tariffId); // Para el WHERE id = ?
 
   await sequelize.query(`
-    UPDATE emsp_tariffs SET
-      emsp_party_id = ?,
-      emsp_country_code = ?,
+    UPDATE external_operator_tariffs SET
+      external_operator_party_id = ?,
+      external_operator_country_code = ?,
       currency = ?,
       type = ?,
       tariff_alt_text = ?,
@@ -74,7 +74,7 @@ async function updateTariff(tariffId, tariffData, partyId, countryCode) {
     type: sequelize.QueryTypes.UPDATE
   });
 
-  logger.info(`✅ Tariff updated in emsp_tariffs: ${tariffId}`);
+  logger.info(`✅ Tariff updated in external_operator_tariffs: ${tariffId}`);
 }
 
 /**
@@ -89,8 +89,8 @@ async function createTariff(tariffId, tariffData, partyId, countryCode) {
   values.unshift(tariffId); // Insertar al inicio: id
 
   await sequelize.query(`
-    INSERT INTO emsp_tariffs (
-      id, emsp_party_id, emsp_country_code, currency, type,
+    INSERT INTO external_operator_tariffs (
+      id, external_operator_party_id, external_operator_country_code, currency, type,
       tariff_alt_text, tariff_alt_url, min_price, max_price,
       elements, start_date_time, end_date_time, energy_mix, last_updated
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -99,7 +99,7 @@ async function createTariff(tariffId, tariffData, partyId, countryCode) {
     type: sequelize.QueryTypes.INSERT
   });
 
-  logger.info(`✅ Tariff created in emsp_tariffs: ${tariffId}`);
+  logger.info(`✅ Tariff created in external_operator_tariffs: ${tariffId}`);
 }
 
 /**

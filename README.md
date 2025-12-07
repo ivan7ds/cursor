@@ -211,8 +211,8 @@ Script consolidado que pobla la base de datos con un dataset completo incluyendo
 ### `scripts/setup_database.ps1`
 Script maestro que ejecuta todos los scripts en orden.
 
-### `scripts/init_emsp_tables.sql`
-Crea tablas específicas para funcionalidad eMSP (emsp_locations, emsp_evses, emsp_tariffs).
+### `scripts/init_database.sql`
+Crea tablas específicas para funcionalidad de operadores externos (external_operator_locations, external_operator_evses, external_operator_tariffs).
 
 ## 🔧 Desarrollo
 
@@ -478,11 +478,14 @@ docker exec -it cursor-app-1 node scripts/generate-ocpi-token.js generate --part
 
 ### Estructura de Datos eMSP
 
-#### **Tablas eMSP**
-- **`emsp_locations`**: Ubicaciones recibidas de CPOs externos
-- **`emsp_evses`**: EVSEs con información de conectores
-- **`emsp_tariffs`**: Tarifas de operadores externos
-- **`emsp_connections`**: Registro de conexiones activas
+#### **Tablas de Operadores Externos**
+- **`external_operator_locations`**: Ubicaciones recibidas de operadores externos (CPO, EMSP o ambos)
+- **`external_operator_evses`**: EVSEs con información de conectores
+- **`external_operator_tariffs`**: Tarifas de operadores externos
+- **`external_operator_sessions`**: Sesiones de operadores externos
+- **`external_operator_cdrs`**: CDRs de operadores externos
+- **`external_operator_tokens`**: Tokens de operadores externos
+- **`external_operator_contracts`**: Contratos de operadores externos
 
 #### **Tokens eMSP**
 La aplicación incluye 20 tokens predefinidos para cuando actúa como eMSP:
@@ -748,12 +751,12 @@ docker-compose logs -f app | grep -E "(frontend|dashboard|error)"
 
 ### Problemas de Funcionalidad eMSP
 ```bash
-# Verificar tablas eMSP
-docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM emsp_locations;"
-docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM emsp_evses;"
+# Verificar tablas de operadores externos
+docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM external_operator_locations;"
+docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT COUNT(*) FROM external_operator_evses;"
 
 # Verificar conectores de EVSEs
-docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT id, evse_id, json_array_length(connectors) as connector_count FROM emsp_evses LIMIT 5;"
+docker exec -it cursor-postgres-1 psql -U cpo_user -d cpo_ocpi -c "SELECT id, evse_id, json_array_length(connectors) as connector_count FROM external_operator_evses LIMIT 5;"
 ```
 
 ### Problemas de Streaming de Logs

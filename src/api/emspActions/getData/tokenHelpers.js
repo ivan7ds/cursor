@@ -50,8 +50,8 @@ async function fetchTokensFromOrganization(org) {
 async function saveToken(token, org) {
   try {
     const [result] = await sequelize.query(`
-      INSERT INTO emsp_tokens (
-        id, emsp_party_id, emsp_country_code, token_uid, type,
+      INSERT INTO external_operator_tokens (
+        id, external_operator_party_id, external_operator_country_code, token_uid, type,
         contract_id, issuer, valid, whitelist, last_updated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (id) DO UPDATE SET

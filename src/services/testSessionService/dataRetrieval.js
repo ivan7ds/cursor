@@ -48,10 +48,10 @@ async function getAvailableEvsesFromDatabase() {
         directions,
         parking_restrictions,
         last_updated,
-        emsp_party_id as party_id,
-        emsp_country_code as country_code,
+        external_operator_party_id as party_id,
+        external_operator_country_code as country_code,
         location_id
-      FROM emsp_evses 
+      FROM external_operator_evses 
       WHERE status = 'AVAILABLE'
       AND capabilities::text LIKE '%REMOTE_START_STOP_CAPABLE%'
       ORDER BY RANDOM()

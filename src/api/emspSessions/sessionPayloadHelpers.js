@@ -3,8 +3,8 @@
  */
 function buildSessionBasicInfo(partyId, countryCode, sessionId) {
   return {
-    emsp_party_id: partyId,
-    emsp_country_code: countryCode,
+    external_operator_party_id: partyId,
+    external_operator_country_code: countryCode,
     session_id: sessionId
   };
 }

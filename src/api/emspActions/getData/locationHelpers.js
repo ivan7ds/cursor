@@ -61,18 +61,18 @@ async function saveLocation(location, org) {
     const partyId = location.party_id || org.party_id;
     const countryCode = location.country_code || org.country_code;
 
-    // Guardar en emsp_locations (no en locations) para que aparezca en la pestaña Ext Locations
+    // Guardar en external_operator_locations (no en locations) para que aparezca en la pestaña Ext Locations
     await sequelize.query(`
-      INSERT INTO emsp_locations (
-        id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
+      INSERT INTO external_operator_locations (
+        id, external_operator_party_id, external_operator_country_code, location_id, name, address, city, 
         postal_code, country, coordinates, evses, directions, operator, 
         suboperator, owner, facilities, time_zone, opening_times, 
         charging_when_closed, images, energy_mix, last_updated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (id) 
       DO UPDATE SET
-        emsp_party_id = EXCLUDED.emsp_party_id,
-        emsp_country_code = EXCLUDED.emsp_country_code,
+        external_operator_party_id = EXCLUDED.external_operator_party_id,
+        external_operator_country_code = EXCLUDED.external_operator_country_code,
         location_id = EXCLUDED.location_id,
         name = EXCLUDED.name,
         address = EXCLUDED.address,

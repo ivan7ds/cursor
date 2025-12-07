@@ -186,8 +186,8 @@ async function updateSession(partyId, countryCode, sessionId, updateFields) {
   
   const [affectedRows] = await EmspSession.update(updateFields, {
     where: {
-      emsp_country_code: countryCode,
-      emsp_party_id: partyId,
+      external_operator_country_code: countryCode,
+      external_operator_party_id: partyId,
       session_id: sessionId
     }
   });

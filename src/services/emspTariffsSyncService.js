@@ -214,7 +214,7 @@ class EMSPTariffsSyncService {
       const values = prepareTariffValues(tariffData, emspPartyId, emspCountryCode, now);
       await upsertTariff(values);
 
-      logger.info(`✅ Tariff ${id} processed in emsp_tariffs for EMSP ${emspPartyId} (${emspCountryCode})`);
+      logger.info(`✅ Tariff ${id} processed in external_operator_tariffs for external operator ${emspPartyId} (${emspCountryCode})`);
 
     } catch (error) {
       logger.error(`❌ Error processing EMSP tariff ${id}: ${error.message}`, {

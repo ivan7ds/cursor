@@ -15,7 +15,7 @@ function setupLocationsRoute(router) {
       logger.info('📍 GET /ocpi/emsp/2.2/locations - Consultando locations de eMSPs');
 
       const [results] = await sequelize.query(`
-            SELECT * FROM emsp_locations 
+            SELECT * FROM external_operator_locations 
             ORDER BY last_updated DESC
         `);
 
@@ -46,7 +46,7 @@ function setupEvsesRoute(router) {
       logger.info('📍 GET /ocpi/emsp/2.2/evses - Consultando EVSEs de eMSPs');
 
       const [results] = await sequelize.query(`
-            SELECT * FROM emsp_evses 
+            SELECT * FROM external_operator_evses 
             ORDER BY last_updated DESC
         `);
 

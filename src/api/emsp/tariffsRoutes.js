@@ -15,7 +15,7 @@ function setupGetTariffsRoute(router) {
       logger.info('📍 GET /ocpi/emsp/2.2/tariffs - Consultando tariffs de eMSPs');
 
       const [results] = await sequelize.query(`
-            SELECT * FROM emsp_tariffs 
+            SELECT * FROM external_operator_tariffs 
             ORDER BY last_updated DESC
         `);
 
@@ -54,15 +54,15 @@ function setupDeleteTariffRoute(router) {
       });
 
       const [results] = await sequelize.query(`
-            UPDATE emsp_tariffs
+            UPDATE external_operator_tariffs
             SET deleted_at = NOW(),
                 updated_at = NOW(),
                 last_updated = NOW()
             WHERE id = ?
-              AND emsp_country_code = ?
-              AND emsp_party_id = ?
+              AND external_operator_country_code = ?
+              AND external_operator_party_id = ?
               AND deleted_at IS NULL
-            RETURNING id, emsp_party_id AS party_id, emsp_country_code AS country_code, deleted_at
+            RETURNING id, external_operator_party_id AS party_id, external_operator_country_code AS country_code, deleted_at
         `, {
         replacements: [tariff_id, country_code, party_id]
       });
@@ -187,14 +187,14 @@ function setupPutTariffRoute(router) {
       ];
 
       await sequelize.query(`
-            INSERT INTO emsp_tariffs (
-                id, emsp_party_id, emsp_country_code, tariff_id, currency, type,
+            INSERT INTO external_operator_tariffs (
+                id, external_operator_party_id, external_operator_country_code, tariff_id, currency, type,
                 name, elements, start_date_time, end_date_time, last_updated, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ON CONFLICT (id)
             DO UPDATE SET
-                emsp_party_id = EXCLUDED.emsp_party_id,
-                emsp_country_code = EXCLUDED.emsp_country_code,
+                external_operator_party_id = EXCLUDED.external_operator_party_id,
+                external_operator_country_code = EXCLUDED.external_operator_country_code,
                 tariff_id = EXCLUDED.tariff_id,
                 currency = EXCLUDED.currency,
                 type = EXCLUDED.type,

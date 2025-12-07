@@ -20,8 +20,8 @@ function setupGetCdrsRoute(router) {
 
       const {
         session_id: sessionId,
-        emsp_party_id: emspPartyId,
-        emsp_country_code: emspCountryCode,
+        external_operator_party_id: externalOperatorPartyId,
+        external_operator_country_code: externalOperatorCountryCode,
         limit
       } = req.query;
 
@@ -33,14 +33,14 @@ function setupGetCdrsRoute(router) {
         replacements.push(sessionId);
       }
 
-      if (emspPartyId) {
-        conditions.push('emsp_party_id = ?');
-        replacements.push(emspPartyId);
+      if (externalOperatorPartyId) {
+        conditions.push('external_operator_party_id = ?');
+        replacements.push(externalOperatorPartyId);
       }
 
-      if (emspCountryCode) {
-        conditions.push('emsp_country_code = ?');
-        replacements.push(emspCountryCode);
+      if (externalOperatorCountryCode) {
+        conditions.push('external_operator_country_code = ?');
+        replacements.push(externalOperatorCountryCode);
       }
 
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -50,7 +50,7 @@ function setupGetCdrsRoute(router) {
       );
 
       const query = `
-            SELECT * FROM emsp_cdrs
+            SELECT * FROM external_operator_cdrs
             ${whereClause}
             ORDER BY last_updated DESC
             LIMIT ?
@@ -100,11 +100,11 @@ function setupPostCdrsRoute(router) {
         });
       }
 
-      // Mapear datos del CDR a la estructura de la tabla emsp_cdrs
+      // Mapear datos del CDR a la estructura de la tabla external_operator_cdrs
       const cdrValues = [
         cdrData.id, // id (primary key)
-        cdrData.party_id, // emsp_party_id
-        cdrData.country_code, // emsp_country_code
+        cdrData.party_id, // external_operator_party_id
+        cdrData.country_code, // external_operator_country_code
         cdrData.id, // cdr_id (mismo que id)
         cdrData.session_id, // session_id
         cdrData.cdr_location?.evse_uid || 'unknown', // evse_uid
@@ -129,18 +129,18 @@ function setupPostCdrsRoute(router) {
         total_cost: cdrData.total_cost?.excl_vat
       });
 
-      // Insertar o actualizar CDR en la tabla emsp_cdrs
+      // Insertar o actualizar CDR en la tabla external_operator_cdrs
       await sequelize.query(`
-            INSERT INTO emsp_cdrs (
-                id, emsp_party_id, emsp_country_code, cdr_id, session_id, evse_uid, 
+            INSERT INTO external_operator_cdrs (
+                id, external_operator_party_id, external_operator_country_code, cdr_id, session_id, evse_uid, 
                 connector_id, id_token, start_datetime, end_datetime, total_energy, 
                 total_cost, currency, total_parking_time, total_time, last_updated, 
                 created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ON CONFLICT (id) 
             DO UPDATE SET
-                emsp_party_id = EXCLUDED.emsp_party_id,
-                emsp_country_code = EXCLUDED.emsp_country_code,
+                external_operator_party_id = EXCLUDED.external_operator_party_id,
+                external_operator_country_code = EXCLUDED.external_operator_country_code,
                 cdr_id = EXCLUDED.cdr_id,
                 session_id = EXCLUDED.session_id,
                 evse_uid = EXCLUDED.evse_uid,

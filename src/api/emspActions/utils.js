@@ -12,40 +12,40 @@ const logger = require('../../utils/logger');
 function setupClearEmspData(router) {
   router.post('/clear-emsp-data', authMiddleware, async (_req, res) => {
     const tables = [
-      'emsp_cdrs',
-      'emsp_sessions',
-      'emsp_evses',
-      'emsp_locations',
-      'emsp_tariffs',
-      'emsp_tokens'
+      'external_operator_cdrs',
+      'external_operator_sessions',
+      'external_operator_evses',
+      'external_operator_locations',
+      'external_operator_tariffs',
+      'external_operator_tokens'
     ];
 
     try {
-      logger.info('🧨 Iniciando limpieza completa de tablas eMSP:', tables.join(', '));
+      logger.info('🧨 Iniciando limpieza completa de tablas de operadores externos:', tables.join(', '));
 
       await sequelize.transaction(async (transaction) => {
         await sequelize.query(
-          'TRUNCATE TABLE emsp_cdrs, emsp_sessions, emsp_evses, emsp_locations, emsp_tariffs, emsp_tokens RESTART IDENTITY CASCADE',
+          'TRUNCATE TABLE external_operator_cdrs, external_operator_sessions, external_operator_evses, external_operator_locations, external_operator_tariffs, external_operator_tokens RESTART IDENTITY CASCADE',
           { transaction }
         );
       });
 
-      logger.info('✅ Limpieza de tablas eMSP completada');
+      logger.info('✅ Limpieza de tablas de operadores externos completada');
 
       res.status(200).json({
         status_code: 1000,
         data: {
-          message: 'Datos eMSP eliminados correctamente',
+          message: 'Datos de operadores externos eliminados correctamente',
           // eslint-disable-next-line camelcase -- Campo en snake_case según convención de API
           tables_cleared: tables
         },
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      logger.error('❌ Error al limpiar tablas eMSP:', error);
+      logger.error('❌ Error al limpiar tablas de operadores externos:', error);
       res.status(500).json({
         status_code: 2000,
-        status_message: 'Error al limpiar datos eMSP',
+        status_message: 'Error al limpiar datos de operadores externos',
         timestamp: new Date().toISOString()
       });
     }

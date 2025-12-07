@@ -17,7 +17,7 @@ const {
  */
 async function locationExists(locationId) {
   const [existingLocation] = await sequelize.query(`
-    SELECT id FROM emsp_locations WHERE id = ?
+    SELECT id FROM external_operator_locations WHERE id = ?
   `, {
     replacements: [locationId],
     type: sequelize.QueryTypes.SELECT
@@ -86,9 +86,9 @@ async function updateLocation(location, partyId, countryCode) {
   const replacements = prepareLocationUpdateData(location, partyId, countryCode);
   
   await sequelize.query(`
-    UPDATE emsp_locations SET
-      emsp_party_id = ?,
-      emsp_country_code = ?,
+    UPDATE external_operator_locations SET
+      external_operator_party_id = ?,
+      external_operator_country_code = ?,
       location_id = ?,
       name = ?,
       address = ?,
@@ -128,8 +128,8 @@ async function createLocation(location, partyId, countryCode) {
   const replacements = prepareLocationInsertData(location, partyId, countryCode);
   
   await sequelize.query(`
-    INSERT INTO emsp_locations (
-      id, emsp_party_id, emsp_country_code, location_id, name, address, city, 
+    INSERT INTO external_operator_locations (
+      id, external_operator_party_id, external_operator_country_code, location_id, name, address, city, 
       postal_code, country, coordinates, evses, directions, operator, 
       suboperator, owner, facilities, time_zone, opening_times, 
       charging_when_closed, images, energy_mix, last_updated

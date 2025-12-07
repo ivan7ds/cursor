@@ -86,15 +86,15 @@ function prepareTokenValues({ tokenData, emspPartyId, emspCountryCode, stableId,
  */
 async function upsertToken(values) {
   await sequelize.query(`
-    INSERT INTO emsp_tokens (
-      id, emsp_party_id, emsp_country_code, token_uid, type, contract_id, 
+    INSERT INTO external_operator_tokens (
+      id, external_operator_party_id, external_operator_country_code, token_uid, type, contract_id, 
       visual_number, issuer, group_id, valid, whitelist, language, 
       default_profile_type, energy_contract, last_updated, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     ON CONFLICT (id) 
     DO UPDATE SET
-      emsp_party_id = EXCLUDED.emsp_party_id,
-      emsp_country_code = EXCLUDED.emsp_country_code,
+      external_operator_party_id = EXCLUDED.external_operator_party_id,
+      external_operator_country_code = EXCLUDED.external_operator_country_code,
       token_uid = EXCLUDED.token_uid,
       type = EXCLUDED.type,
       contract_id = EXCLUDED.contract_id,

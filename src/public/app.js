@@ -4129,7 +4129,7 @@ class DashboardApp {
             return `
                 <tr class="fade-in">
                     <td><code>${location.id || 'N/A'}</code></td>
-                    <td><span class="badge bg-info">${location.emsp_party_id || 'N/A'}</span></td>
+                    <td><span class="badge bg-info">${location.external_operator_party_id || 'N/A'}</span></td>
                     <td>${location.name || 'Sin nombre'}</td>
                     <td>${location.country || 'N/A'}</td>
                     <td>${location.city || 'N/A'}</td>
@@ -4424,7 +4424,7 @@ class DashboardApp {
                 <tr class="fade-in">
                     <td><code>${evse.evse_id || 'N/A'}</code></td>
                     <td><code>${evse.id || 'N/A'}</code></td>
-                    <td><span class="badge bg-info">${evse.emsp_party_id || 'N/A'}</span></td>
+                    <td><span class="badge bg-info">${evse.external_operator_party_id || 'N/A'}</span></td>
                     <td>${evse.location_id || 'N/A'}</td>
                     <td>
                         <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
@@ -4587,7 +4587,7 @@ class DashboardApp {
         tbody.innerHTML = tariffs.map(tariff => `
             <tr class="fade-in">
                 <td><code>${tariff.id}</code></td>
-                <td><span class="badge bg-info">${tariff.emsp_party_id}</span></td>
+                <td><span class="badge bg-info">${tariff.external_operator_party_id}</span></td>
                 <td>${tariff.name ? this.escapeHtml(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td>
                 <td>${tariff.type}</td>
                 <td>${tariff.currency}</td>
@@ -4598,12 +4598,12 @@ class DashboardApp {
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-outline-info"
-                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.external_operator_country_code || '')}', '${encodeURIComponent(tariff.external_operator_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
                                 title="Ver detalles de la tarifa">
                             <i class="bi bi-eye"></i>
                         </button>
                         <button class="btn btn-outline-secondary"
-                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.external_operator_country_code || '')}', '${encodeURIComponent(tariff.external_operator_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
                                 title="Ver EVSEs asociados">
                             <i class="bi bi-diagram-3"></i>
                         </button>
@@ -5047,8 +5047,8 @@ class DashboardApp {
 
         const matchExact = tariffs.find(tariff => {
             const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
-            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
-            const currentCountryUpper = String(tariff.emsp_country_code || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.external_operator_party_id || '').trim().toUpperCase();
+            const currentCountryUpper = String(tariff.external_operator_country_code || '').trim().toUpperCase();
 
             return currentTariffUpper === targetTariffUpper &&
                 (!targetPartyUpper || currentPartyUpper === targetPartyUpper) &&
@@ -5061,7 +5061,7 @@ class DashboardApp {
 
         const matchParty = tariffs.find(tariff => {
             const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
-            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.external_operator_party_id || '').trim().toUpperCase();
 
             return currentTariffUpper === targetTariffUpper &&
                 (!targetPartyUpper || currentPartyUpper === targetPartyUpper);
@@ -8349,7 +8349,7 @@ class DashboardApp {
                                         <table class="table table-sm">
                                             <tr><td><strong>Tariff ID (OCPI):</strong></td><td><code>${safeText(tariff.tariff_id || tariff.id)}</code></td></tr>
                                             <tr><td><strong>ID Interno:</strong></td><td><code>${safeText(tariff.id)}</code></td></tr>
-                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.emsp_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.emsp_country_code)}</span></td></tr>
+                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.external_operator_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.external_operator_country_code)}</span></td></tr>
                                             <tr><td><strong>Nombre:</strong></td><td>${tariff.name ? safeText(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td></tr>
                                             <tr><td><strong>Tipo:</strong></td><td><span class="badge bg-info">${safeText(tariff.type)}</span></td></tr>
                                             <tr><td><strong>Moneda:</strong></td><td><span class="badge bg-success">${safeText(tariff.currency)}</span></td></tr>
@@ -8432,12 +8432,12 @@ class DashboardApp {
             }
 
             const targetTariffUpper = effectiveTariffId.toUpperCase();
-            const targetPartyUpper = (partyId || tariff.emsp_party_id || '').trim().toUpperCase();
-            const targetCountryUpper = (countryCode || tariff.emsp_country_code || '').trim().toUpperCase();
+            const targetPartyUpper = (partyId || tariff.external_operator_party_id || '').trim().toUpperCase();
+            const targetCountryUpper = (countryCode || tariff.external_operator_country_code || '').trim().toUpperCase();
 
             const matchingEvses = evses.reduce((acc, evse) => {
-                const evsePartyUpper = String(evse.emsp_party_id || '').trim().toUpperCase();
-                const evseCountryUpper = String(evse.emsp_country_code || '').trim().toUpperCase();
+                const evsePartyUpper = String(evse.external_operator_party_id || '').trim().toUpperCase();
+                const evseCountryUpper = String(evse.external_operator_country_code || '').trim().toUpperCase();
 
                 if (targetPartyUpper && evsePartyUpper !== targetPartyUpper) {
                     return acc;
@@ -8464,8 +8464,8 @@ class DashboardApp {
                 addToken(tariff.name);
                 addToken(tariff.type);
                 addToken(tariff.currency);
-                addToken(tariff.emsp_party_id || partyId);
-                addToken(tariff.emsp_country_code || countryCode);
+                addToken(tariff.external_operator_party_id || partyId);
+                addToken(tariff.external_operator_country_code || countryCode);
 
                 const evseLocationName = this.getEmspLocationName(evse.location_id)
                     || evse.location_name
@@ -8658,8 +8658,8 @@ class DashboardApp {
                     <span class="badge bg-primary" id="emspTariffEvsesCountBadge">
                         ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'} asociados
                     </span>
-                    <span class="badge bg-info">${safeText(tariff.emsp_party_id || partyId)}</span>
-                    <span class="badge bg-secondary">${safeText(tariff.emsp_country_code || countryCode)}</span>
+                    <span class="badge bg-info">${safeText(tariff.external_operator_party_id || partyId)}</span>
+                    <span class="badge bg-secondary">${safeText(tariff.external_operator_country_code || countryCode)}</span>
                     <span class="badge bg-light text-dark border">${safeText(tariff.currency)}</span>
                 </div>
             `;
@@ -9521,7 +9521,7 @@ class DashboardApp {
         const partyFilter = document.getElementById('emspEvsePartyFilter');
         if (!partyFilter) return;
 
-        const parties = [...new Set(evses.map(evse => evse.emsp_party_id).filter(Boolean))].sort();
+        const parties = [...new Set(evses.map(evse => evse.external_operator_party_id).filter(Boolean))].sort();
         const currentValue = this.emspEvsesFilters?.party || '';
 
         partyFilter.innerHTML = '<option value="">Todos los eMSPs</option>' + 
@@ -9553,7 +9553,7 @@ class DashboardApp {
 
         this.filteredEmspEvses = source.filter(evse => {
             const status = (evse.status || '').toUpperCase();
-            const party = (evse.emsp_party_id || '').toUpperCase();
+            const party = (evse.external_operator_party_id || '').toUpperCase();
             const locationId = (evse.location_id || '').toUpperCase();
             const evseId = (evse.evse_id || '').toUpperCase();
             const uid = (evse.id || '').toUpperCase();
@@ -9566,7 +9566,7 @@ class DashboardApp {
                 evse.id,
                 evse.location_id,
                 evse.status,
-                evse.emsp_party_id
+                evse.external_operator_party_id
             ].some(value => (value || '').toString().toLowerCase().includes(searchFilter));
 
             return statusMatch && partyMatch && searchMatch;
@@ -11003,9 +11003,9 @@ class DashboardApp {
             if (response.ok) {
                 const data = await response.json();
                 if (data.data && data.data.length > 0) {
-                    // Buscar la sesión más reciente del CPO EFI (usando emsp_party_id)
+                    // Buscar la sesión más reciente del CPO EFI (usando external_operator_party_id)
                     const efiSessions = data.data.filter(session => 
-                        session.emsp_party_id === 'EFI'
+                        session.external_operator_party_id === 'EFI'
                     );
                     
                     if (efiSessions.length > 0) {
@@ -11188,7 +11188,7 @@ class DashboardApp {
                         </span>
                     </td>
                     <td>
-                        <span class="badge bg-info">${this.escapeHtml(session.emsp_party_id || 'N/A')}</span>
+                        <span class="badge bg-info">${this.escapeHtml(session.external_operator_party_id || 'N/A')}</span>
                     </td>
                     <td>
                         <span class="text-truncate d-inline-block" style="max-width: 100px;" 
@@ -11264,7 +11264,7 @@ class DashboardApp {
                     const locationName = this.getEmspLocationName(session.location_id);
                     const searchableParts = [
                         session.session_id,
-                        session.emsp_party_id,
+                        session.external_operator_party_id,
                         session.id_token,
                         session.evse_uid,
                         evseId,
@@ -11590,7 +11590,7 @@ class DashboardApp {
             .map(id => id && id.toString().trim())
             .filter(Boolean)
             .map(id => {
-                const tariff = this.findEmspTariff(session.emsp_country_code, session.emsp_party_id, id)
+                const tariff = this.findEmspTariff(session.external_operator_country_code, session.external_operator_party_id, id)
                     || this.findEmspTariff(null, null, id);
                 return { id, tariff };
             });
@@ -11661,7 +11661,7 @@ class DashboardApp {
                 </div>
                 <div class="col-md-6">
                     <h6>Información Técnica</h6>
-                    <p><strong>Organización:</strong> ${session.emsp_party_id} (${session.emsp_country_code})</p>
+                    <p><strong>Organización:</strong> ${session.external_operator_party_id} (${session.external_operator_country_code})</p>
                     <p><strong>EVSE ID:</strong> ${this.getEmspEvseId(session.evse_uid) || 'N/A'}</p>
                     <p><strong>EVSE UID:</strong> ${session.evse_uid || 'N/A'}</p>
                     <p><strong>Token ID:</strong> ${session.id_token || 'N/A'}</p>
@@ -11742,9 +11742,9 @@ class DashboardApp {
             console.log('🔍 Obteniendo información del CPO para sesión:', session.session_id);
             
             // Para sesiones externas, necesitamos encontrar el CPO externo que tiene estas sesiones
-            // Las sesiones tienen emsp_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
-            const targetPartyId = session.emsp_party_id;
-            const targetCountryCode = session.emsp_country_code;
+            // Las sesiones tienen external_operator_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
+            const targetPartyId = session.external_operator_party_id;
+            const targetCountryCode = session.external_operator_country_code;
             
             console.log('🎯 Buscando CPO externo para sesión de party_id:', targetPartyId, 'country_code:', targetCountryCode);
             console.log('ℹ️ Nota: Las sesiones externas son de nuestro CPO, necesitamos encontrar el CPO externo que las originó');
@@ -11797,7 +11797,7 @@ class DashboardApp {
                 if (sessionsData.data && Array.isArray(sessionsData.data)) {
                     // Buscar una sesión del mismo CPO
                     const matchingSession = sessionsData.data.find(s => 
-                        s.emsp_party_id === targetPartyId && s.emsp_country_code === targetCountryCode
+                        s.external_operator_party_id === targetPartyId && s.external_operator_country_code === targetCountryCode
                     );
                     
                     if (matchingSession && matchingSession.source_organization) {
@@ -13186,7 +13186,7 @@ class DashboardApp {
 
             if (emspActiveSessions.length > 0) {
                 emspActiveSessions.forEach(session => {
-                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.emsp_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
+                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.external_operator_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
                 });
             }
 

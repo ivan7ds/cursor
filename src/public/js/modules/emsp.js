@@ -84,7 +84,7 @@ export class EMSPModule {
             return `
                 <tr class="fade-in">
                     <td><code>${location.id || 'N/A'}</code></td>
-                    <td><span class="badge bg-info">${location.emsp_party_id || 'N/A'}</span></td>
+                    <td><span class="badge bg-info">${location.external_operator_party_id || 'N/A'}</span></td>
                     <td>${location.name || 'Sin nombre'}</td>
                     <td>${location.country || 'N/A'}</td>
                     <td>${location.city || 'N/A'}</td>
@@ -372,7 +372,7 @@ export class EMSPModule {
                 <tr class="fade-in">
                     <td><code>${evse.evse_id || 'N/A'}</code></td>
                     <td><code>${evse.id || 'N/A'}</code></td>
-                    <td><span class="badge bg-info">${evse.emsp_party_id || 'N/A'}</span></td>
+                    <td><span class="badge bg-info">${evse.external_operator_party_id || 'N/A'}</span></td>
                     <td>${evse.location_id || 'N/A'}</td>
                     <td>
                         <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
@@ -500,7 +500,7 @@ export class EMSPModule {
         return
       }
 
-      const parties = [...new Set(evses.map(evse => evse.emsp_party_id).filter(Boolean))].sort()
+      const parties = [...new Set(evses.map(evse => evse.external_operator_party_id).filter(Boolean))].sort()
       const currentValue = this.app.emspEvsesFilters?.party || ''
 
       partyFilter.innerHTML = '<option value="">Todos los eMSPs</option>' +
@@ -546,7 +546,7 @@ export class EMSPModule {
       // Aplicar filtro de party
       if (partyFilter) {
         filtered = filtered.filter(evse => {
-          const evseParty = (evse.emsp_party_id || '').trim()
+          const evseParty = (evse.external_operator_party_id || '').trim()
           return evseParty === partyFilter
         })
       }
@@ -559,7 +559,7 @@ export class EMSPModule {
             evse.evse_id,
             evse.id,
             evse.location_id,
-            evse.emsp_party_id,
+            evse.external_operator_party_id,
             evse.status,
             evse.physical_reference
           ].filter(Boolean).join(' ').toLowerCase()
@@ -643,7 +643,7 @@ export class EMSPModule {
         tbody.innerHTML = tariffs.map(tariff => `
             <tr class="fade-in">
                 <td><code>${tariff.id}</code></td>
-                <td><span class="badge bg-info">${tariff.emsp_party_id}</span></td>
+                <td><span class="badge bg-info">${tariff.external_operator_party_id}</span></td>
                 <td>${tariff.name ? this.app.ui.escapeHtml(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td>
                 <td>${tariff.type}</td>
                 <td>${tariff.currency}</td>
@@ -654,12 +654,12 @@ export class EMSPModule {
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-outline-info"
-                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.external_operator_country_code || '')}', '${encodeURIComponent(tariff.external_operator_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
                                 title="Ver detalles de la tarifa">
                             <i class="bi bi-eye"></i>
                         </button>
                         <button class="btn btn-outline-secondary"
-                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.external_operator_country_code || '')}', '${encodeURIComponent(tariff.external_operator_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
                                 title="Ver EVSEs asociados">
                             <i class="bi bi-diagram-3"></i>
                         </button>
@@ -1103,8 +1103,8 @@ export class EMSPModule {
 
         const matchExact = tariffs.find(tariff => {
             const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
-            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
-            const currentCountryUpper = String(tariff.emsp_country_code || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.external_operator_party_id || '').trim().toUpperCase();
+            const currentCountryUpper = String(tariff.external_operator_country_code || '').trim().toUpperCase();
 
             return currentTariffUpper === targetTariffUpper &&
                 (!targetPartyUpper || currentPartyUpper === targetPartyUpper) &&
@@ -1117,7 +1117,7 @@ export class EMSPModule {
 
         const matchParty = tariffs.find(tariff => {
             const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
-            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.external_operator_party_id || '').trim().toUpperCase();
 
             return currentTariffUpper === targetTariffUpper &&
                 (!targetPartyUpper || currentPartyUpper === targetPartyUpper);

@@ -16,7 +16,7 @@ async function validateEVSEExistsForPatch(evseUid, params) {
   const evseResult = await validateEVSEExists(evseUid);
 
   if (!evseResult) {
-    logger.warn(`⚠️ EVSE not found in emsp_evses: ${evseUid}`, {
+    logger.warn(`⚠️ EVSE not found in external_operator_evses: ${evseUid}`, {
       country_code,
       party_id,
       location_id,

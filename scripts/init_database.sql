@@ -292,11 +292,11 @@ END $$;
 -- ===== TABLAS PARA ROL EMSP =====
 -- Estas tablas almacenan la información que nos facilitan los eMSPs
 
--- Tabla para ubicaciones de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_locations (
+-- Tabla para ubicaciones de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_locations (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     location_id VARCHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
@@ -323,11 +323,11 @@ CREATE TABLE IF NOT EXISTS emsp_locations (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Tabla para EVSEs de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_evses (
+-- Tabla para EVSEs de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_evses (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     location_id VARCHAR(36) NOT NULL,
     evse_id VARCHAR(48) NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -345,11 +345,11 @@ CREATE TABLE IF NOT EXISTS emsp_evses (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Tabla para tarifas de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_tariffs (
+-- Tabla para tarifas de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_tariffs (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     tariff_id VARCHAR(36) NOT NULL,
     currency VARCHAR(3) NOT NULL,
     type VARCHAR(50) NOT NULL,
@@ -363,11 +363,11 @@ CREATE TABLE IF NOT EXISTS emsp_tariffs (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Tabla para sesiones de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_sessions (
+-- Tabla para sesiones de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_sessions (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     session_id VARCHAR(36) NOT NULL,
     evse_uid VARCHAR(36) NOT NULL,
     connector_id VARCHAR(36),
@@ -382,11 +382,11 @@ CREATE TABLE IF NOT EXISTS emsp_sessions (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Tabla para CDRs de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_cdrs (
+-- Tabla para CDRs de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_cdrs (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     cdr_id VARCHAR(36) NOT NULL,
     session_id VARCHAR(36) NOT NULL,
     evse_uid VARCHAR(36) NOT NULL,
@@ -404,11 +404,11 @@ CREATE TABLE IF NOT EXISTS emsp_cdrs (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Tabla para tokens de usuarios de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_tokens (
+-- Tabla para tokens de usuarios de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_tokens (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     token_uid VARCHAR(36) NOT NULL,
     type VARCHAR(50) NOT NULL,
     contract_id VARCHAR(36),
@@ -426,11 +426,11 @@ CREATE TABLE IF NOT EXISTS emsp_tokens (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Tabla para contratos de eMSPs
-CREATE TABLE IF NOT EXISTS emsp_contracts (
+-- Tabla para contratos de operadores externos (CPO, EMSP o ambos)
+CREATE TABLE IF NOT EXISTS external_operator_contracts (
     id VARCHAR(36) PRIMARY KEY,
-    emsp_party_id VARCHAR(10) NOT NULL,
-    emsp_country_code VARCHAR(2) NOT NULL,
+    external_operator_party_id VARCHAR(10) NOT NULL,
+    external_operator_country_code VARCHAR(2) NOT NULL,
     contract_id VARCHAR(36) NOT NULL,
     party_id VARCHAR(10) NOT NULL,
     country_code VARCHAR(2) NOT NULL,
@@ -445,29 +445,29 @@ CREATE TABLE IF NOT EXISTS emsp_contracts (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Crear índices para las nuevas tablas EMSP
-CREATE INDEX IF NOT EXISTS idx_emsp_locations_emsp_party ON emsp_locations(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_locations_last_updated ON emsp_locations(last_updated);
-CREATE INDEX IF NOT EXISTS idx_emsp_evses_emsp_party ON emsp_evses(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_evses_evse_id ON emsp_evses(evse_id);
-CREATE INDEX IF NOT EXISTS idx_emsp_evses_last_updated ON emsp_evses(last_updated);
-CREATE INDEX IF NOT EXISTS idx_emsp_evses_location_id ON emsp_evses(location_id);
-CREATE INDEX IF NOT EXISTS idx_emsp_evses_status ON emsp_evses(status);
-CREATE INDEX IF NOT EXISTS idx_emsp_tariffs_emsp_party ON emsp_tariffs(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_tariffs_last_updated ON emsp_tariffs(last_updated);
-CREATE INDEX IF NOT EXISTS idx_emsp_tariffs_deleted_at ON emsp_tariffs(deleted_at);
-CREATE INDEX IF NOT EXISTS idx_emsp_sessions_emsp_party ON emsp_sessions(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_sessions_last_updated ON emsp_sessions(last_updated);
-CREATE INDEX IF NOT EXISTS idx_emsp_cdrs_emsp_party ON emsp_cdrs(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_cdrs_last_updated ON emsp_cdrs(last_updated);
-CREATE INDEX IF NOT EXISTS idx_emsp_tokens_emsp_party ON emsp_tokens(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_tokens_last_updated ON emsp_tokens(last_updated);
-CREATE INDEX IF NOT EXISTS idx_emsp_tokens_deleted_at ON emsp_tokens(deleted_at);
-CREATE INDEX IF NOT EXISTS idx_emsp_contracts_emsp_party ON emsp_contracts(emsp_party_id, emsp_country_code);
-CREATE INDEX IF NOT EXISTS idx_emsp_contracts_last_updated ON emsp_contracts(last_updated);
+-- Crear índices para las tablas de operadores externos
+CREATE INDEX IF NOT EXISTS idx_external_operator_locations_party ON external_operator_locations(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_locations_last_updated ON external_operator_locations(last_updated);
+CREATE INDEX IF NOT EXISTS idx_external_operator_evses_party ON external_operator_evses(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_evses_evse_id ON external_operator_evses(evse_id);
+CREATE INDEX IF NOT EXISTS idx_external_operator_evses_last_updated ON external_operator_evses(last_updated);
+CREATE INDEX IF NOT EXISTS idx_external_operator_evses_location_id ON external_operator_evses(location_id);
+CREATE INDEX IF NOT EXISTS idx_external_operator_evses_status ON external_operator_evses(status);
+CREATE INDEX IF NOT EXISTS idx_external_operator_tariffs_party ON external_operator_tariffs(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_tariffs_last_updated ON external_operator_tariffs(last_updated);
+CREATE INDEX IF NOT EXISTS idx_external_operator_tariffs_deleted_at ON external_operator_tariffs(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_external_operator_sessions_party ON external_operator_sessions(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_sessions_last_updated ON external_operator_sessions(last_updated);
+CREATE INDEX IF NOT EXISTS idx_external_operator_cdrs_party ON external_operator_cdrs(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_cdrs_last_updated ON external_operator_cdrs(last_updated);
+CREATE INDEX IF NOT EXISTS idx_external_operator_tokens_party ON external_operator_tokens(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_tokens_last_updated ON external_operator_tokens(last_updated);
+CREATE INDEX IF NOT EXISTS idx_external_operator_tokens_deleted_at ON external_operator_tokens(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_external_operator_contracts_party ON external_operator_contracts(external_operator_party_id, external_operator_country_code);
+CREATE INDEX IF NOT EXISTS idx_external_operator_contracts_last_updated ON external_operator_contracts(last_updated);
 
--- Log completion of EMSP tables
+-- Log completion of external operator tables
 DO $$
 BEGIN
-    RAISE NOTICE 'EMSP database tables initialization completed successfully';
+    RAISE NOTICE 'External operator database tables initialization completed successfully';
 END $$;

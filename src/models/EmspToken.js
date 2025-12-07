@@ -7,17 +7,17 @@ const EmspToken = sequelize.define('EmspToken', {
     type: DataTypes.STRING(36),
     primaryKey: true,
     allowNull: false,
-    comment: 'Unique identifier for the EMSP token'
+    comment: 'Unique identifier for the external operator token'
   },
-  emsp_party_id: {
+  external_operator_party_id: {
     type: DataTypes.STRING(10),
     allowNull: false,
-    comment: 'EMSP party ID'
+    comment: 'External operator party ID (CPO, EMSP or both)'
   },
-  emsp_country_code: {
+  external_operator_country_code: {
     type: DataTypes.STRING(2),
     allowNull: false,
-    comment: 'ISO 3166-1 alpha-2 country code'
+    comment: 'ISO 3166-1 alpha-2 country code for external operator'
   },
   token_uid: {
     type: DataTypes.STRING(36),
@@ -80,11 +80,11 @@ const EmspToken = sequelize.define('EmspToken', {
     comment: 'Timestamp when this token was last updated'
   }
 }, {
-  tableName: 'emsp_tokens',
+  tableName: 'external_operator_tokens',
   timestamps: true,
   indexes: [
     {
-      fields: ['emsp_party_id', 'emsp_country_code']
+      fields: ['external_operator_party_id', 'external_operator_country_code']
     },
     {
       fields: ['last_updated']

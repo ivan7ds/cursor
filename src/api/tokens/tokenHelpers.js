@@ -11,8 +11,8 @@ const logger = require('../../utils/logger');
 async function findToken(countryCode, partyId, uid) {
   return await EmspToken.findOne({
     where: {
-      emsp_country_code: countryCode,
-      emsp_party_id: partyId,
+      external_operator_country_code: countryCode,
+      external_operator_party_id: partyId,
       token_uid: uid
     }
   });
@@ -53,8 +53,8 @@ function prepareTokenCreateData(tokenData, countryCode, partyId, uid) {
   
   return {
     id: tokenId,
-    emsp_party_id: partyId,
-    emsp_country_code: countryCode,
+    external_operator_party_id: partyId,
+    external_operator_country_code: countryCode,
     token_uid: uid,
     type: tokenData.type,
     contract_id: tokenData.contract_id || `${countryCode}-${partyId}-${uid}`,
@@ -75,12 +75,12 @@ function prepareTokenCreateData(tokenData, countryCode, partyId, uid) {
  * @returns {Object} Token mapeado según OCPI 2.2
  */
 function mapTokenToOCPI(token) {
-  // Determinar si es un token EMSP o un token regular
-  const isEmspToken = token.emsp_country_code !== undefined;
+  // Determinar si es un token de operador externo o un token regular
+  const isExternalOperatorToken = token.external_operator_country_code !== undefined;
   
   const mappedToken = {
-    country_code: isEmspToken ? token.emsp_country_code : token.country_code,
-    party_id: isEmspToken ? token.emsp_party_id : token.party_id,
+    country_code: isExternalOperatorToken ? token.external_operator_country_code : token.country_code,
+    party_id: isExternalOperatorToken ? token.external_operator_party_id : token.party_id,
     uid: isEmspToken ? token.token_uid : token.uid,
     type: token.type,
     contract_id: token.contract_id,

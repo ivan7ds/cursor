@@ -50,8 +50,8 @@ async function fetchTariffsFromOrganization(org) {
 async function saveTariff(tariff, org) {
   try {
     const [result] = await sequelize.query(`
-      INSERT INTO emsp_tariffs (
-        id, emsp_party_id, emsp_country_code, tariff_id, currency, type, elements, last_updated
+      INSERT INTO external_operator_tariffs (
+        id, external_operator_party_id, external_operator_country_code, tariff_id, currency, type, elements, last_updated
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (id) DO UPDATE SET
         currency = EXCLUDED.currency,

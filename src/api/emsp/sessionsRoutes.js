@@ -15,7 +15,7 @@ function setupSessionsRoute(router) {
       logger.info('📍 GET /ocpi/emsp/2.2/sessions - Consultando sesiones de eMSPs');
 
       const [results] = await sequelize.query(`
-            SELECT * FROM emsp_sessions 
+            SELECT * FROM external_operator_sessions 
             ORDER BY last_updated DESC
         `);
 

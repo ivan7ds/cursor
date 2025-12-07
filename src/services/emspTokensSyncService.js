@@ -216,7 +216,7 @@ class EMSPTokensSyncService {
       const values = prepareTokenValues({ tokenData, emspPartyId, emspCountryCode, stableId, now });
       await upsertToken(values);
 
-      logger.info(`✅ Token ${uid} processed in emsp_tokens for EMSP ${emspPartyId} (${emspCountryCode})`);
+      logger.info(`✅ Token ${uid} processed in external_operator_tokens for external operator ${emspPartyId} (${emspCountryCode})`);
 
     } catch (error) {
       logger.error(`❌ Error processing EMSP token ${uid}: ${error.message}`, {

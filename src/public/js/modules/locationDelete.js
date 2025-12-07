@@ -578,7 +578,7 @@ export class LocationDeleteModule {
                                         <table class="table table-sm">
                                             <tr><td><strong>Tariff ID (OCPI):</strong></td><td><code>${safeText(tariff.tariff_id || tariff.id)}</code></td></tr>
                                             <tr><td><strong>ID Interno:</strong></td><td><code>${safeText(tariff.id)}</code></td></tr>
-                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.emsp_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.emsp_country_code)}</span></td></tr>
+                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.external_operator_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.external_operator_country_code)}</span></td></tr>
                                             <tr><td><strong>Nombre:</strong></td><td>${tariff.name ? safeText(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td></tr>
                                             <tr><td><strong>Tipo:</strong></td><td><span class="badge bg-info">${safeText(tariff.type)}</span></td></tr>
                                             <tr><td><strong>Moneda:</strong></td><td><span class="badge bg-success">${safeText(tariff.currency)}</span></td></tr>
@@ -665,12 +665,12 @@ export class LocationDeleteModule {
             }
 
             const targetTariffUpper = effectiveTariffId.toUpperCase();
-            const targetPartyUpper = (partyId || tariff.emsp_party_id || '').trim().toUpperCase();
-            const targetCountryUpper = (countryCode || tariff.emsp_country_code || '').trim().toUpperCase();
+            const targetPartyUpper = (partyId || tariff.external_operator_party_id || '').trim().toUpperCase();
+            const targetCountryUpper = (countryCode || tariff.external_operator_country_code || '').trim().toUpperCase();
 
             const matchingEvses = evses.reduce((acc, evse) => {
-                const evsePartyUpper = String(evse.emsp_party_id || '').trim().toUpperCase();
-                const evseCountryUpper = String(evse.emsp_country_code || '').trim().toUpperCase();
+                const evsePartyUpper = String(evse.external_operator_party_id || '').trim().toUpperCase();
+                const evseCountryUpper = String(evse.external_operator_country_code || '').trim().toUpperCase();
 
                 if (targetPartyUpper && evsePartyUpper !== targetPartyUpper) {
                     return acc;
@@ -699,8 +699,8 @@ export class LocationDeleteModule {
                 addToken(tariff.name);
                 addToken(tariff.type);
                 addToken(tariff.currency);
-                addToken(tariff.emsp_party_id || partyId);
-                addToken(tariff.emsp_country_code || countryCode);
+                addToken(tariff.external_operator_party_id || partyId);
+                addToken(tariff.external_operator_country_code || countryCode);
 
                 const evseLocationName = this.app.emspModule && this.app.emspModule.getEmspLocationName
                   ? this.app.emspModule.getEmspLocationName(evse.location_id)
@@ -903,8 +903,8 @@ export class LocationDeleteModule {
                     <span class="badge bg-primary" id="emspTariffEvsesCountBadge">
                         ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'} asociados
                     </span>
-                    <span class="badge bg-info">${safeText(tariff.emsp_party_id || partyId)}</span>
-                    <span class="badge bg-secondary">${safeText(tariff.emsp_country_code || countryCode)}</span>
+                    <span class="badge bg-info">${safeText(tariff.external_operator_party_id || partyId)}</span>
+                    <span class="badge bg-secondary">${safeText(tariff.external_operator_country_code || countryCode)}</span>
                     <span class="badge bg-light text-dark border">${safeText(tariff.currency)}</span>
                 </div>
             `;
