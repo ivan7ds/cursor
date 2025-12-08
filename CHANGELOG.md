@@ -9,7 +9,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ## [2.2.0] - 2025-12-02
 
+### Changed
+- **Renombrado de tablas de operadores externos**: Renombradas todas las tablas con prefijo `emsp_*` a `external_operator_*` para reflejar que almacenan datos de operadores externos que pueden ser CPO, EMSP o ambos
+  - `emsp_locations` → `external_operator_locations`
+  - `emsp_evses` → `external_operator_evses`
+  - `emsp_tariffs` → `external_operator_tariffs`
+  - `emsp_sessions` → `external_operator_sessions`
+  - `emsp_cdrs` → `external_operator_cdrs`
+  - `emsp_tokens` → `external_operator_tokens`
+  - `emsp_contracts` → `external_operator_contracts`
+  - Campos renombrados: `emsp_party_id` → `external_operator_party_id`, `emsp_country_code` → `external_operator_country_code`
+  - Índices renombrados: `idx_emsp_*` → `idx_external_operator_*`
+  - Actualizados todos los modelos Sequelize, queries SQL, helpers, servicios y frontend
+  - Scripts de migración creados: `migrate_rename_emsp_to_external_operator.sql`, `rollback_rename_external_operator_to_emsp.sql`, `validate_rename_migration.sql`
+
 ### Added
+- **Herramienta de detección de código muerto**: Integrada herramienta `knip` para detectar código no utilizado
+  - Configuración en `knip.config.js` con puntos de entrada y reglas personalizadas
+  - Scripts npm: `npm run knip`, `npm run knip:production`, `npm run knip:fix`
+  - Detección de archivos no utilizados, dependencias no utilizadas, exports e imports no utilizados
+  - Archivo `.knipignore` para exclusiones específicas
+  - Integración con la estructura del proyecto y exclusiones similares a ESLint
 - **Funcionalidad de eliminación de tokens**: Implementado sistema completo para eliminar tokens individuales o múltiples
   - Columna de checkbox en cada fila de la tabla de tokens para selección individual
   - Checkbox en el header de la tabla para seleccionar/deseleccionar todos los tokens de la página

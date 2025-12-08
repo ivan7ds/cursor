@@ -1,8 +1,14 @@
-const { Session, EVSE, Tariff, Credentials } = require('../models');
-const axios = require('axios');
-const logger = require('../utils/logger');
-const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 const { logJobError, logJobExecution } = require('../api/testMonitoring');
+const { Session, EVSE, Tariff } = require('../models');
+const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const logger = require('../utils/logger');
+
+const {
+  buildEMSPNotificationUrl,
+  buildChargingUpdatePayload,
+  sendChargingUpdateNotification,
+  handleChargingNotificationError
+} = require('./chargingNotificationService/notificationHelpers');
 
 class ChargingNotificationService {
   /**
@@ -14,6 +20,7 @@ class ChargingNotificationService {
     if (!url) return url;
     return url.replace(/\/$/, '');
   }
+
   constructor() {
     this.interval = null;
     this.isRunning = false;
@@ -109,13 +116,15 @@ class ChargingNotificationService {
 
       logger.info(`🔄 Processing ${activeSessions.length} active charging sessions`);
 
-      for (const session of activeSessions) {
+      // Procesar todas las sesiones en paralelo para evitar await en loop
+      const sessionPromises = activeSessions.map(async (session) => {
         try {
           await this.updateChargingSession(session);
         } catch (error) {
           logger.error(`❌ Error updating session ${session.id}:`, error);
         }
-      }
+      });
+      await Promise.allSettled(sessionPromises);
 
       // Registrar ejecución exitosa en el sistema de monitoreo
       logJobExecution('Charging Notification Service', `Processed ${activeSessions.length} active charging sessions`);
@@ -186,7 +195,7 @@ class ChargingNotificationService {
       // Actualizar sesión en base de datos
       logger.info(`🔄 Updating session ${session.id} with kwh: ${kwh}. Total cost: ${totalCost.excl_vat}`);
       await session.update({
-        kwh: kwh,
+        kwh,
         total_cost: totalCost.excl_vat,
         last_updated: now
       });
@@ -196,7 +205,7 @@ class ChargingNotificationService {
       await this.notifyEMSPAboutChargingUpdate(session, kwh, totalCost, tariffId);
 
       logger.info(`✅ Charging update sent for session ${session.id}`, {
-        kwh: kwh,
+        kwh,
         total_cost: totalCost,
         tariff_id: tariffId
       });
@@ -242,28 +251,8 @@ class ChargingNotificationService {
         return;
       }
 
-      // Construir URL del endpoint del EMSP
-      const baseUrl = this.sanitizeUrl(emspCredentials.url.replace('/ocpi/versions', ''));
-      const partyId = process.env.OCPI_PARTY_ID || 'IPD';
-      const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
-      const emspUrl = `${baseUrl}/ocpi/emsp/2.2/sessions/${countryCode}/${partyId}/${session.id}`;
-
-      // Preparar payload PATCH
-      const now = new Date().toISOString();
-      const payload = {
-        kwh: kwh,
-        total_cost: totalCost,
-        charging_periods: [
-          {
-            start_date_time: session.start_datetime.toISOString(),
-            dimensions: [
-              { type: "ENERGY", volume: kwh }
-            ],
-            tariff_id: tariffId
-          }
-        ],
-        last_updated: now
-      };
+      const emspUrl = buildEMSPNotificationUrl(emspCredentials, session.id);
+      const payload = buildChargingUpdatePayload(session, kwh, totalCost, tariffId);
 
       logger.info('📤 Sending PATCH to EMSP about charging update', {
         emsp_url: emspUrl,
@@ -271,15 +260,7 @@ class ChargingNotificationService {
         payload
       });
 
-      // Enviar notificación PATCH
-      const response = await axios.patch(emspUrl, payload, {
-        headers: {
-          'Authorization': `Token ${emspCredentials.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`
-        },
-        timeout: 10000
-      });
+      const response = await sendChargingUpdateNotification(emspUrl, payload, emspCredentials.token);
 
       logger.info('✅ Charging update notification sent successfully', {
         emsp_url: emspUrl,
@@ -288,13 +269,7 @@ class ChargingNotificationService {
       });
 
     } catch (error) {
-      logger.error('❌ Failed to notify EMSP about charging update', {
-        session_id: session.id,
-        error: error.message,
-        status_code: error.response?.status
-      });
-      // Registrar error en el sistema de monitoreo
-      logJobError('Charging Notification Service', `Failed to notify EMSP about charging update for session ${session.id}: ${error.message}`, 'error');
+      handleChargingNotificationError(error, session.id);
     }
   }
 }

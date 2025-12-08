@@ -9,9 +9,9 @@ BEGIN
         -- Truncate main tables - COMMENTED OUT TO PREVENT DATA LOSS
         -- TRUNCATE TABLE evses, locations, sessions, cdrs, tariffs, tokens, credentials, ocpi_tokens RESTART IDENTITY CASCADE;
         
-        -- Truncate emsp tables if they exist
-        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'emsp_locations') THEN
-            TRUNCATE TABLE emsp_locations, emsp_evses, emsp_tariffs, emsp_sessions, emsp_cdrs, emsp_tokens, emsp_contracts RESTART IDENTITY CASCADE;
+        -- Truncate external operator tables if they exist
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'external_operator_locations') THEN
+            TRUNCATE TABLE external_operator_locations, external_operator_evses, external_operator_tariffs, external_operator_sessions, external_operator_cdrs, external_operator_tokens, external_operator_contracts RESTART IDENTITY CASCADE;
         END IF;
     END IF;
 END $$;

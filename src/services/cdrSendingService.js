@@ -1,5 +1,22 @@
 const { sequelize } = require('../database/connection');
 const logger = require('../utils/logger');
+const { sanitizeUrl: sanitizeUrlHelper, buildUrl } = require('../utils/urlSanitizer');
+
+const {
+  storeCDRInDatabase,
+  processCDRSendResults,
+  buildNoOrganizationsResponse,
+  buildCDRProcessResponse,
+  buildCDRSendSuccessResponse,
+  buildCDRSendErrorResponse
+} = require('./cdrSendingService/cdrHelpers');
+const {
+  generateCDRId,
+  buildCDRBasicInfo,
+  buildCDRToken,
+  buildCDRLocation,
+  buildCDRCostInfo
+} = require('./cdrSendingService/cdrPayloadHelpers');
 
 class CDRSendingService {
     /**
@@ -8,8 +25,7 @@ class CDRSendingService {
      * @returns {string} URL sin barras finales
      */
     sanitizeUrl(url) {
-        if (!url) return url;
-        return url.replace(/\/$/, '');
+        return sanitizeUrlHelper(url);
     }
 
     /**
@@ -19,7 +35,7 @@ class CDRSendingService {
     async getConfiguredOrganizations() {
         try {
             const organizations = await sequelize.query(`
-                SELECT id, token, url, party_id, country_code, business_details
+                SELECT id, token, url, party_id, country_code, business_details, token_base64_encoded
                 FROM credentials 
                 WHERE url IS NOT NULL 
                 AND token IS NOT NULL
@@ -30,6 +46,9 @@ class CDRSendingService {
                 type: sequelize.QueryTypes.SELECT
             });
 
+            // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+            // cuando se construye el header Authorization usando buildAuthorizationHeader()
+            // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
             return organizations || [];
         } catch (error) {
             logger.error('❌ Error obteniendo organizaciones configuradas:', error);
@@ -45,46 +64,20 @@ class CDRSendingService {
      * @returns {Object} Payload del CDR
      */
     buildCDRPayload(sessionData, locationData, evseData) {
-        const cdrId = sessionData.id || `cdr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+        const cdrId = generateCDRId(sessionData);
+        const basicInfo = buildCDRBasicInfo(sessionData, cdrId);
+        const cdrToken = buildCDRToken(sessionData);
+        const cdrLocation = buildCDRLocation(locationData, evseData, sessionData);
+        const costInfo = buildCDRCostInfo(sessionData);
+
         return {
-            country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
-            party_id: process.env.OCPI_PARTY_ID || 'IPD',
-            id: cdrId,
-            start_date_time: sessionData.start_date_time || sessionData.start_datetime,
-            end_date_time: sessionData.end_date_time || sessionData.end_datetime,
-            session_id: sessionData.id,
-            cdr_token: {
-                uid: sessionData.auth_id?.uid || sessionData.id_token || 'unknown',
-                type: sessionData.auth_id?.type || 'OTHER',
-                contract_id: sessionData.auth_id?.contract_id || 'IPD-001'
-            },
+            ...basicInfo,
+            cdr_token: cdrToken,
             auth_method: sessionData.auth_method || 'AUTH_REQUEST',
-            cdr_location: {
-                id: locationData?.id || 'unknown',
-                name: locationData?.name || 'Unknown Location',
-                address: locationData?.address || 'Unknown Address',
-                city: locationData?.city || 'Unknown City',
-                postal_code: locationData?.postal_code || null,
-                country: locationData?.country || process.env.OCPI_COUNTRY_CODE || 'ES',
-                coordinates: locationData?.coordinates || {
-                    latitude: "0.0000000",
-                    longitude: "0.0000000"
-                },
-                evse_uid: evseData?.uid || evseData?.id || 'unknown',
-                evse_id: evseData?.evse_id || 'unknown',
-                connector_id: sessionData.connector_id || '1',
-                connector_standard: evseData?.connectors?.[0]?.standard || 'IEC_62196_T2',
-                connector_format: evseData?.connectors?.[0]?.format || 'SOCKET',
-                connector_power_type: evseData?.connectors?.[0]?.power_type || 'AC_1_PHASE'
-            },
-            currency: sessionData.currency || 'EUR',
+            cdr_location: cdrLocation,
+            ...costInfo,
             tariffs: this.buildTariffsPayload(sessionData),
             charging_periods: this.buildChargingPeriodsPayload(sessionData),
-            total_cost: {
-                excl_vat: sessionData.total_cost || 0.0
-            },
-            total_energy: sessionData.kwh || 0.0,
             total_time: this.calculateTotalTime(sessionData),
             last_updated: new Date().toISOString()
         };
@@ -162,14 +155,15 @@ class CDRSendingService {
     async sendCDRToOrganization(organization, cdrPayload) {
         try {
             const cleanUrl = this.sanitizeUrl(organization.url);
-            const cdrEndpoint = `${cleanUrl}/ocpi/emsp/2.2/cdrs`;
+            const cdrEndpoint = buildUrl(cleanUrl, '/ocpi/emsp/2.2/cdrs');
             
             logger.info(`📤 Enviando CDR ${cdrPayload.id} a ${organization.party_id} (${cdrEndpoint})`);
 
+            const { buildAuthorizationHeader } = require('../utils/tokenEncoding');
             const response = await fetch(cdrEndpoint, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Token ${organization.token}`,
+                    'Authorization': buildAuthorizationHeader(organization.token, organization.token_base64_encoded || false),
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(cdrPayload)
@@ -179,31 +173,15 @@ class CDRSendingService {
 
             if (response.ok) {
                 logger.info(`✅ CDR ${cdrPayload.id} enviado exitosamente a ${organization.party_id}`);
-                return {
-                    success: true,
-                    organization: organization.party_id,
-                    cdr_id: cdrPayload.id,
-                    response: responseData
-                };
+                return buildCDRSendSuccessResponse(cdrPayload.id, organization.party_id, responseData);
             } else {
                 logger.warn(`⚠️ Error enviando CDR ${cdrPayload.id} a ${organization.party_id}:`, responseData);
-                return {
-                    success: false,
-                    organization: organization.party_id,
-                    cdr_id: cdrPayload.id,
-                    error: responseData,
-                    status: response.status
-                };
+                return buildCDRSendErrorResponse(cdrPayload.id, organization.party_id, responseData, response.status);
             }
 
         } catch (error) {
             logger.error(`❌ Error enviando CDR ${cdrPayload.id} a ${organization.party_id}:`, error);
-            return {
-                success: false,
-                organization: organization.party_id,
-                cdr_id: cdrPayload.id,
-                error: error.message
-            };
+            return buildCDRSendErrorResponse(cdrPayload.id, organization.party_id, error.message);
         }
     }
 
@@ -214,73 +192,7 @@ class CDRSendingService {
      */
     async storeCDR(cdrPayload) {
         try {
-            logger.info(`💾 Almacenando CDR ${cdrPayload.id} en base de datos`);
-
-            const cdrData = {
-                id: cdrPayload.id,
-                country_code: cdrPayload.country_code,
-                party_id: cdrPayload.party_id,
-                session_id: cdrPayload.session_id,
-                evse_uid: cdrPayload.cdr_location.evse_uid,
-                connector_id: cdrPayload.cdr_location.connector_id,
-                id_token: cdrPayload.cdr_token.uid,
-                start_datetime: new Date(cdrPayload.start_date_time),
-                end_datetime: new Date(cdrPayload.end_date_time),
-                total_energy: cdrPayload.total_energy,
-                total_cost: cdrPayload.total_cost.excl_vat,
-                currency: cdrPayload.currency,
-                total_parking_time: null, // No disponible en el payload actual
-                total_time: cdrPayload.total_time,
-                last_updated: new Date(cdrPayload.last_updated)
-            };
-
-            const [result] = await sequelize.query(`
-                INSERT INTO cdrs (
-                    id, country_code, party_id, session_id, evse_uid, 
-                    connector_id, id_token, start_datetime, end_datetime, 
-                    total_energy, total_cost, currency, total_parking_time, 
-                    total_time, last_updated, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-                ON CONFLICT (id) 
-                DO UPDATE SET
-                    country_code = EXCLUDED.country_code,
-                    party_id = EXCLUDED.party_id,
-                    session_id = EXCLUDED.session_id,
-                    evse_uid = EXCLUDED.evse_uid,
-                    connector_id = EXCLUDED.connector_id,
-                    id_token = EXCLUDED.id_token,
-                    start_datetime = EXCLUDED.start_datetime,
-                    end_datetime = EXCLUDED.end_datetime,
-                    total_energy = EXCLUDED.total_energy,
-                    total_cost = EXCLUDED.total_cost,
-                    currency = EXCLUDED.currency,
-                    total_parking_time = EXCLUDED.total_parking_time,
-                    total_time = EXCLUDED.total_time,
-                    last_updated = EXCLUDED.last_updated,
-                    updated_at = NOW()
-            `, {
-                replacements: [
-                    cdrData.id,
-                    cdrData.country_code,
-                    cdrData.party_id,
-                    cdrData.session_id,
-                    cdrData.evse_uid,
-                    cdrData.connector_id,
-                    cdrData.id_token,
-                    cdrData.start_datetime,
-                    cdrData.end_datetime,
-                    cdrData.total_energy,
-                    cdrData.total_cost,
-                    cdrData.currency,
-                    cdrData.total_parking_time,
-                    cdrData.total_time,
-                    cdrData.last_updated
-                ]
-            });
-
-            logger.info(`✅ CDR ${cdrPayload.id} almacenado exitosamente`);
-            return cdrData;
-
+            return storeCDRInDatabase(cdrPayload);
         } catch (error) {
             logger.error(`❌ Error almacenando CDR ${cdrPayload.id}:`, error);
             throw error;
@@ -309,12 +221,7 @@ class CDRSendingService {
             
             if (organizations.length === 0) {
                 logger.info('📭 No hay organizaciones configuradas para enviar CDR');
-                return {
-                    success: true,
-                    cdr_id: cdrPayload.id,
-                    sent_to: 0,
-                    message: 'CDR almacenado localmente, no hay EMSPs configurados'
-                };
+                return buildNoOrganizationsResponse(cdrPayload.id);
             }
 
             logger.info(`📤 Enviando CDR ${cdrPayload.id} a ${organizations.length} organización(es)`);
@@ -325,21 +232,11 @@ class CDRSendingService {
             );
 
             const results = await Promise.allSettled(sendPromises);
-            
-            // Procesar resultados
-            const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-            const failed = results.length - successful;
+            const { successful, failed } = processCDRSendResults(results);
 
             logger.info(`✅ CDR ${cdrPayload.id} procesado: ${successful} exitosos, ${failed} fallidos`);
 
-            return {
-                success: true,
-                cdr_id: cdrPayload.id,
-                sent_to: organizations.length,
-                successful: successful,
-                failed: failed,
-                results: results.map(r => r.status === 'fulfilled' ? r.value : { error: r.reason })
-            };
+            return buildCDRProcessResponse({ cdrId: cdrPayload.id, organizationsCount: organizations.length, successful, failed, results });
 
         } catch (error) {
             logger.error('❌ Error procesando CDR:', error);

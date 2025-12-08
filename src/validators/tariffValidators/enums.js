@@ -1,0 +1,40 @@
+/**
+ * Enums y constantes para validadores Tariff
+ */
+
+// TariffType enum (11.4.7)
+const TARIFF_TYPES = ['AD_HOC_PAYMENT', 'PROFILE_CHEAP', 'PROFILE_FAST', 'PROFILE_GREEN', 'REGULAR'];
+
+// TariffDimensionType enum (11.4.5)
+const TARIFF_DIMENSION_TYPES = ['ENERGY', 'FLAT', 'PARKING_TIME', 'TIME'];
+
+// DayOfWeek enum (11.4.1)
+const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+// ReservationRestrictionType enum (11.4.3)
+const RESERVATION_RESTRICTION_TYPES = ['RESERVATION', 'RESERVATION_EXPIRES'];
+
+// EnergySourceCategory enum (8.4.8)
+const ENERGY_SOURCE_CATEGORIES = [
+  'NUCLEAR',
+  'GENERAL_FOSSIL',
+  'COAL',
+  'GAS',
+  'GENERAL_GREEN',
+  'SOLAR',
+  'WIND',
+  'WATER'
+];
+
+// EnvironmentalImpactCategory enum (8.4.10)
+const ENVIRONMENTAL_IMPACT_CATEGORIES = ['NUCLEAR_WASTE', 'CARBON_DIOXIDE'];
+
+module.exports = {
+  TARIFF_TYPES,
+  TARIFF_DIMENSION_TYPES,
+  DAYS_OF_WEEK,
+  RESERVATION_RESTRICTION_TYPES,
+  ENERGY_SOURCE_CATEGORIES,
+  ENVIRONMENTAL_IMPACT_CATEGORIES
+};
+

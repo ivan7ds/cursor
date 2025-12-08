@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const { Credentials } = require('../models');
 const logger = require('../utils/logger');
@@ -45,7 +46,7 @@ const logger = require('../utils/logger');
  *                   type: string
  *                   format: date-time
  */
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     logger.info('Loading OCPI connections for frontend');
     

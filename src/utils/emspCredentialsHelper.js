@@ -1,4 +1,5 @@
 const { Credentials } = require('../models');
+
 const logger = require('./logger');
 
 /**
@@ -33,6 +34,10 @@ class EMSPCredentialsHelper {
           country_code: tokenInfo.country_code,
           url: credentials.url
         });
+        
+        // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+        // cuando se construye el header Authorization usando buildAuthorizationHeader()
+        // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
       } else {
         logger.warn('⚠️ EMSP credentials not found for token info', {
           party_id: tokenInfo.party_id,
@@ -77,6 +82,10 @@ class EMSPCredentialsHelper {
           country_code: session.country_code,
           url: credentials.url
         });
+        
+        // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+        // cuando se construye el header Authorization usando buildAuthorizationHeader()
+        // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
       } else {
         logger.warn('⚠️ EMSP credentials not found for session info', {
           party_id: session.party_id,
@@ -121,6 +130,10 @@ class EMSPCredentialsHelper {
           country_code: cdr.country_code,
           url: credentials.url
         });
+        
+        // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+        // cuando se construye el header Authorization usando buildAuthorizationHeader()
+        // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
       } else {
         logger.warn('⚠️ EMSP credentials not found for CDR info', {
           party_id: cdr.party_id,
@@ -151,7 +164,11 @@ class EMSPCredentialsHelper {
       });
 
       logger.info(`📋 Found ${credentials.length} valid EMSP credentials`);
-      return credentials;
+      
+      // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+      // cuando se construye el header Authorization usando buildAuthorizationHeader()
+      // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
+      return credentials.map(cred => cred.toJSON());
     } catch (error) {
       logger.error('❌ Error getting all valid EMSP credentials:', error);
       return [];
