@@ -7,6 +7,87 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-12-02
+
+### Changed
+- **Renombrado de tablas de operadores externos**: Renombradas todas las tablas con prefijo `emsp_*` a `external_operator_*` para reflejar que almacenan datos de operadores externos que pueden ser CPO, EMSP o ambos
+  - `emsp_locations` → `external_operator_locations`
+  - `emsp_evses` → `external_operator_evses`
+  - `emsp_tariffs` → `external_operator_tariffs`
+  - `emsp_sessions` → `external_operator_sessions`
+  - `emsp_cdrs` → `external_operator_cdrs`
+  - `emsp_tokens` → `external_operator_tokens`
+  - `emsp_contracts` → `external_operator_contracts`
+  - Campos renombrados: `emsp_party_id` → `external_operator_party_id`, `emsp_country_code` → `external_operator_country_code`
+  - Índices renombrados: `idx_emsp_*` → `idx_external_operator_*`
+  - Actualizados todos los modelos Sequelize, queries SQL, helpers, servicios y frontend
+  - Scripts de migración creados: `migrate_rename_emsp_to_external_operator.sql`, `rollback_rename_external_operator_to_emsp.sql`, `validate_rename_migration.sql`
+
+### Added
+- **Herramienta de detección de código muerto**: Integrada herramienta `knip` para detectar código no utilizado
+  - Configuración en `knip.config.js` con puntos de entrada y reglas personalizadas
+  - Scripts npm: `npm run knip`, `npm run knip:production`, `npm run knip:fix`
+  - Detección de archivos no utilizados, dependencias no utilizadas, exports e imports no utilizados
+  - Archivo `.knipignore` para exclusiones específicas
+  - Integración con la estructura del proyecto y exclusiones similares a ESLint
+- **Funcionalidad de eliminación de tokens**: Implementado sistema completo para eliminar tokens individuales o múltiples
+  - Columna de checkbox en cada fila de la tabla de tokens para selección individual
+  - Checkbox en el header de la tabla para seleccionar/deseleccionar todos los tokens de la página
+  - Botón "Seleccionar Todos" en el header de la pestaña Tokens
+  - Botón "Eliminar Seleccionados" que se habilita automáticamente cuando hay tokens seleccionados
+  - Confirmación antes de eliminar tokens (individual o múltiple)
+  - Eliminación en paralelo de múltiples tokens usando `Promise.allSettled`
+  - Notificaciones de éxito/error con contador de tokens eliminados
+  - Recarga automática de la lista después de eliminar tokens
+  - Estado visual del checkbox principal (indeterminado cuando hay selección parcial)
+
+### Changed
+- **Formulario de creación de tokens**: Mejorado formulario de registro de tokens con validaciones OCPI 2.2
+  - Campo "ID de Contrato" marcado como obligatorio (requerido según OCPI 2.2)
+  - Campo "Contrato de Energía" actualizado con estructura de campos separados
+  - Campo "Nombre del Proveedor" (supplier_name) obligatorio cuando se completa el contrato de energía
+  - Campo "ID del Contrato de Energía" (contract_id) opcional dentro del objeto energy_contract
+  - Validación condicional: si se completa el contrato de energía, supplier_name es obligatorio
+  - Texto de ayuda explicando los requisitos del contrato de energía
+  - Construcción correcta del objeto `energy_contract` según especificación OCPI 2.2
+
+### Fixed
+- **Validación de campos de token**: Corregida validación para cumplir estrictamente con OCPI 2.2
+  - Validación en frontend y backend para garantizar que contract_id sea obligatorio
+  - Validación condicional de energy_contract con supplier_name obligatorio cuando se proporciona
+
+## [2.1.0] - 2025-01-24
+
+### Added
+- **Variable de entorno para protección SSRF**: Implementada configuración `ENABLE_SSRF_PROTECTION` para controlar protección contra SSRF
+  - Por defecto habilitada (`true`) para mantener seguridad en producción
+  - Configurable a `false` para entornos de desarrollo que requieren acceso a localhost
+  - Aplicada en función `validateAndSanitizeUrl` en endpoint de handshake OCPI
+  - Permite conexiones a URLs locales (localhost, 127.0.0.1) cuando está deshabilitada
+  - Documentada en archivo `env.example` para facilitar configuración
+
+### Fixed
+- **Fecha "Invalid Date" en tabla Tokens**: Corregido problema en pestaña Tokens del dashboard
+  - Endpoint `/ocpi/emsp/2.2/tokens` ahora incluye campo `created_at` en consulta SQL
+  - Frontend puede mostrar correctamente la fecha de creación de tokens
+  - Eliminado error "Invalid Date" en columna "Creado" de la tabla
+
+## [2.0.1] - 2025-01-07
+
+### Fixed
+- **Error 500 en pestaña Test**: Corregido error que impedía cargar la sección de errores de validación en el dashboard
+  - La tabla `validation_errors` no existía en bases de datos existentes
+  - Agregada tabla `validation_errors` al script `init_database.sql` para instalaciones nuevas
+  - Tabla incluye todos los campos necesarios: endpoint, method, request_body, validation_errors (JSONB), ip_address, user_agent, timestamp
+  - Índices optimizados en `timestamp` y `endpoint` para consultas eficientes
+  - Comentarios descriptivos en todas las columnas para documentación
+
+### Added
+- **Script de migración**: Creado `migrate_validation_errors_table.sql` para actualizar bases de datos existentes
+  - Permite migrar bases de datos que ya están en producción sin perder datos
+  - Script idempotente con `CREATE TABLE IF NOT EXISTS` para ejecución segura
+  - Incluye verificación final para confirmar éxito de la migración
+
 ## [2.0.0] - 2025-01-17
 
 ### Added

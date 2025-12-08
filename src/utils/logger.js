@@ -1,6 +1,7 @@
+const path = require('path');
+
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
-const path = require('path');
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../logs');
@@ -80,10 +81,10 @@ const originalDebug = logger.debug;
 function addToMemory(level, message, meta = {}) {
   const logEntry = {
     timestamp: new Date().toISOString(),
-    level: level,
+    level,
     message: typeof message === 'string' ? message : JSON.stringify(message),
     source: 'application',
-    meta: meta
+    meta
   };
   
   
@@ -98,7 +99,7 @@ function addToMemory(level, message, meta = {}) {
   if (global.broadcastLogFunction) {
     try {
       global.broadcastLogFunction(logEntry);
-    } catch (error) {
+    } catch (_error) {
       // Ignore if broadcast function not available
     }
   }

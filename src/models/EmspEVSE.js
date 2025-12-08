@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { sequelize } = require('../database/connection');
 
 const EmspEVSE = sequelize.define('EmspEVSE', {
@@ -8,15 +9,15 @@ const EmspEVSE = sequelize.define('EmspEVSE', {
     allowNull: false,
     comment: 'Unique identifier for the EVSE'
   },
-  emsp_party_id: {
+  external_operator_party_id: {
     type: DataTypes.STRING(10),
     allowNull: false,
-    comment: 'EMSP party ID'
+    comment: 'External operator party ID (CPO, EMSP or both)'
   },
-  emsp_country_code: {
+  external_operator_country_code: {
     type: DataTypes.STRING(2),
     allowNull: false,
-    comment: 'EMSP country code'
+    comment: 'External operator country code (CPO, EMSP or both)'
   },
   location_id: {
     type: DataTypes.STRING(36),
@@ -79,14 +80,14 @@ const EmspEVSE = sequelize.define('EmspEVSE', {
     comment: 'Timestamp when this EVSE was last updated'
   }
 }, {
-  tableName: 'emsp_evses',
+  tableName: 'external_operator_evses',
   timestamps: true,
   indexes: [
     {
       fields: ['location_id']
     },
     {
-      fields: ['emsp_country_code', 'emsp_party_id']
+      fields: ['external_operator_country_code', 'external_operator_party_id']
     },
     {
       fields: ['evse_id']

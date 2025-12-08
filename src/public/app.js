@@ -62,6 +62,8 @@ class DashboardApp {
         this.validationErrorsPage = 0; // Página actual de errores de validación
         this.currentValidationErrorId = null; // ID del error de validación actual en el modal
         this.validationErrorsPollingInterval = null; // Intervalo para actualizar contador de errores
+        this.applicationErrorsPage = 0; // Página actual de errores de aplicación
+        this.applicationErrorsVisible = false; // Estado de visibilidad de errores de aplicación
         this.activeSessionBannerPollingInterval = null; // Intervalo para actualizar banner de sesiones activas
         this.testServiceToggleConfigs = {
             evseNotificationService: {
@@ -1003,6 +1005,30 @@ class DashboardApp {
                 console.log('✅ Event listener para createTokenBtn agregado');
             } else {
                 console.warn('⚠️ Elemento createTokenBtn no encontrado');
+            }
+
+            // Botón para seleccionar todos los tokens
+            const selectAllTokensBtn = document.getElementById('selectAllTokensBtn');
+            if (selectAllTokensBtn) {
+                selectAllTokensBtn.addEventListener('click', () => {
+                    console.log('☑️ Botón selectAllTokensBtn clickeado');
+                    this.toggleSelectAllTokens();
+                });
+                console.log('✅ Event listener para selectAllTokensBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento selectAllTokensBtn no encontrado');
+            }
+
+            // Botón para eliminar tokens seleccionados
+            const deleteSelectedTokensBtn = document.getElementById('deleteSelectedTokensBtn');
+            if (deleteSelectedTokensBtn) {
+                deleteSelectedTokensBtn.addEventListener('click', () => {
+                    console.log('🗑️ Botón deleteSelectedTokensBtn clickeado');
+                    this.deleteSelectedTokens();
+                });
+                console.log('✅ Event listener para deleteSelectedTokensBtn agregado');
+            } else {
+                console.warn('⚠️ Elemento deleteSelectedTokensBtn no encontrado');
             }
 
             const tokensPrevPage = document.getElementById('tokensPrevPage');
@@ -3339,7 +3365,7 @@ class DashboardApp {
         if (tokens.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center text-muted">
+                    <td colspan="8" class="text-center text-muted">
                         <i class="bi ${totalTokens > 0 ? 'bi-funnel' : 'bi-inbox'}"></i> ${totalTokens > 0 ? 'No se encontraron tokens para esta página' : 'No hay tokens disponibles'}
                     </td>
                 </tr>
@@ -3349,6 +3375,9 @@ class DashboardApp {
 
         tbody.innerHTML = tokens.map(token => `
             <tr class="fade-in">
+                <td>
+                    <input type="checkbox" class="token-checkbox" data-token-id="${token.id}" data-token-uid="${token.uid}">
+                </td>
                 <td><code>${this.truncateToken(token.uid)}</code></td>
                 <td><code>${token.party_id}</code></td>
                 <td>${token.country_code}</td>
@@ -3363,7 +3392,157 @@ class DashboardApp {
             </tr>
         `).join('');
         
+        // Configurar event listeners para los checkboxes
+        this.setupTokenCheckboxes();
+        
         console.log(`✅ ${tokens.length} tokens renderizados en la página actual`);
+    }
+
+    setupTokenCheckboxes() {
+        try {
+            // Checkbox principal para seleccionar todos
+            const selectAllCheckbox = document.getElementById('selectAllTokensCheckbox');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', (e) => {
+                    const isChecked = e.target.checked;
+                    const checkboxes = document.querySelectorAll('.token-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                    });
+                    this.updateDeleteButtonState();
+                });
+            }
+
+            // Checkboxes individuales
+            const checkboxes = document.querySelectorAll('.token-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    this.updateSelectAllCheckbox();
+                    this.updateDeleteButtonState();
+                });
+            });
+
+            // Actualizar estado inicial
+            this.updateSelectAllCheckbox();
+            this.updateDeleteButtonState();
+        } catch (error) {
+            console.error('❌ Error configurando checkboxes de tokens:', error);
+        }
+    }
+
+    updateSelectAllCheckbox() {
+        try {
+            const selectAllCheckbox = document.getElementById('selectAllTokensCheckbox');
+            const checkboxes = document.querySelectorAll('.token-checkbox');
+            
+            if (selectAllCheckbox && checkboxes.length > 0) {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando checkbox de seleccionar todos:', error);
+        }
+    }
+
+    updateDeleteButtonState() {
+        try {
+            const deleteBtn = document.getElementById('deleteSelectedTokensBtn');
+            const checkboxes = document.querySelectorAll('.token-checkbox:checked');
+            
+            if (deleteBtn) {
+                deleteBtn.disabled = checkboxes.length === 0;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando estado del botón eliminar:', error);
+        }
+    }
+
+    toggleSelectAllTokens() {
+        try {
+            const selectAllCheckbox = document.getElementById('selectAllTokensCheckbox');
+            if (selectAllCheckbox) {
+                const isCurrentlyChecked = selectAllCheckbox.checked;
+                selectAllCheckbox.checked = !isCurrentlyChecked;
+                selectAllCheckbox.dispatchEvent(new Event('change'));
+            }
+        } catch (error) {
+            console.error('❌ Error alternando selección de todos los tokens:', error);
+        }
+    }
+
+    getSelectedTokenIds() {
+        try {
+            const checkboxes = document.querySelectorAll('.token-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.getAttribute('data-token-id'));
+        } catch (error) {
+            console.error('❌ Error obteniendo IDs de tokens seleccionados:', error);
+            return [];
+        }
+    }
+
+    async deleteSelectedTokens() {
+        try {
+            const selectedIds = this.getSelectedTokenIds();
+            
+            if (selectedIds.length === 0) {
+                this.showNotification('No hay tokens seleccionados para eliminar', 'warning');
+                return;
+            }
+
+            // Confirmar eliminación
+            const confirmMessage = selectedIds.length === 1 
+                ? `¿Está seguro de que desea eliminar el token seleccionado?`
+                : `¿Está seguro de que desea eliminar ${selectedIds.length} tokens seleccionados?`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            console.log(`🗑️ Eliminando ${selectedIds.length} tokens...`);
+            
+            // Eliminar tokens uno por uno
+            const deletePromises = selectedIds.map(tokenId => 
+                fetch(`${this.baseUrl}/ocpi/cpo/2.2/tokens/${tokenId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key'}`
+                    }
+                })
+            );
+
+            const results = await Promise.allSettled(deletePromises);
+            
+            // Contar éxitos y errores
+            let successCount = 0;
+            let errorCount = 0;
+            
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value.ok) {
+                    successCount++;
+                } else {
+                    errorCount++;
+                    console.error(`❌ Error eliminando token ${selectedIds[index]}:`, result.reason || result.value);
+                }
+            });
+
+            // Mostrar resultado
+            if (errorCount === 0) {
+                this.showNotification(`${successCount} token(s) eliminado(s) exitosamente`, 'success');
+            } else if (successCount > 0) {
+                this.showNotification(`${successCount} token(s) eliminado(s), ${errorCount} error(es)`, 'warning');
+            } else {
+                this.showNotification(`Error al eliminar tokens`, 'error');
+            }
+
+            // Recargar lista de tokens
+            this.loadTokens();
+            
+        } catch (error) {
+            console.error('❌ Error eliminando tokens seleccionados:', error);
+            this.showNotification(`Error al eliminar tokens: ${error.message}`, 'error');
+        }
     }
 
     renderTokensPage() {
@@ -3950,7 +4129,7 @@ class DashboardApp {
             return `
                 <tr class="fade-in">
                     <td><code>${location.id || 'N/A'}</code></td>
-                    <td><span class="badge bg-info">${location.emsp_party_id || 'N/A'}</span></td>
+                    <td><span class="badge bg-info">${location.external_operator_party_id || 'N/A'}</span></td>
                     <td>${location.name || 'Sin nombre'}</td>
                     <td>${location.country || 'N/A'}</td>
                     <td>${location.city || 'N/A'}</td>
@@ -4245,8 +4424,8 @@ class DashboardApp {
                 <tr class="fade-in">
                     <td><code>${evse.evse_id || 'N/A'}</code></td>
                     <td><code>${evse.id || 'N/A'}</code></td>
-                    <td><span class="badge bg-info">${evse.emsp_party_id || 'N/A'}</span></td>
-                    <td>${evse.location_id || 'N/A'}</td>
+                    <td><span class="badge bg-info">${evse.external_operator_party_id || 'N/A'}</span></td>
+                    <td>${evse.location_name || evse.location_id || 'N/A'}</td>
                     <td>
                         <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
                             ${evse.status || 'UNKNOWN'}
@@ -4408,7 +4587,7 @@ class DashboardApp {
         tbody.innerHTML = tariffs.map(tariff => `
             <tr class="fade-in">
                 <td><code>${tariff.id}</code></td>
-                <td><span class="badge bg-info">${tariff.emsp_party_id}</span></td>
+                <td><span class="badge bg-info">${tariff.external_operator_party_id}</span></td>
                 <td>${tariff.name ? this.escapeHtml(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td>
                 <td>${tariff.type}</td>
                 <td>${tariff.currency}</td>
@@ -4419,12 +4598,12 @@ class DashboardApp {
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
                         <button class="btn btn-outline-info"
-                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                onclick="window.dashboardApp.viewEmspTariff('${encodeURIComponent(tariff.external_operator_country_code || '')}', '${encodeURIComponent(tariff.external_operator_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
                                 title="Ver detalles de la tarifa">
                             <i class="bi bi-eye"></i>
                         </button>
                         <button class="btn btn-outline-secondary"
-                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.emsp_country_code || '')}', '${encodeURIComponent(tariff.emsp_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
+                                onclick="window.dashboardApp.viewEmspTariffEvses('${encodeURIComponent(tariff.external_operator_country_code || '')}', '${encodeURIComponent(tariff.external_operator_party_id || '')}', '${encodeURIComponent(tariff.tariff_id || tariff.id || '')}')"
                                 title="Ver EVSEs asociados">
                             <i class="bi bi-diagram-3"></i>
                         </button>
@@ -4868,8 +5047,8 @@ class DashboardApp {
 
         const matchExact = tariffs.find(tariff => {
             const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
-            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
-            const currentCountryUpper = String(tariff.emsp_country_code || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.external_operator_party_id || '').trim().toUpperCase();
+            const currentCountryUpper = String(tariff.external_operator_country_code || '').trim().toUpperCase();
 
             return currentTariffUpper === targetTariffUpper &&
                 (!targetPartyUpper || currentPartyUpper === targetPartyUpper) &&
@@ -4882,7 +5061,7 @@ class DashboardApp {
 
         const matchParty = tariffs.find(tariff => {
             const currentTariffUpper = String(tariff.tariff_id || tariff.id || '').trim().toUpperCase();
-            const currentPartyUpper = String(tariff.emsp_party_id || '').trim().toUpperCase();
+            const currentPartyUpper = String(tariff.external_operator_party_id || '').trim().toUpperCase();
 
             return currentTariffUpper === targetTariffUpper &&
                 (!targetPartyUpper || currentPartyUpper === targetPartyUpper);
@@ -8170,7 +8349,7 @@ class DashboardApp {
                                         <table class="table table-sm">
                                             <tr><td><strong>Tariff ID (OCPI):</strong></td><td><code>${safeText(tariff.tariff_id || tariff.id)}</code></td></tr>
                                             <tr><td><strong>ID Interno:</strong></td><td><code>${safeText(tariff.id)}</code></td></tr>
-                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.emsp_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.emsp_country_code)}</span></td></tr>
+                                            <tr><td><strong>eMSP:</strong></td><td><span class="badge bg-primary">${safeText(tariff.external_operator_party_id)}</span> <span class="badge bg-secondary">${safeText(tariff.external_operator_country_code)}</span></td></tr>
                                             <tr><td><strong>Nombre:</strong></td><td>${tariff.name ? safeText(tariff.name) : '<span class="text-muted">Sin nombre</span>'}</td></tr>
                                             <tr><td><strong>Tipo:</strong></td><td><span class="badge bg-info">${safeText(tariff.type)}</span></td></tr>
                                             <tr><td><strong>Moneda:</strong></td><td><span class="badge bg-success">${safeText(tariff.currency)}</span></td></tr>
@@ -8253,12 +8432,12 @@ class DashboardApp {
             }
 
             const targetTariffUpper = effectiveTariffId.toUpperCase();
-            const targetPartyUpper = (partyId || tariff.emsp_party_id || '').trim().toUpperCase();
-            const targetCountryUpper = (countryCode || tariff.emsp_country_code || '').trim().toUpperCase();
+            const targetPartyUpper = (partyId || tariff.external_operator_party_id || '').trim().toUpperCase();
+            const targetCountryUpper = (countryCode || tariff.external_operator_country_code || '').trim().toUpperCase();
 
             const matchingEvses = evses.reduce((acc, evse) => {
-                const evsePartyUpper = String(evse.emsp_party_id || '').trim().toUpperCase();
-                const evseCountryUpper = String(evse.emsp_country_code || '').trim().toUpperCase();
+                const evsePartyUpper = String(evse.external_operator_party_id || '').trim().toUpperCase();
+                const evseCountryUpper = String(evse.external_operator_country_code || '').trim().toUpperCase();
 
                 if (targetPartyUpper && evsePartyUpper !== targetPartyUpper) {
                     return acc;
@@ -8285,8 +8464,8 @@ class DashboardApp {
                 addToken(tariff.name);
                 addToken(tariff.type);
                 addToken(tariff.currency);
-                addToken(tariff.emsp_party_id || partyId);
-                addToken(tariff.emsp_country_code || countryCode);
+                addToken(tariff.external_operator_party_id || partyId);
+                addToken(tariff.external_operator_country_code || countryCode);
 
                 const evseLocationName = this.getEmspLocationName(evse.location_id)
                     || evse.location_name
@@ -8479,8 +8658,8 @@ class DashboardApp {
                     <span class="badge bg-primary" id="emspTariffEvsesCountBadge">
                         ${totalMatches} EVSE${totalMatches === 1 ? '' : 's'} asociados
                     </span>
-                    <span class="badge bg-info">${safeText(tariff.emsp_party_id || partyId)}</span>
-                    <span class="badge bg-secondary">${safeText(tariff.emsp_country_code || countryCode)}</span>
+                    <span class="badge bg-info">${safeText(tariff.external_operator_party_id || partyId)}</span>
+                    <span class="badge bg-secondary">${safeText(tariff.external_operator_country_code || countryCode)}</span>
                     <span class="badge bg-light text-dark border">${safeText(tariff.currency)}</span>
                 </div>
             `;
@@ -8889,6 +9068,10 @@ class DashboardApp {
             // Limpiar todos los campos
             document.getElementById('createTokenForm').reset();
             
+            // Limpiar campos del contrato de energía (por si acaso)
+            document.getElementById('tokenEnergySupplierName').value = '';
+            document.getElementById('tokenEnergyContractId').value = '';
+            
             // Generar nuevo UID
             this.generateTokenUid();
             
@@ -8970,6 +9153,18 @@ class DashboardApp {
                 return false;
             }
             
+            // Validación adicional: si se completa el contrato de energía, supplier_name es obligatorio
+            const supplierName = document.getElementById('tokenEnergySupplierName').value.trim();
+            const energyContractId = document.getElementById('tokenEnergyContractId').value.trim();
+            
+            if (supplierName || energyContractId) {
+                if (!supplierName) {
+                    this.showNotification('El nombre del proveedor es obligatorio cuando se completa el contrato de energía', 'error');
+                    document.getElementById('tokenEnergySupplierName').focus();
+                    return false;
+                }
+            }
+            
             return true;
         } catch (error) {
             console.error('❌ Error validando formulario de token:', error);
@@ -8979,26 +9174,46 @@ class DashboardApp {
 
     collectTokenFormData() {
         try {
+            // Construir objeto energy_contract si se proporciona información
+            let energy_contract = null;
+            const supplierName = document.getElementById('tokenEnergySupplierName').value.trim();
+            const energyContractId = document.getElementById('tokenEnergyContractId').value.trim();
+            
+            if (supplierName || energyContractId) {
+                // Si se completa algún campo del contrato de energía, supplier_name es obligatorio
+                if (!supplierName) {
+                    throw new Error('El nombre del proveedor es obligatorio cuando se completa el contrato de energía');
+                }
+                
+                energy_contract = {
+                    supplier_name: supplierName
+                };
+                
+                if (energyContractId) {
+                    energy_contract.contract_id = energyContractId;
+                }
+            }
+            
             const formData = {
                 uid: document.getElementById('tokenUid').value,
                 type: document.getElementById('tokenType').value,
                 auth_method: document.getElementById('tokenAuthMethod').value,
                 issuer: document.getElementById('tokenIssuer').value,
-                contract_id: document.getElementById('tokenContractId').value || null,
+                contract_id: document.getElementById('tokenContractId').value,
                 valid: document.getElementById('tokenValid').value === 'true',
                 whitelist: document.getElementById('tokenWhitelist').value,
                 visual_number: document.getElementById('tokenVisualNumber').value || null,
                 group_id: document.getElementById('tokenGroupId').value || null,
                 language: document.getElementById('tokenLanguage').value || null,
                 default_profile_type: document.getElementById('tokenDefaultProfileType').value || null,
-                energy_contract: document.getElementById('tokenEnergyContract').value || null
+                energy_contract: energy_contract
             };
             
             console.log('📊 Datos de token recopilados:', formData);
             return formData;
         } catch (error) {
             console.error('❌ Error recopilando datos de token:', error);
-            return null;
+            throw error; // Re-lanzar para que se muestre en la validación
         }
     }
 
@@ -9306,7 +9521,7 @@ class DashboardApp {
         const partyFilter = document.getElementById('emspEvsePartyFilter');
         if (!partyFilter) return;
 
-        const parties = [...new Set(evses.map(evse => evse.emsp_party_id).filter(Boolean))].sort();
+        const parties = [...new Set(evses.map(evse => evse.external_operator_party_id).filter(Boolean))].sort();
         const currentValue = this.emspEvsesFilters?.party || '';
 
         partyFilter.innerHTML = '<option value="">Todos los eMSPs</option>' + 
@@ -9338,7 +9553,7 @@ class DashboardApp {
 
         this.filteredEmspEvses = source.filter(evse => {
             const status = (evse.status || '').toUpperCase();
-            const party = (evse.emsp_party_id || '').toUpperCase();
+            const party = (evse.external_operator_party_id || '').toUpperCase();
             const locationId = (evse.location_id || '').toUpperCase();
             const evseId = (evse.evse_id || '').toUpperCase();
             const uid = (evse.id || '').toUpperCase();
@@ -9350,8 +9565,10 @@ class DashboardApp {
                 evse.evse_id,
                 evse.id,
                 evse.location_id,
+                evse.location_name,
                 evse.status,
-                evse.emsp_party_id
+                evse.external_operator_party_id,
+                evse.physical_reference
             ].some(value => (value || '').toString().toLowerCase().includes(searchFilter));
 
             return statusMatch && partyMatch && searchMatch;
@@ -10788,9 +11005,9 @@ class DashboardApp {
             if (response.ok) {
                 const data = await response.json();
                 if (data.data && data.data.length > 0) {
-                    // Buscar la sesión más reciente del CPO EFI (usando emsp_party_id)
+                    // Buscar la sesión más reciente del CPO EFI (usando external_operator_party_id)
                     const efiSessions = data.data.filter(session => 
-                        session.emsp_party_id === 'EFI'
+                        session.external_operator_party_id === 'EFI'
                     );
                     
                     if (efiSessions.length > 0) {
@@ -10973,7 +11190,7 @@ class DashboardApp {
                         </span>
                     </td>
                     <td>
-                        <span class="badge bg-info">${this.escapeHtml(session.emsp_party_id || 'N/A')}</span>
+                        <span class="badge bg-info">${this.escapeHtml(session.external_operator_party_id || 'N/A')}</span>
                     </td>
                     <td>
                         <span class="text-truncate d-inline-block" style="max-width: 100px;" 
@@ -11049,7 +11266,7 @@ class DashboardApp {
                     const locationName = this.getEmspLocationName(session.location_id);
                     const searchableParts = [
                         session.session_id,
-                        session.emsp_party_id,
+                        session.external_operator_party_id,
                         session.id_token,
                         session.evse_uid,
                         evseId,
@@ -11375,7 +11592,7 @@ class DashboardApp {
             .map(id => id && id.toString().trim())
             .filter(Boolean)
             .map(id => {
-                const tariff = this.findEmspTariff(session.emsp_country_code, session.emsp_party_id, id)
+                const tariff = this.findEmspTariff(session.external_operator_country_code, session.external_operator_party_id, id)
                     || this.findEmspTariff(null, null, id);
                 return { id, tariff };
             });
@@ -11446,7 +11663,7 @@ class DashboardApp {
                 </div>
                 <div class="col-md-6">
                     <h6>Información Técnica</h6>
-                    <p><strong>Organización:</strong> ${session.emsp_party_id} (${session.emsp_country_code})</p>
+                    <p><strong>Organización:</strong> ${session.external_operator_party_id} (${session.external_operator_country_code})</p>
                     <p><strong>EVSE ID:</strong> ${this.getEmspEvseId(session.evse_uid) || 'N/A'}</p>
                     <p><strong>EVSE UID:</strong> ${session.evse_uid || 'N/A'}</p>
                     <p><strong>Token ID:</strong> ${session.id_token || 'N/A'}</p>
@@ -11527,9 +11744,9 @@ class DashboardApp {
             console.log('🔍 Obteniendo información del CPO para sesión:', session.session_id);
             
             // Para sesiones externas, necesitamos encontrar el CPO externo que tiene estas sesiones
-            // Las sesiones tienen emsp_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
-            const targetPartyId = session.emsp_party_id;
-            const targetCountryCode = session.emsp_country_code;
+            // Las sesiones tienen external_operator_party_id que es nuestro CPO (EFI), pero necesitamos el CPO externo
+            const targetPartyId = session.external_operator_party_id;
+            const targetCountryCode = session.external_operator_country_code;
             
             console.log('🎯 Buscando CPO externo para sesión de party_id:', targetPartyId, 'country_code:', targetCountryCode);
             console.log('ℹ️ Nota: Las sesiones externas son de nuestro CPO, necesitamos encontrar el CPO externo que las originó');
@@ -11582,7 +11799,7 @@ class DashboardApp {
                 if (sessionsData.data && Array.isArray(sessionsData.data)) {
                     // Buscar una sesión del mismo CPO
                     const matchingSession = sessionsData.data.find(s => 
-                        s.emsp_party_id === targetPartyId && s.emsp_country_code === targetCountryCode
+                        s.external_operator_party_id === targetPartyId && s.external_operator_country_code === targetCountryCode
                     );
                     
                     if (matchingSession && matchingSession.source_organization) {
@@ -11782,30 +11999,6 @@ class DashboardApp {
                 console.warn('⚠️ Elemento clearErrorLog no encontrado');
             }
             
-            // Botón de actualizar tarifas
-            const refreshTariffs = document.getElementById('refreshTariffs');
-            if (refreshTariffs) {
-                refreshTariffs.addEventListener('click', () => {
-                    console.log('💰 Botón refreshTariffs clickeado');
-                    this.loadTariffs();
-                });
-                console.log('✅ Event listener para refreshTariffs agregado');
-            } else {
-                console.warn('⚠️ Elemento refreshTariffs no encontrado');
-            }
-            
-            // Botón de mostrar/ocultar tarifas
-            const toggleTariffsView = document.getElementById('toggleTariffsView');
-            if (toggleTariffsView) {
-                toggleTariffsView.addEventListener('click', () => {
-                    console.log('👁️ Botón toggleTariffsView clickeado');
-                    this.toggleTariffsView();
-                });
-                console.log('✅ Event listener para toggleTariffsView agregado');
-            } else {
-                console.warn('⚠️ Elemento toggleTariffsView no encontrado');
-            }
-            
             // Event listeners para errores de validación
             const refreshValidationErrors = document.getElementById('refreshValidationErrors');
             if (refreshValidationErrors) {
@@ -11847,6 +12040,52 @@ class DashboardApp {
             if (deleteThisValidationError) {
                 deleteThisValidationError.addEventListener('click', () => {
                     this.deleteValidationError(this.currentValidationErrorId);
+                });
+            }
+
+            // Event listeners para errores de aplicación
+            const refreshApplicationErrors = document.getElementById('refreshApplicationErrors');
+            if (refreshApplicationErrors) {
+                refreshApplicationErrors.addEventListener('click', () => {
+                    console.log('🔄 Botón refreshApplicationErrors clickeado');
+                    this.loadApplicationErrors();
+                });
+                console.log('✅ Event listener para refreshApplicationErrors agregado');
+            }
+
+            const toggleApplicationErrorsView = document.getElementById('toggleApplicationErrorsView');
+            if (toggleApplicationErrorsView) {
+                toggleApplicationErrorsView.addEventListener('click', () => {
+                    console.log('👁️ Botón toggleApplicationErrorsView clickeado');
+                    this.toggleApplicationErrorsView();
+                });
+                console.log('✅ Event listener para toggleApplicationErrorsView agregado');
+            }
+
+            const clearApplicationErrors = document.getElementById('clearApplicationErrors');
+            if (clearApplicationErrors) {
+                clearApplicationErrors.addEventListener('click', () => {
+                    console.log('🗑️ Botón clearApplicationErrors clickeado');
+                    this.clearApplicationErrors();
+                });
+                console.log('✅ Event listener para clearApplicationErrors agregado');
+            }
+
+            const prevApplicationErrors = document.getElementById('prevApplicationErrors');
+            if (prevApplicationErrors) {
+                prevApplicationErrors.addEventListener('click', () => {
+                    if (this.applicationErrorsPage > 0) {
+                        this.applicationErrorsPage--;
+                        this.loadApplicationErrors();
+                    }
+                });
+            }
+
+            const nextApplicationErrors = document.getElementById('nextApplicationErrors');
+            if (nextApplicationErrors) {
+                nextApplicationErrors.addEventListener('click', () => {
+                    this.applicationErrorsPage++;
+                    this.loadApplicationErrors();
                 });
             }
 
@@ -12083,6 +12322,11 @@ class DashboardApp {
 
             // Cargar errores de validación
             await this.loadValidationErrors();
+
+            // Cargar errores de aplicación (solo si están visibles)
+            if (this.applicationErrorsVisible) {
+                await this.loadApplicationErrors();
+            }
 
             console.log('✅ Datos de pestaña Test cargados');
         } catch (error) {
@@ -12654,6 +12898,162 @@ class DashboardApp {
     }
 
     /**
+     * Carga los errores de aplicación desde la API
+     */
+    async loadApplicationErrors() {
+        try {
+            const limit = 20;
+            const offset = (this.applicationErrorsPage || 0) * limit;
+
+            const response = await fetch(`${this.baseUrl}/api/application-errors?limit=${limit}&offset=${offset}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Update total count
+            const totalElement = document.getElementById('applicationErrorsTotal');
+            if (totalElement) {
+                totalElement.textContent = data.total || 0;
+            }
+
+            // Update pagination buttons
+            const prevBtn = document.getElementById('prevApplicationErrors');
+            const nextBtn = document.getElementById('nextApplicationErrors');
+
+            if (prevBtn) {
+                prevBtn.disabled = offset === 0;
+            }
+
+            if (nextBtn) {
+                nextBtn.disabled = offset + limit >= (data.total || 0);
+            }
+
+            // Update table
+            const tableBody = document.getElementById('applicationErrorsTableBody');
+            if (!tableBody) return;
+
+            if (!data.data || data.data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="bi bi-check-circle text-success"></i> No hay errores de aplicación registrados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = data.data.map(error => {
+                const timestamp = new Date(error.timestamp).toLocaleString('es-ES');
+                const statusBadge = error.status_code 
+                    ? `<span class="badge bg-${error.status_code >= 500 ? 'danger' : error.status_code >= 400 ? 'warning' : 'secondary'}">${error.status_code}</span>`
+                    : '<span class="badge bg-secondary">N/A</span>';
+                const directionBadge = error.direction === 'INBOUND' 
+                    ? '<span class="badge bg-info">Entrada</span>'
+                    : '<span class="badge bg-primary">Salida</span>';
+
+                return `
+                    <tr>
+                        <td><small class="font-monospace">${error.id}</small></td>
+                        <td><small>${error.error_type || 'N/A'}</small></td>
+                        <td>${directionBadge}</td>
+                        <td><small class="font-monospace text-truncate d-inline-block" style="max-width: 300px;" title="${error.endpoint || 'N/A'}">${error.endpoint || 'N/A'}</small></td>
+                        <td><span class="badge bg-${this.getMethodBadgeColor(error.method)}">${error.method || 'N/A'}</span></td>
+                        <td>${statusBadge}</td>
+                        <td><small class="text-danger">${this.truncateText(error.error_message || 'N/A', 50)}</small></td>
+                        <td><small>${timestamp}</small></td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('❌ Error cargando errores de aplicación:', error);
+            const tableBody = document.getElementById('applicationErrorsTableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Error cargando datos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    /**
+     * Alterna la visibilidad de la sección de errores de aplicación
+     */
+    toggleApplicationErrorsView() {
+        try {
+            const container = document.getElementById('applicationErrorsContainer');
+            const button = document.getElementById('toggleApplicationErrorsView');
+            const buttonText = document.getElementById('toggleApplicationErrorsViewText');
+            const icon = button?.querySelector('i');
+
+            if (!container || !button) return;
+
+            this.applicationErrorsVisible = !this.applicationErrorsVisible;
+
+            if (this.applicationErrorsVisible) {
+                container.style.display = 'block';
+                if (buttonText) buttonText.textContent = 'Ocultar';
+                if (icon) {
+                    icon.className = 'bi bi-eye-slash';
+                }
+                // Cargar errores si es la primera vez que se muestra
+                this.loadApplicationErrors();
+            } else {
+                container.style.display = 'none';
+                if (buttonText) buttonText.textContent = 'Mostrar';
+                if (icon) {
+                    icon.className = 'bi bi-eye';
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error alternando vista de errores de aplicación:', error);
+        }
+    }
+
+    /**
+     * Limpia todos los errores de aplicación
+     */
+    async clearApplicationErrors() {
+        try {
+            if (!confirm('¿Estás seguro de que quieres borrar TODOS los errores de aplicación?')) {
+                return;
+            }
+
+            const response = await fetch(`${this.baseUrl}/api/application-errors`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('ocpi_token') || window.DEFAULT_OCPI_TOKEN}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Todos los errores de aplicación han sido eliminados', 'success');
+            this.applicationErrorsPage = 0;
+            await this.loadApplicationErrors();
+
+        } catch (error) {
+            console.error('❌ Error limpiando errores de aplicación:', error);
+            this.showNotification('Error limpiando errores: ' + error.message, 'error');
+        }
+    }
+
+    /**
      * Obtiene el color del badge según el método HTTP
      */
     getMethodBadgeColor(method) {
@@ -12665,6 +13065,15 @@ class DashboardApp {
             'DELETE': 'danger'
         };
         return colors[method] || 'secondary';
+    }
+
+    /**
+     * Trunca un texto a una longitud máxima
+     */
+    truncateText(text, maxLength) {
+        if (!text) return 'N/A';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
     }
 
     /**
@@ -12779,7 +13188,7 @@ class DashboardApp {
 
             if (emspActiveSessions.length > 0) {
                 emspActiveSessions.forEach(session => {
-                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.emsp_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
+                    messages.push(`⚡ eMSP → EVSE ${session.evse_uid || 'N/A'} (Sesión iniciada por eMSP ${session.external_operator_party_id || 'N/A'}: ${session.id.substring(0, 8)}...)`);
                 });
             }
 
@@ -12977,33 +13386,6 @@ class DashboardApp {
         } catch (error) {
             console.error('❌ Error cargando historial de pruebas:', error);
             this.showNotification('Error cargando historial: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Alterna la vista de tarifas sincronizadas
-     */
-    async toggleTariffsView() {
-        try {
-            const tariffsContainer = document.getElementById('tariffsContainer');
-            const toggleTariffsViewBtn = document.getElementById('toggleTariffsView');
-            const toggleTariffsViewText = document.getElementById('toggleTariffsViewText');
-            
-            if (tariffsContainer && toggleTariffsViewBtn) {
-                if (tariffsContainer.style.display === 'none') {
-                    // Mostrar tarifas
-                    await this.loadTariffs();
-                    tariffsContainer.style.display = 'block';
-                    toggleTariffsViewText.textContent = 'Ocultar';
-                } else {
-                    // Ocultar tarifas
-                    tariffsContainer.style.display = 'none';
-                    toggleTariffsViewText.textContent = 'Mostrar';
-                }
-            }
-        } catch (error) {
-            console.error('❌ Error alternando vista de tarifas:', error);
-            this.showNotification('Error mostrando tarifas: ' + error.message, 'error');
         }
     }
     

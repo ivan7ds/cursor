@@ -1,4 +1,5 @@
 const redis = require('redis');
+
 const logger = require('../utils/logger');
 
 const redisClient = redis.createClient({

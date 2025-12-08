@@ -1,9 +1,10 @@
 const express = require('express');
+
 const router = express.Router();
 const logger = require('../utils/logger');
 
-// Almacenar las conexiones activas
-const activeConnections = new Set();
+const { broadcastLog, broadcastChargingLog } = require('./logs/broadcast');
+const { handleStreamConnection } = require('./logs/stream');
 
 /**
  * @swagger
@@ -21,172 +22,8 @@ const activeConnections = new Set();
  *               description: Server-Sent Events stream
  */
 router.get('/stream', (req, res) => {
-    logger.info('📡 Nueva conexión SSE recibida', { 
-        ip: req.ip, 
-        userAgent: req.get('User-Agent'),
-        headers: req.headers 
-    });
-    
-    // Configurar headers para Server-Sent Events
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Cache-Control',
-        'X-Accel-Buffering': 'no'  // Deshabilitar buffering de nginx
-    });
-
-    // Enviar heartbeat cada 30 segundos para mantener la conexión
-    const heartbeat = setInterval(() => {
-        const heartbeatData = JSON.stringify({
-            type: "heartbeat", 
-            timestamp: new Date().toISOString()
-        });
-        res.write(`data: ${heartbeatData}\n\n`);
-    }, 30000);
-
-    // Función para enviar logs a este cliente
-    const sendLog = (logData) => {
-        if (res.writableEnded) return;
-        
-        try {
-            const eventData = JSON.stringify(logData);
-            res.write(`data: ${eventData}\n\n`);
-            // Forzar el flush del buffer
-            if (res.flush) {
-                res.flush();
-            }
-        } catch (error) {
-            // Solo registrar como error si no es una desconexión normal
-            if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
-                logger.error('Error sending log to client:', error);
-            }
-            // Marcar la conexión como terminada para evitar más intentos
-            res.writableEnded = true;
-        }
-    };
-
-    // Agregar esta conexión a las activas
-    activeConnections.add(sendLog);
-
-    // Enviar mensaje de conexión establecida inmediatamente
-    const connectionData = JSON.stringify({
-        type: "connection", 
-        message: "Conexión establecida", 
-        timestamp: new Date().toISOString()
-    });
-    const connectionMessage = `data: ${connectionData}\n\n`;
-    logger.info('📤 Enviando mensaje de conexión:', connectionMessage.trim());
-    res.write(connectionMessage);
-    
-    // Enviar un mensaje de prueba inmediato
-    const testData = JSON.stringify({
-        type: "test", 
-        message: "Stream de logs funcionando correctamente", 
-        timestamp: new Date().toISOString()
-    });
-    const testMessage = `data: ${testData}\n\n`;
-    logger.info('📤 Enviando mensaje de prueba:', testMessage.trim());
-    res.write(testMessage);
-    
-    // Forzar el flush del buffer
-    if (res.flush) {
-        res.flush();
-    }
-
-    // Manejar desconexión del cliente
-    req.on('close', () => {
-        clearInterval(heartbeat);
-        activeConnections.delete(sendLog);
-        logger.info('Cliente desconectado del stream de logs');
-    });
-
-    req.on('error', (error) => {
-        clearInterval(heartbeat);
-        activeConnections.delete(sendLog);
-        
-        // Solo registrar como error si no es una desconexión normal
-        if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
-            logger.error('Error en conexión del cliente:', error);
-        } else {
-            logger.debug('Cliente desconectado normalmente del stream de logs');
-        }
-    });
-
-    logger.info('Nuevo cliente conectado al stream de logs');
+    handleStreamConnection(req, res);
 });
-
-/**
- * Función para enviar logs a todos los clientes conectados
- * Esta función será llamada desde el logger
- */
-function broadcastLog(logData) {
-    const logEvent = {
-        type: 'log',
-        timestamp: new Date().toISOString(),
-        level: logData.level || 'INFO',
-        message: logData.message || logData,
-        source: logData.source || 'system',
-        meta: logData.meta || {}  // Incluir los metadatos
-    };
-
-    // Enviar a todas las conexiones activas
-    activeConnections.forEach(sendLog => {
-        try {
-            sendLog(logEvent);
-        } catch (error) {
-            // Solo registrar como error si no es una desconexión normal
-            if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
-                logger.debug('Error broadcasting log to client:', error.message);
-            }
-            // Si hay error, remover la conexión
-            activeConnections.delete(sendLog);
-        }
-    });
-
-    // Limpiar conexiones muertas
-    activeConnections.forEach(sendLog => {
-        if (activeConnections.has(sendLog)) {
-            try {
-                sendLog({ type: 'ping' });
-            } catch (error) {
-                activeConnections.delete(sendLog);
-            }
-        }
-    });
-}
-
-/**
- * Función para enviar logs de recarga a todos los clientes conectados
- * Esta función será llamada desde el endpoint de charging logs
- */
-function broadcastChargingLog(logData) {
-    const logEvent = {
-        type: 'charging_log',
-        timestamp: logData.timestamp || new Date().toISOString(),
-        level: logData.type === 'error' ? 'ERROR' : 
-               logData.type === 'warning' ? 'WARN' : 
-               logData.type === 'success' ? 'INFO' : 'INFO',
-        message: logData.message || logData,
-        source: 'charging',
-        sessionId: logData.sessionId
-    };
-
-    // Enviar a todas las conexiones activas
-    activeConnections.forEach(sendLog => {
-        try {
-            sendLog(logEvent);
-        } catch (error) {
-            // Solo registrar como error si no es una desconexión normal
-            if (error.code !== 'ECONNRESET' && error.code !== 'EPIPE') {
-                logger.debug('Error broadcasting log to client:', error.message);
-            }
-            // Si hay error, remover la conexión
-            activeConnections.delete(sendLog);
-        }
-    });
-}
 
 /**
  * @swagger
@@ -245,50 +82,14 @@ router.get('/recent', (req, res) => {
         const logger = require('../utils/logger');
         let recentLogs = logger.getInMemoryLogs(limit, level);
         
+const { filterUnnecessaryLogs, generateFallbackLogs } = require('./logs/filterHelpers');
+
         // Filtrar logs innecesarios
-        recentLogs = recentLogs.filter(log => {
-            if (!log.message || typeof log.message !== 'string') {
-                return false;
-            }
-            
-            const messageLower = log.message.toLowerCase();
-            
-            // Excluir logs de peticiones HTTP del navegador
-            if (messageLower.includes('get /logs/recent') || 
-                messageLower.includes('get /health') ||
-                messageLower.includes('get /favicon.ico')) {
-                return false;
-            }
-            
-            // Excluir logs del middleware de logging
-            if (messageLower.includes('api request incoming') ||
-                messageLower.includes('api response outgoing') ||
-                messageLower.includes('api request summary') ||
-                messageLower.includes('🚀') ||
-                messageLower.includes('📤') ||
-                messageLower.includes('📊')) {
-                return false;
-            }
-            
-            return true;
-        });
+        recentLogs = filterUnnecessaryLogs(recentLogs);
         
         // Si no hay logs en memoria, usar logs simulados como respaldo
         if (recentLogs.length === 0) {
-            recentLogs = [
-                {
-                    timestamp: new Date().toISOString(),
-                    level: 'INFO',
-                    message: 'Sistema de logs iniciado',
-                    source: 'system'
-                },
-                {
-                    timestamp: new Date(Date.now() - 5000).toISOString(),
-                    level: 'INFO',
-                    message: 'Dashboard accedido',
-                    source: 'web'
-                }
-            ];
+            recentLogs = generateFallbackLogs();
         }
 
         res.status(200).json({
@@ -334,7 +135,7 @@ router.get('/recent', (req, res) => {
  *                   type: string
  *                   format: date-time
  */
-router.post('/clear', (req, res) => {
+router.post('/clear', (_req, res) => {
     try {
         // Limpiar logs (en el futuro se puede implementar limpieza de archivos)
         logger.info('Logs limpiados desde dashboard');
@@ -357,46 +158,7 @@ router.post('/clear', (req, res) => {
     }
 });
 
-/**
- * Función para determinar si un log debe ser excluido
- * Filtra logs innecesarios como peticiones HTTP del navegador
- */
-function shouldExcludeLog(message) {
-    if (!message || typeof message !== 'string') {
-        return false;
-    }
-    
-    const messageLower = message.toLowerCase();
-    
-    // Excluir logs de peticiones HTTP del navegador
-    if (messageLower.includes('get /logs/recent') || 
-        messageLower.includes('get /health') ||
-        messageLower.includes('get /favicon.ico')) {
-        return true;
-    }
-    
-    // Excluir logs del middleware de logging (solo los muy verbosos)
-    if (messageLower.includes('api request summary')) {
-        return true;
-    }
-    
-    // Excluir logs del sistema de logs
-    if (messageLower.includes('logs procesados') ||
-        messageLower.includes('archivo de logs')) {
-        return true;
-    }
-    
-    // Excluir logs de peticiones curl o herramientas de testing
-    if (messageLower.includes('curl/') ||
-        messageLower.includes('postman') ||
-        messageLower.includes('insomnia')) {
-        return true;
-    }
-    
-    return false;
-}
-
 // Register broadcast function globally to avoid circular dependency
 global.broadcastLogFunction = broadcastLog;
 
-module.exports = { router, broadcastLog, broadcastChargingLog };
+module.exports = { router, broadcastChargingLog };

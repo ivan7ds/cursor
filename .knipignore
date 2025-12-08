@@ -1,0 +1,43 @@
+# Archivos de configuración
+*.config.js
+.eslintrc.js
+knip.config.js
+
+# Archivos compilados y generados
+*.min.js
+*.backup
+dist/
+build/
+coverage/
+
+# Logs y backups
+logs/
+backups/
+
+# Dependencias
+node_modules/
+
+# Archivos públicos del frontend (se analizan por separado si es necesario)
+src/public/
+
+# Archivos de documentación
+*.md
+docs/
+
+# Archivos SQL
+*.sql
+
+# Archivos de entorno
+.env
+.env.*
+env.example
+
+# Archivos Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Archivos de test (opcional, puedes comentar si quieres analizarlos)
+# **/*.test.js
+# **/*.spec.js
+

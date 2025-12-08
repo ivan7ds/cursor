@@ -1,7 +1,20 @@
 const axios = require('axios');
-const { sequelize } = require('../database/connection');
-const logger = require('../utils/logger');
+
 const { logJobExecution, logJobError } = require('../api/testMonitoring');
+const logger = require('../utils/logger');
+
+const {
+  buildTokensUrl,
+  buildTokensHeaders,
+  validateTokensResponse,
+  processAllTokens
+} = require('./emspTokensSyncService/syncHelpers');
+const {
+  validateTokenRequiredFields,
+  generateStableTokenId,
+  prepareTokenValues,
+  upsertToken
+} = require('./emspTokensSyncService/tokenHelpers');
 
 class EMSPTokensSyncService {
   constructor() {
@@ -109,19 +122,35 @@ class EMSPTokensSyncService {
 
       logger.info(`📡 Found ${emsps.length} connected EMSPs, starting sync...`);
 
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (const emsp of emsps) {
+      // Crear promesas para procesar todos los EMSPs en paralelo
+      const emspPromises = emsps.map(async (emsp) => {
         try {
           await this.syncSingleEMSPTokens(emsp);
-          successCount++;
           logger.info(`✅ Successfully synced tokens for EMSP ${emsp.party_id} (${emsp.country_code})`);
+          return { success: true, emsp };
         } catch (error) {
-          errorCount++;
           logger.error(`❌ Error syncing tokens for EMSP ${emsp.party_id} (${emsp.country_code}):`, error.message);
+          return { success: false, emsp, error };
         }
-      }
+      });
+
+      // Ejecutar todas las promesas y contar resultados
+      const results = await Promise.allSettled(emspPromises);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      results.forEach((settledResult) => {
+        if (settledResult.status === 'fulfilled') {
+          if (settledResult.value.success) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } else {
+          errorCount++;
+        }
+      });
 
       const message = `Synced ${successCount} EMSPs successfully, ${errorCount} errors`;
       logger.info(`📊 EMSP Tokens Sync completed: ${message}`);
@@ -137,40 +166,25 @@ class EMSPTokensSyncService {
    * Sincroniza los tokens de un EMSP específico
    */
   async syncSingleEMSPTokens(emsp) {
+    const { party_id, country_code, token, url } = emsp || {};
+    
     try {
-      const { party_id, country_code, token, url } = emsp;
-      
       logger.info(`🔄 Syncing tokens for EMSP ${party_id} (${country_code})...`);
 
-      // Construir URL del endpoint de tokens del EMSP
-      const tokensUrl = `${url}/ocpi/emsp/2.2/tokens/`;
+      const tokensUrl = buildTokensUrl(url);
+      const headers = buildTokensHeaders(token);
       
-      // Hacer petición GET a los tokens del EMSP
       const response = await axios.get(tokensUrl, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000 // 10 segundos timeout
+        headers,
+        timeout: 10000
       });
 
       if (response.status === 200 && response.data.status_code === 1000) {
         const tokens = response.data.data || [];
-        
         logger.info(`🔑 Found ${tokens.length} tokens for EMSP ${party_id} (${country_code})`);
 
-        // Verificar si devuelve 0 tokens - esto se considera un error
-        if (tokens.length === 0) {
-          const errorMessage = `No tokens found for EMSP ${party_id} (${country_code}) - this is considered an error`;
-          logger.error(`❌ ${errorMessage}`);
-          logJobError('EMSP Tokens Sync Service', errorMessage, 'error');
-          throw new Error(errorMessage);
-        }
-
-        // Procesar cada token
-        for (const tokenData of tokens) {
-          await this.processEMSPToken(tokenData, party_id, country_code);
-        }
+        validateTokensResponse(tokens, party_id, country_code);
+        await processAllTokens(tokens, party_id, country_code, this.processEMSPToken.bind(this));
 
         logger.info(`✅ Successfully processed ${tokens.length} tokens for EMSP ${party_id} (${country_code})`);
       } else {
@@ -178,7 +192,7 @@ class EMSPTokensSyncService {
       }
 
     } catch (error) {
-      logger.error(`❌ Error syncing tokens for EMSP ${party_id} (${country_code}):`, error.message);
+      logger.error(`❌ Error syncing tokens for EMSP ${party_id || 'unknown'} (${country_code || 'unknown'}):`, error.message);
       logger.error(`❌ Full error:`, JSON.stringify(error, null, 2));
       throw error;
     }
@@ -188,67 +202,20 @@ class EMSPTokensSyncService {
    * Procesa un token recibido de un EMSP
    */
   async processEMSPToken(tokenData, emspPartyId, emspCountryCode) {
-    const { uid, ...restOfTokenData } = tokenData;
+    const { uid } = tokenData;
     const now = new Date().toISOString();
 
     try {
-      // Validar campos obligatorios
-      if (!uid || !emspPartyId || !emspCountryCode || !tokenData.type) {
+      if (!validateTokenRequiredFields(tokenData, emspPartyId, emspCountryCode)) {
         logger.warn(`⚠️ Token sin campos obligatorios, saltando...`);
         return;
       }
 
-      // Generar id estable: <party_id>-<uid>
-      const stableId = `${emspPartyId}-${uid}`;
+      const stableId = generateStableTokenId(emspPartyId, uid);
+      const values = prepareTokenValues({ tokenData, emspPartyId, emspCountryCode, stableId, now });
+      await upsertToken(values);
 
-      // Preparar valores con validación y valores por defecto
-      const values = [
-        stableId,
-        emspPartyId,
-        emspCountryCode,
-        uid,
-        tokenData.type,
-        tokenData.contract_id || null,
-        tokenData.visual_number || null,
-        tokenData.issuer || 'Unknown',
-        tokenData.group_id || null,
-        tokenData.valid !== undefined ? tokenData.valid : true,
-        tokenData.whitelist || null,
-        tokenData.language || null,
-        tokenData.default_profile_type || null,
-        tokenData.energy_contract ? JSON.stringify(tokenData.energy_contract) : null,
-        tokenData.last_updated || now
-      ];
-
-      // Insertar o actualizar token en emsp_tokens
-      await sequelize.query(`
-        INSERT INTO emsp_tokens (
-          id, emsp_party_id, emsp_country_code, token_uid, type, contract_id, 
-          visual_number, issuer, group_id, valid, whitelist, language, 
-          default_profile_type, energy_contract, last_updated, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-        ON CONFLICT (id) 
-        DO UPDATE SET
-          emsp_party_id = EXCLUDED.emsp_party_id,
-          emsp_country_code = EXCLUDED.emsp_country_code,
-          token_uid = EXCLUDED.token_uid,
-          type = EXCLUDED.type,
-          contract_id = EXCLUDED.contract_id,
-          visual_number = EXCLUDED.visual_number,
-          issuer = EXCLUDED.issuer,
-          group_id = EXCLUDED.group_id,
-          valid = EXCLUDED.valid,
-          whitelist = EXCLUDED.whitelist,
-          language = EXCLUDED.language,
-          default_profile_type = EXCLUDED.default_profile_type,
-          energy_contract = EXCLUDED.energy_contract,
-          last_updated = EXCLUDED.last_updated,
-          updated_at = NOW()
-      `, {
-        replacements: values
-      });
-
-      logger.info(`✅ Token ${uid} processed in emsp_tokens for EMSP ${emspPartyId} (${emspCountryCode})`);
+      logger.info(`✅ Token ${uid} processed in external_operator_tokens for external operator ${emspPartyId} (${emspCountryCode})`);
 
     } catch (error) {
       logger.error(`❌ Error processing EMSP token ${uid}: ${error.message}`, {

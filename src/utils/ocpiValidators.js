@@ -97,7 +97,7 @@ const dateTime = () => {
 const ocpiString = (maxLength) => {
   return Joi.string()
     .max(maxLength)
-    .pattern(/^[^\x00-\x1F\x7F]*$/, 'printable UTF-8 only')
+    .pattern(/^[\x20-\x7E\u00A0-\uFFFF]*$/, 'printable UTF-8 only')
     .messages({
       'string.max': `must be at most ${maxLength} characters`,
       'string.pattern.name': 'must contain only printable UTF-8 characters (no carriage returns, tabs, line breaks)'
@@ -134,6 +134,5 @@ module.exports = {
   dateTime,
   ocpiString,
   ocpiNumber,
-  languageCode,
-  ISO_639_1_CODES
+  languageCode
 };

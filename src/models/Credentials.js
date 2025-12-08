@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { sequelize } = require('../database/connection');
 
 const Credentials = sequelize.define('Credentials', {
@@ -42,6 +43,11 @@ const Credentials = sequelize.define('Credentials', {
     defaultValue: true
   },
   temp: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  token_base64_encoded: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
