@@ -3,7 +3,6 @@ const { Op } = require('sequelize');
 const { Credentials } = require('../../../models');
 const logger = require('../../../utils/logger');
 const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
-const { getOurCredentials } = require('../../../api/handshake/utils');
 
 /**
  * Busca las credenciales del EMSP basándose en la URL de respuesta
@@ -27,15 +26,9 @@ async function findEMSPCredentials(responseUrl) {
       return null;
     }
 
-    // Si requiere Base64, usar nuestro token para peticiones salientes
-    // El token del operador es para cuando ellos hacen peticiones a nosotros
-    if (emspCredentials.token_base64_encoded) {
-      const ourCredentials = getOurCredentials();
-      return {
-        ...emspCredentials.toJSON(),
-        token: ourCredentials.token
-      };
-    }
+    // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+    // cuando se construye el header Authorization usando buildAuthorizationHeader()
+    // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
 
     return emspCredentials;
   } catch (error) {

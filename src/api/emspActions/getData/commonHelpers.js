@@ -1,5 +1,4 @@
 const { sequelize } = require('../../../database/connection');
-const { getOurCredentials } = require('../../handshake/utils');
 
 /**
  * Obtiene todas las organizaciones externas conectadas
@@ -18,20 +17,27 @@ async function getExternalOrganizations() {
     type: sequelize.QueryTypes.SELECT
   });
 
-  // Si una organización requiere Base64, usar nuestro token en lugar del token del operador
-  // El token del operador es para cuando ellos hacen peticiones a nosotros
-  // Nuestro token es para cuando nosotros hacemos peticiones a ellos
-  const ourCredentials = getOurCredentials();
-  return organizations.map(org => {
-    if (org.token_base64_encoded) {
-      return {
-        ...org,
-        // Usar nuestro token para peticiones salientes cuando Base64 está activado
-        token: ourCredentials.token
-      };
-    }
-    return org;
+  // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+  // cuando se construye el header Authorization usando buildAuthorizationHeader()
+  // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
+  
+  // Normalizar token_base64_encoded a booleano (PostgreSQL puede devolver 't'/'f' o true/false)
+  const logger = require('../../../utils/logger');
+  const normalizedOrgs = organizations.map(org => {
+    const tokenBase64Encoded = org.token_base64_encoded === true || 
+                                org.token_base64_encoded === 't' || 
+                                org.token_base64_encoded === 1 ||
+                                org.token_base64_encoded === 'true';
+    
+    logger.info(`📋 Organización ${org.party_id}: token=${org.token ? org.token.substring(0, 20) + '...' : 'MISSING'}, token_base64_encoded=${tokenBase64Encoded} (raw: ${org.token_base64_encoded})`);
+    
+    return {
+      ...org,
+      token_base64_encoded: tokenBase64Encoded
+    };
   });
+  
+  return normalizedOrgs;
 }
 
 module.exports = {

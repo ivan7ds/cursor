@@ -1,6 +1,5 @@
 const { sequelize } = require('../../database/connection');
 const logger = require('../../utils/logger');
-const { getOurCredentials } = require('../../api/handshake/utils');
 
 /**
  * Obtiene todas las organizaciones configuradas (excluyendo nuestro CPO)
@@ -30,20 +29,10 @@ async function getConfiguredOrganizations() {
             type: sequelize.QueryTypes.SELECT
         });
         
-        // Si una organización requiere Base64, usar nuestro token en lugar del token del operador
-        // El token del operador es para cuando ellos hacen peticiones a nosotros
-        // Nuestro token es para cuando nosotros hacemos peticiones a ellos
-        const ourCredentials = getOurCredentials();
-        return (Array.isArray(results) ? results : []).map(org => {
-            if (org.token_base64_encoded) {
-                return {
-                    ...org,
-                    // Usar nuestro token para peticiones salientes cuando Base64 está activado
-                    token: ourCredentials.token
-                };
-            }
-            return org;
-        });
+        // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
+        // cuando se construye el header Authorization usando buildAuthorizationHeader()
+        // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
+        return Array.isArray(results) ? results : [];
     } catch (error) {
         logger.error('Error obteniendo organizaciones configuradas:', error);
         return [];
