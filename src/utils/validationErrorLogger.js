@@ -34,7 +34,7 @@ async function logValidationError({ endpoint, method, requestBody, validationErr
  * @param {string} resourceName - Name of the resource being validated (e.g., 'Session', 'CDR')
  * @returns {Function} Express middleware function
  */
-function createValidationMiddleware(validationFunction, resourceName) {
+function _createValidationMiddleware(validationFunction, resourceName) {
   return async function(req, res, next) {
     const validation = validationFunction(req.body);
 

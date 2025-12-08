@@ -1,7 +1,7 @@
-const { locationPutBodySchema, locationPatchBodySchema, locationPathSchema } = require('./locationSchemas');
-
 /**
  * Funciones de validación para Location
+ * Nota: Los schemas locationPutBodySchema, locationPatchBodySchema, locationPathSchema
+ * se usan en putHelpers y patchHelpers, no directamente aquí
  */
 
 /**

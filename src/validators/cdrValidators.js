@@ -9,7 +9,6 @@
 // Importar enums
 const basicSchemas = require('./cdrValidators/basicSchemas');
 const cdrSchemas = require('./cdrValidators/cdrSchemas');
-const energySchemas = require('./cdrValidators/energySchemas');
 const enums = require('./cdrValidators/enums');
 
 // Importar esquemas básicos

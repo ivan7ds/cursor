@@ -116,13 +116,15 @@ class ChargingNotificationService {
 
       logger.info(`🔄 Processing ${activeSessions.length} active charging sessions`);
 
-      for (const session of activeSessions) {
+      // Procesar todas las sesiones en paralelo para evitar await en loop
+      const sessionPromises = activeSessions.map(async (session) => {
         try {
           await this.updateChargingSession(session);
         } catch (error) {
           logger.error(`❌ Error updating session ${session.id}:`, error);
         }
-      }
+      });
+      await Promise.allSettled(sessionPromises);
 
       // Registrar ejecución exitosa en el sistema de monitoreo
       logJobExecution('Charging Notification Service', `Processed ${activeSessions.length} active charging sessions`);

@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 const { logJobError } = require('../../api/testMonitoring');
 const logger = require('../../utils/logger');
 

@@ -32,7 +32,7 @@ async function startServer(app, port) {
     logger.error('Failed to start server:', error.message || error);
     logger.error('Error stack:', error.stack);
     logger.error('Full error object:', JSON.stringify(error, null, 2));
-    process.exit(1);
+    throw error;
   }
 }
 

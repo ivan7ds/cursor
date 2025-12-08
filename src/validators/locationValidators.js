@@ -7,14 +7,12 @@
  */
 
 // Importar enums
-const basicSchemas = require('./locationValidators/basicSchemas');
 const enums = require('./locationValidators/enums');
 
 // Importar esquemas básicos
 
 // Importar esquemas de horarios
 const evseSchemas = require('./locationValidators/evseSchemas');
-const hoursSchemas = require('./locationValidators/hoursSchemas');
 
 // Importar esquemas de EVSE
 

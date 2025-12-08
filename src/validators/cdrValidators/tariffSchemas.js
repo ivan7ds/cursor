@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const { ciString, dateTime, ocpiString, ocpiNumber } = require('../../utils/ocpiValidators');
+const { ciString, dateTime, ocpiNumber } = require('../../utils/ocpiValidators');
 
 const { priceSchema, displayTextSchema } = require('./basicSchemas');
 const { energyMixSchema } = require('./energySchemas');

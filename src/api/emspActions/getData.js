@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- Archivo contiene múltiples funciones para obtener datos externos que requieren muchas líneas */
+/* eslint-disable max-lines -- Archivo contiene múltiples funciones para obtener datos externos que requieren muchas líneas para mantener compatibilidad con código existente */
 const { authMiddleware } = require('../../middleware/auth');
 const logger = require('../../utils/logger');
 
@@ -262,5 +262,5 @@ module.exports = {
   setupGetExternalCdrs,
   setupGetExternalTokens
 };
-/* eslint-enable max-lines */
+/* eslint-enable max-lines -- Fin de deshabilitación de max-lines para archivo con múltiples funciones de obtención de datos externos */
 

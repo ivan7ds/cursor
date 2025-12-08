@@ -113,6 +113,7 @@ const _optionalAuthMiddleware = async (req, res, next) => {
       
       // Si el token es válido, agregar información a la request
       if (tokenInfo) {
+        // eslint-disable-next-line require-atomic-updates
         req.ocpiToken = tokenInfo;
       }
     }

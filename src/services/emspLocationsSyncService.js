@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const { logJobExecution, logJobError } = require('../api/testMonitoring');
+const { logJobExecution } = require('../api/testMonitoring');
 const logger = require('../utils/logger');
 
 const {
@@ -8,6 +8,12 @@ const {
   updateLocation,
   createLocation
 } = require('./emspLocationsSyncService/locationHelpers');
+const {
+  buildLocationsUrl,
+  buildLocationsHeaders,
+  validateLocationsResponse,
+  processAllLocations
+} = require('./emspLocationsSyncService/syncHelpers');
 
 class EMSPLocationsSyncService {
   constructor() {

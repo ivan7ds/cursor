@@ -56,7 +56,7 @@ function createObjectSummary(obj, maxFields = 5) {
  * @param {any} data - Datos a loggear
  * @param {Object} options - Opciones de logging
  */
-function logOptimized(logger, message, data, options = {}) {
+function _logOptimized(logger, message, data, options = {}) {
   const {
     maxSize = 1000,
     maxFields = 5,
@@ -103,7 +103,7 @@ function logLocationData(logger, location) {
  * @param {Function} logger - Función de logging
  * @param {Object} evse - Objeto EVSE
  */
-function logEvseData(logger, evse) {
+function _logEvseData(logger, evse) {
   if (!evse) return;
   
   const summary = {

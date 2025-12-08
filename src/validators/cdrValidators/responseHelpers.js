@@ -8,7 +8,7 @@ const { validateCdrResponse, validateCdrsResponse } = require('./validationFunct
  * @param {Function} originalJson - Función original de res.json
  * @returns {Object} Objeto con cdrs válidos y actualización de paginación
  */
-function validateCdrsArray(cdrs, originalJson) {
+function validateCdrsArray(cdrs, _originalJson) {
   const validation = validateCdrsResponse(cdrs);
 
   if (!validation.valid) {

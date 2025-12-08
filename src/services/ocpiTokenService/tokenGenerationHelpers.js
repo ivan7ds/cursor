@@ -1,7 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
-
 const { OCPIToken } = require('../../models');
-const logger = require('../../utils/logger');
 
 /**
  * Genera un token seguro de 64 caracteres

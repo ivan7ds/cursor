@@ -1,7 +1,6 @@
 const axios = require('axios');
 
 const { EVSE, Location } = require('../../models');
-const logger = require('../../utils/logger');
 
 /**
  * Construye la URL del endpoint para notificación de eliminación de EVSE
