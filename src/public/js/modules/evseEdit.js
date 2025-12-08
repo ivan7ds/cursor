@@ -33,6 +33,9 @@ export class EVSEEditModule {
             // Llenar el formulario con los datos del EVSE
             await this.fillEditEvseForm(evseData);
             
+            // Configurar event listeners del modal (después de que el modal esté en el DOM)
+            this.setupEditEvseModalEventListeners();
+            
             // Mostrar el modal
             this.showEditEvseModal();
             
@@ -576,13 +579,24 @@ export class EVSEEditModule {
         try {
             console.log('🔧 Configurando event listeners del modal de edición de EVSE...');
             
-            // Botón de actualizar EVSE
+            // Botón de actualizar EVSE - usar event delegation para evitar problemas de timing
+            // Primero, remover listeners anteriores si existen
             const updateEvseBtn = document.getElementById('updateEvseBtn');
             if (updateEvseBtn) {
-                updateEvseBtn.addEventListener('click', () => {
+                // Clonar el botón para remover todos los listeners
+                const newUpdateEvseBtn = updateEvseBtn.cloneNode(true);
+                updateEvseBtn.parentNode.replaceChild(newUpdateEvseBtn, updateEvseBtn);
+                
+                // Agregar el nuevo listener
+                newUpdateEvseBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 Botón Actualizar EVSE clickeado');
                     this.updateEvse();
                 });
                 console.log('✅ Event listener para updateEvseBtn agregado');
+            } else {
+                console.warn('⚠️ Botón updateEvseBtn no encontrado en el DOM');
             }
             
             // Botón de agregar conector
@@ -598,6 +612,15 @@ export class EVSEEditModule {
             
             // Event delegation para botones dinámicos
             document.addEventListener('click', (event) => {
+                // Botón de actualizar EVSE (usando event delegation)
+                if (event.target.closest('#updateEvseBtn') || event.target.id === 'updateEvseBtn') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    console.log('🔄 Botón Actualizar EVSE clickeado (event delegation)');
+                    this.updateEvse();
+                    return;
+                }
+                
                 // Generar ID de conector
                 if (event.target.closest('.generate-edit-connector-id')) {
                     const button = event.target.closest('.generate-edit-connector-id');

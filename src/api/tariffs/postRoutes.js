@@ -16,9 +16,16 @@ async function createTariff(req, res) {
   try {
     logger.ocpi('/tariffs', 'POST', { body: req.body });
 
+    // Obtener country_code y party_id del token de autenticación si no se proporcionan en el body
+    // Según OCPI 2.2, estos campos son obligatorios y deben venir del token
+    const country_code = req.body.country_code || req.ocpiToken?.country_code || process.env.OCPI_COUNTRY_CODE || 'ES';
+    const party_id = req.body.party_id || req.ocpiToken?.party_id || process.env.OCPI_PARTY_ID || 'IPD';
+
     const tariffData = {
       id: uuidv4(),
       ...req.body,
+      country_code,
+      party_id,
       last_updated: new Date()
     };
 

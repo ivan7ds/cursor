@@ -307,8 +307,19 @@ export class TariffsModule {
 
   collectTariffFormData () {
     try {
+      // Obtener country_code y party_id del formulario o usar valores por defecto
+      // Estos campos son obligatorios según OCPI 2.2
+      const country_code = document.getElementById('tariffCountryCode')?.value || 
+                          window.OCPI_COUNTRY_CODE || 
+                          'ES';
+      const party_id = document.getElementById('tariffPartyId')?.value || 
+                      window.OCPI_PARTY_ID || 
+                      'IPD';
+
       const formData = {
         id: document.getElementById('tariffId')?.value || '',
+        country_code, // Campo obligatorio según OCPI 2.2
+        party_id, // Campo obligatorio según OCPI 2.2
         type: document.getElementById('tariffType')?.value || 'REGULAR',
         currency: document.getElementById('tariffCurrency')?.value || 'EUR',
         location_id: document.getElementById('tariffLocation')?.value || null,

@@ -125,11 +125,16 @@ export class EVSEDeleteModule {
         if (event.target.closest('.edit-evse-btn')) {
           const button = event.target.closest('.edit-evse-btn')
           const evseId = button.getAttribute('data-evse-id')
-          // Delegar a otro módulo si existe
-          if (this.app.openEditEvseModal) {
+          
+          // Delegar al módulo de edición si existe
+          if (this.app.evseEditModule && this.app.evseEditModule.openEditEvseModal) {
+            this.app.evseEditModule.openEditEvseModal(evseId)
+          } else if (this.app.openEditEvseModal) {
+            // Fallback a método directo en app si existe
             this.app.openEditEvseModal(evseId)
           } else {
-            console.warn('⚠️ openEditEvseModal no está disponible')
+            console.error('❌ openEditEvseModal no está disponible en evseEditModule ni en app')
+            this.app.showNotification('Error: Funcionalidad de edición no disponible', 'error')
           }
         }
       })
