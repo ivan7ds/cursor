@@ -142,8 +142,6 @@ async function notifyTariffDeleted(tariffData) {
 }
 
 module.exports = {
-    buildTariffPayload,
-    notifyOrganizationAboutTariff,
     notifyTariffCreated,
     notifyTariffDeleted
 };

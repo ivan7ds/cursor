@@ -144,9 +144,6 @@ async function sendEVSENotification(organization, evseData) {
 }
 
 module.exports = {
-    sanitizeUrl,
-    prepareLocationPayload,
-    prepareEVSEPayload,
     sendLocationNotification,
     sendEVSENotification
 };

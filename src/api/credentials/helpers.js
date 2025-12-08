@@ -265,12 +265,6 @@ async function handleCredentialsPut(req, res) {
 }
 
 module.exports = {
-    validateCredentialsRequest,
-    validateAuthToken,
-    findTempCredentials,
-    updateTempToPermanent,
-    createOurCredentials,
-    buildCredentialsResponse,
     handleCredentialsPost,
     handleCredentialsPut
 };

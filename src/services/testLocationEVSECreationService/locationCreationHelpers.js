@@ -25,8 +25,6 @@ async function createTestLocation() {
 }
 
 module.exports = {
-    buildTestLocationData,
-    createLocationInDatabase,
     createTestLocation
 };
 

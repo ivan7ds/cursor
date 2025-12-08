@@ -34,7 +34,6 @@ function buildAuthorizationHeader(token, requiresBase64) {
 }
 
 module.exports = {
-  encodeTokenForAuth,
   buildAuthorizationHeader
 };
 

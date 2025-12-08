@@ -103,8 +103,6 @@ async function notifyLocationChange(locationData, action) {
 
 module.exports = {
     sanitizeUrl,
-    buildLocationPayload,
-    notifyOrganizationAboutLocation,
     notifyLocationChange
 };
 

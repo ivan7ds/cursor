@@ -138,9 +138,6 @@ async function notifyTokenDeleted(tokenData) {
 }
 
 module.exports = {
-    buildTokenPayload,
-    notifyOrganizationAboutToken,
-    notifyTokenCreated,
-    notifyTokenDeleted
+    notifyTokenCreated
 };
 

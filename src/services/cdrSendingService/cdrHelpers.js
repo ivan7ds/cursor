@@ -183,9 +183,6 @@ function buildCDRSendErrorResponse(cdrId, organizationId, errorData, status = nu
 }
 
 module.exports = {
-    prepareCDRData,
-    buildCDRInsertQuery,
-    buildCDRReplacements,
     storeCDRInDatabase,
     processCDRSendResults,
     buildNoOrganizationsResponse,

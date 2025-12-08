@@ -101,7 +101,6 @@ async function getEVSEStatusChanges() {
 
 module.exports = {
     getConnectedEMSPs,
-    getEVSEStatusChanges,
-    getEVSEsWithActiveSessions
+    getEVSEStatusChanges
 };
 

@@ -52,7 +52,6 @@ CDR.belongsTo(Session, {
 
 // Export all models
 module.exports = {
-  sequelize,
   Location,
   EVSE,
   Session,

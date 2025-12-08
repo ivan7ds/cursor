@@ -191,10 +191,6 @@ async function cleanupTestData(locationId, evseId) {
 }
 
 module.exports = {
-    sendEVSEDeletionNotification,
-    sendLocationDeletionNotification,
-    notifyEVSEDeletion,
-    notifyLocationDeletion,
     cleanupTestData
 };
 

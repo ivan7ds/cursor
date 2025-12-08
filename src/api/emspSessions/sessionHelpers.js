@@ -198,7 +198,6 @@ async function updateSession(partyId, countryCode, sessionId, updateFields) {
 module.exports = {
     sendChargingLogs,
     getStatusPriority,
-    resolveTotalCost,
     buildSessionPayload,
     buildPatchUpdateFields,
     upsertSession,

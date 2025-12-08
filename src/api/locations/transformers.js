@@ -181,12 +181,6 @@ function cleanLocation(location, logLocationData) {
 }
 
 module.exports = {
-    transformConnector,
-    transformEVSE,
-    processEVSEs,
-    cleanOptionalFields,
-    validateFacilities,
-    convertCoordinatesToStrings,
     cleanLocation
 };
 

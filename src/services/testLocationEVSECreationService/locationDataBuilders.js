@@ -91,9 +91,6 @@ function buildTestLocationData(testId) {
 }
 
 module.exports = {
-    buildBasicLocationData,
-    buildLocationOperators,
-    buildLocationEnergyMix,
     buildTestLocationData
 };
 

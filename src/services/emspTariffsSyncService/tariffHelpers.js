@@ -92,7 +92,6 @@ async function upsertTariff(values) {
 }
 
 module.exports = {
-    extractTariffName,
     validateTariffRequiredFields,
     prepareTariffValues,
     upsertTariff

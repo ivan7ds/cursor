@@ -72,6 +72,5 @@ function createValidationMiddleware(validationFunction, resourceName) {
 }
 
 module.exports = {
-  logValidationError,
-  createValidationMiddleware
+  logValidationError
 };

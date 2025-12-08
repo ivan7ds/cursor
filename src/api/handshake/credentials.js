@@ -138,7 +138,6 @@ function createHandshakeCredentials({ partyId, countryCode, url, initialToken, o
 }
 
 module.exports = {
-    createTempCredentials,
     handleRejectedCredentials,
     saveExternalCredentials,
     createHandshakeCredentials

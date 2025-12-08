@@ -134,6 +134,5 @@ module.exports = {
   dateTime,
   ocpiString,
   ocpiNumber,
-  languageCode,
-  ISO_639_1_CODES
+  languageCode
 };

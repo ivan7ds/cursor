@@ -85,8 +85,6 @@ async function sendAcceptanceAndNotify(context) {
 }
 
 module.exports = {
-    buildRejectionResponse,
-    buildAcceptanceResponse,
     sendRejectionAndNotify,
     sendAcceptanceAndNotify
 };

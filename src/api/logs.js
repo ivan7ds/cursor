@@ -162,4 +162,4 @@ router.post('/clear', (_req, res) => {
 // Register broadcast function globally to avoid circular dependency
 global.broadcastLogFunction = broadcastLog;
 
-module.exports = { router, broadcastLog, broadcastChargingLog };
+module.exports = { router, broadcastChargingLog };

@@ -111,9 +111,6 @@ async function notifyEVSEChange(evseData, action) {
 }
 
 module.exports = {
-    prepareEVSEPatchPayload,
-    prepareEVSEPayload,
-    notifyOrganizationAboutEVSE,
     notifyEVSEChange
 };
 

@@ -77,7 +77,6 @@ function buildTokenResponse(tokenRecord, token) {
 
 module.exports = {
     generateSecureToken,
-    buildTokenMetadata,
     createTokenRecord,
     buildTokenResponse
 };

@@ -258,8 +258,6 @@ const toggleServiceExecution = async (serviceKey) => {
 };
 
 module.exports = {
-  SERVICE_RESOLVERS,
-  SERVICE_EXECUTOR_CONFIG,
   getRuntimeServiceStatus,
   buildServicesStatusSnapshot,
   executeServiceJobOnce,

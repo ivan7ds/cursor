@@ -142,8 +142,6 @@ async function notifyOrganizations(locationData, evseData) {
 }
 
 module.exports = {
-    notifyLocationToOrganizations,
-    notifyEVSEToOrganizations,
     notifyOrganizations
 };
 

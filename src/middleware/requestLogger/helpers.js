@@ -178,7 +178,6 @@ module.exports = {
     captureRelevantHeaders,
     logIncomingRequest,
     setupResponseInterceptors,
-    logOutgoingResponse,
     handleResponseFinish
 };
 

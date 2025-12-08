@@ -14,11 +14,11 @@ const {
   buildEVSEPatchFields
 } = require('./locationHelpers/patchHelpers');
 const {
+  validateEVSEExists,
   buildEVSEPatchSuccessResponse
 } = require('./evsePatchHelpers');
 
 module.exports = {
-  prepareLocationValues,
   updateLocation,
   createLocation,
   locationExists,
@@ -26,6 +26,6 @@ module.exports = {
   processEVSEs,
   upsertEVSE,
   buildPatchUpdateFields,
-  buildEVSEPatchFields,
+  validateEVSEExists,
   buildEVSEPatchSuccessResponse
 };

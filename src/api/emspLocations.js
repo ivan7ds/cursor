@@ -1,7 +1,6 @@
 const express = require('express');
 
 const router = express.Router();
-const EmspEVSE = require('../models/EmspEVSE');
 const logger = require('../utils/logger');
 const {
   validateLocationPutMiddleware,
@@ -26,8 +25,7 @@ const {
     locationExists,
     buildPatchUpdateFields,
     ensureLocationExists,
-    upsertEVSE,
-    buildEVSEPatchFields
+    upsertEVSE
 } = require('./emspLocations/locationHelpers');
 
 router.put('/:country_code/:party_id/:location_id', validateLocationPutMiddleware, async (req, res) => {
@@ -167,7 +165,6 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
 // PATCH /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
 // Actualizar parcialmente un EVSE en una location específica
 const {
-  buildEVSEPatchSuccessResponse,
   buildEVSEPatchErrorResponse
 } = require('./emspLocations/evsePatchHelpers');
 

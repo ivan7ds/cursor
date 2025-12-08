@@ -126,7 +126,5 @@ const optionalAuthMiddleware = async (req, res, next) => {
 };
 
 module.exports = {
-  authMiddleware,
-  optionalAuthMiddleware,
-  DEFAULT_OCPI_TOKEN
+  authMiddleware
 };

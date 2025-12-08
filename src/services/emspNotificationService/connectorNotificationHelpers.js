@@ -112,8 +112,6 @@ async function notifyConnectorUpdated(evseData, connectorData) {
 }
 
 module.exports = {
-    prepareConnectorPatchPayload,
-    notifyOrganizationAboutConnector,
     notifyConnectorUpdated
 };
 

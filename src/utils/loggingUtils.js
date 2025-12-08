@@ -144,10 +144,6 @@ function logArrayData(logger, dataArray, dataType = 'data') {
 }
 
 module.exports = {
-  isObjectTooLarge,
-  createObjectSummary,
-  logOptimized,
   logLocationData,
-  logEvseData,
   logArrayData
 };

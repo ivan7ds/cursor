@@ -145,9 +145,6 @@ function buildEndSessionResponse(sessionId, endDatetime) {
 }
 
 module.exports = {
-    endSession,
-    updateCDRForEndedSession,
-    releaseEVSE,
     validateSessionForEnding,
     handleSessionEnding,
     buildEndSessionResponse
