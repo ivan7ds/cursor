@@ -1,4 +1,5 @@
 const logger = require('../../utils/logger');
+const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 const {
   buildBasicLocationPayload,
@@ -46,13 +47,21 @@ async function notifyOrganizationAboutLocation(organization, locationData, metho
         
         logger.info(`📤 Notificando location ${locationData.id} a organización ${organization.party_id} en ${endpoint} (${method})`);
         
-        const locationPayload = buildLocationPayload(locationData);
+        // Convertir locationData a objeto plano si es una instancia de Sequelize
+        const locationPlain = locationData.get ? locationData.get({ plain: true }) : locationData;
+        const locationPayload = buildLocationPayload(locationPlain);
+        
+        // Construir el header Authorization con codificación Base64 si es necesario
+        const requiresBase64 = organization.token_base64_encoded === true || organization.token_base64_encoded === 'true';
+        const authHeader = buildAuthorizationHeader(organization.token, requiresBase64);
+        
+        logger.info(`🔐 Usando token ${requiresBase64 ? 'codificado en Base64' : 'sin codificar'} para organización ${organization.party_id}`);
         
         const response = await fetch(endpoint, {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${organization.token}`,
+                'Authorization': authHeader,
                 'X-Request-ID': `notify-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
             },
             body: JSON.stringify(locationPayload)
@@ -77,12 +86,21 @@ async function notifyOrganizationAboutLocation(organization, locationData, metho
  */
 async function notifyLocationChange(locationData, action) {
     try {
-        logger.info(`🔔 Notificando a organizaciones sobre location ${action}:`, locationData.id);
+        logger.info(`🔔 Notificando a organizaciones sobre location ${action}: ${locationData.id}`);
+        
+        // Convertir locationData a objeto plano si es una instancia de Sequelize
+        const locationPlain = locationData.get ? locationData.get({ plain: true }) : locationData;
+        logger.info(`📋 Datos de location a notificar:`, JSON.stringify(locationPlain, null, 2));
         
         const organizations = await getConfiguredOrganizations();
         
+        logger.info(`🔍 Organizaciones encontradas: ${organizations.length}`);
+        if (organizations.length > 0) {
+            logger.info(`📋 Lista de organizaciones:`, organizations.map(org => `${org.party_id}_${org.country_code}`).join(', '));
+        }
+        
         if (organizations.length === 0) {
-            logger.info('📭 No hay organizaciones configuradas para notificar');
+            logger.warn('⚠️ No hay organizaciones configuradas para notificar. Verifica que existan credenciales válidas en la tabla credentials con valid=true y party_id diferente al nuestro.');
             return;
         }
         
@@ -92,12 +110,24 @@ async function notifyLocationChange(locationData, action) {
             notifyOrganizationAboutLocation(org, locationData, 'PUT')
         );
         
-        await Promise.allSettled(notificationPromises);
+        const results = await Promise.allSettled(notificationPromises);
         
-        logger.info(`✅ Notificaciones de location ${action} enviadas a todas las organizaciones`);
+        // Log detallado de resultados
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                // La función notifyOrganizationAboutLocation siempre resuelve (no lanza errores)
+                // pero puede haber errores HTTP que se registran dentro de la función
+                logger.info(`✅ Proceso de notificación completado para organización ${organizations[index].party_id}_${organizations[index].country_code}`);
+            } else {
+                logger.error(`❌ Error enviando notificación a organización ${organizations[index].party_id}_${organizations[index].country_code}:`, result.reason);
+            }
+        });
+        
+        logger.info(`✅ Proceso de notificación de location ${action} completado para ${locationData.id}`);
         
     } catch (error) {
         logger.error(`❌ Error notificando a organizaciones sobre location ${action}:`, error);
+        logger.error(`❌ Stack trace:`, error.stack);
     }
 }
 

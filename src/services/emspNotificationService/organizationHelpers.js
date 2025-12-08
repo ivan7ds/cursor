@@ -22,19 +22,31 @@ async function getConfiguredOrganizations() {
         
         const ourPartyId = process.env.OCPI_PARTY_ID || 'IPD';
         
-        const [results] = await sequelize.query(query, {
+        logger.info(`🔍 Buscando organizaciones configuradas (excluyendo nuestro party_id: ${ourPartyId})`);
+        
+        const results = await sequelize.query(query, {
             replacements: {
                 ourPartyId
             },
             type: sequelize.QueryTypes.SELECT
         });
         
+        const organizations = Array.isArray(results) ? results : (results[0] || []);
+        
+        logger.info(`📊 Organizaciones encontradas: ${organizations.length}`);
+        if (organizations.length > 0) {
+            logger.info(`📋 Organizaciones:`, organizations.map(org => `${org.party_id}_${org.country_code} (${org.url})`).join(', '));
+        } else {
+            logger.warn(`⚠️ No se encontraron organizaciones configuradas. Verifica que existan registros en credentials con valid=true y party_id != ${ourPartyId}`);
+        }
+        
         // El token del operador se usa tal cual, y se codifica en Base64 si es necesario
         // cuando se construye el header Authorization usando buildAuthorizationHeader()
         // Según OCPI 2.2: cuando hacemos peticiones al operador, usamos el token que ellos nos dieron
-        return Array.isArray(results) ? results : [];
+        return organizations;
     } catch (error) {
-        logger.error('Error obteniendo organizaciones configuradas:', error);
+        logger.error('❌ Error obteniendo organizaciones configuradas:', error);
+        logger.error('❌ Stack trace:', error.stack);
         return [];
     }
 }

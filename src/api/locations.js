@@ -176,11 +176,21 @@ router.post('/', async (req, res) => {
     };
 
     const location = await Location.create(locationData);
+    
+    // Convertir a objeto plano para logging y notificaciones
+    const locationPlain = location.get({ plain: true });
+    
+    logger.info(`✅ Location creada exitosamente: ${locationPlain.id}`);
 
     // Notificar a los EMSPs sobre la nueva location (en segundo plano)
-    emspNotificationService.notifyLocationCreated(location)
+    logger.info(`📤 Iniciando notificación de location creada: ${locationPlain.id}`);
+    emspNotificationService.notifyLocationCreated(locationPlain)
+      .then(() => {
+        logger.info(`✅ Notificación de location ${location.id} completada`);
+      })
       .catch(error => {
-        logger.error('Error notificando a EMSPs sobre nueva location:', error);
+        logger.error('❌ Error notificando a EMSPs sobre nueva location:', error);
+        logger.error('❌ Stack trace:', error.stack);
       });
 
     res.status(201).json({
