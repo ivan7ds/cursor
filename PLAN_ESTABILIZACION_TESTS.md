@@ -332,11 +332,17 @@ describe('Locations API', () => {
 - [x] Verificar que aplicación funciona
 
 ### Fase 2: ESLint
-- [ ] Ejecutar `npm run lint`
-- [ ] Generar reporte
-- [ ] Ejecutar `npm run lint:fix`
-- [ ] Corregir errores críticos manualmente
-- [ ] Corregir errores importantes
+- [x] Ejecutar `npm run lint`
+- [x] Generar reporte
+- [x] Ejecutar `npm run lint:fix`
+- [x] Corregir errores críticos manualmente
+- [x] Corregir errores importantes
+- **Progreso:** Reducido de 135 problemas iniciales a 112 problemas (46 errores, 66 warnings)
+- **Correcciones realizadas:**
+  - ✅ Eliminadas variables no utilizadas (CDR, Token, logger, axios, EMSPCredentialsHelper, sequelize, etc.)
+  - ✅ Corregidos 9 casos de `no-return-await` (redundancia en await)
+  - ✅ Prefijadas funciones no utilizadas con `_` (notifyTokenDeleted, logOutgoingResponse, optionalAuthMiddleware)
+  - ✅ Prefijados parámetros no utilizados con `_` (error, sessionId)
 - [ ] Revisar warnings
 - [ ] Actualizar `RESUMEN_ESLINT.md`
 
@@ -367,8 +373,8 @@ describe('Locations API', () => {
 
 ### Objetivos Cuantitativos
 - [ ] **Código muerto eliminado:** 100% de archivos/exports no utilizados
-- [ ] **Errores ESLint:** < 50 errores (actualmente ~189)
-- [ ] **Warnings ESLint:** < 50 warnings (actualmente ~83)
+- [x] **Errores ESLint:** < 50 errores (actualmente 46 ✅)
+- [ ] **Warnings ESLint:** < 50 warnings (actualmente 66)
 - [ ] **Cobertura de tests:** > 50% inicialmente
 - [ ] **Tests unitarios:** > 20 tests
 - [ ] **Tests de integración:** > 10 tests

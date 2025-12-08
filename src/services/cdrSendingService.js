@@ -1,5 +1,6 @@
 const { sequelize } = require('../database/connection');
 const logger = require('../utils/logger');
+const { sanitizeUrl: sanitizeUrlHelper, buildUrl } = require('../utils/urlSanitizer');
 
 const {
   storeCDRInDatabase,
@@ -16,7 +17,6 @@ const {
   buildCDRLocation,
   buildCDRCostInfo
 } = require('./cdrSendingService/cdrPayloadHelpers');
-const { sanitizeUrl: sanitizeUrlHelper, buildUrl } = require('../utils/urlSanitizer');
 
 class CDRSendingService {
     /**
@@ -192,7 +192,7 @@ class CDRSendingService {
      */
     async storeCDR(cdrPayload) {
         try {
-            return await storeCDRInDatabase(cdrPayload);
+            return storeCDRInDatabase(cdrPayload);
         } catch (error) {
             logger.error(`❌ Error almacenando CDR ${cdrPayload.id}:`, error);
             throw error;

@@ -1,5 +1,4 @@
 const { sequelize } = require('../../database/connection');
-const logger = require('../../utils/logger');
 
 /**
  * Extrae el nombre del tariff desde tariff_alt_text

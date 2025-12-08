@@ -1,4 +1,5 @@
 const logger = require('../../utils/logger');
+
 const { testHistory, testStatistics, updateTestStatistics } = require('./state');
 
 /**

@@ -1,5 +1,5 @@
 const logger = require('../../../utils/logger');
-const { testHistory, updateTestStatistics } = require('../state');
+const { testHistory } = require('../state');
 
 /**
  * Valida los datos de entrada para el resultado de prueba

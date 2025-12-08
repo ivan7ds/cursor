@@ -70,7 +70,7 @@ async function notifyEVSEUpdate(updatedEvse, evseId) {
  * @returns {Promise<Object|null>} EVSE encontrado o null
  */
 async function findEVSEById(id) {
-  return await EVSE.findOne({
+  return EVSE.findOne({
     where: { 
       id,
       deleted_at: null 

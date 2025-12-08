@@ -7,7 +7,7 @@ const logger = require('../../utils/logger');
  * @returns {Promise<Object|null>} EVSE encontrado o null
  */
 async function validateEVSEExists(evseUid) {
-  return await EmspEVSE.findByPk(evseUid);
+  return EmspEVSE.findByPk(evseUid);
 }
 
 /**

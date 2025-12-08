@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
+
 const { Credentials } = require('../../models');
 const logger = require('../../utils/logger');
+
 const {
   extractAuthToken,
   buildInvalidTokenResponse,
@@ -81,7 +83,7 @@ function validateAuthToken(req) {
  * @returns {Promise<Object|null>} Credenciales encontradas o null
  */
 async function findTempCredentials(authToken) {
-  return await Credentials.findOne({
+  return Credentials.findOne({
     where: {
       token: authToken,
       valid: true,

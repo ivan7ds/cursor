@@ -82,7 +82,7 @@ const authMiddleware = async (req, res, next) => {
  * Middleware opcional para endpoints que no requieren autenticación
  * (como health check, documentación, etc.)
  */
-const optionalAuthMiddleware = async (req, res, next) => {
+const _optionalAuthMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     const token = req.headers['ocpi-token'] || req.headers['OCPI-Token'];

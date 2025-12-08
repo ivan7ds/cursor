@@ -10,8 +10,7 @@ const {
 const {
   tariffExists,
   updateTariff,
-  createTariff,
-  buildTariffPatchFields
+  createTariff
 } = require('./emspTariffs/tariffHelpers');
 const {
   buildTariffPatchErrorResponse

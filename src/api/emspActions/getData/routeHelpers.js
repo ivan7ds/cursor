@@ -27,7 +27,7 @@ async function processOrganizationData({ org, fetchFunction, processFunction, al
   try {
     const data = await fetchFunction(org);
     if (data && data.length > 0) {
-      return await processFunction(data, org, allData, errors);
+      return processFunction(data, org, allData, errors);
     }
     return { savedCount: 0, duplicateCount: 0 };
   } catch (orgError) {

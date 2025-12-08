@@ -2,7 +2,6 @@ const Joi = require('joi');
 
 const { ocpiNumber } = require('../../utils/ocpiValidators');
 
-const { priceSchema } = require('./basicSchemas');
 const { TARIFF_DIMENSION_TYPES, DAYS_OF_WEEK, RESERVATION_RESTRICTION_TYPES } = require('./enums');
 
 /**

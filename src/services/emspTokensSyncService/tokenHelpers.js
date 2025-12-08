@@ -1,5 +1,4 @@
 const { sequelize } = require('../../database/connection');
-const logger = require('../../utils/logger');
 
 /**
  * Valida los campos obligatorios del token

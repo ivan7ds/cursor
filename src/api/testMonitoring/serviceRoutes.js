@@ -1,6 +1,5 @@
 const logger = require('../../utils/logger');
 
-const { serviceStatus } = require('./state');
 const { executeServiceJobOnce, toggleServiceExecution } = require('./utils');
 
 /**

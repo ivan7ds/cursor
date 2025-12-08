@@ -1,9 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const { Session, EVSE, CDR, Location } = require('../models');
-const cdrSendingService = require('../services/cdrSendingService');
-const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
+const { Session } = require('../models');
 const logger = require('../utils/logger');
 
 const {
@@ -16,8 +14,6 @@ const {
   handleSessionEnding,
   buildEndSessionResponse
 } = require('./sessions/sessionHelpers');
-
-const axios = require('axios');
 
 /**
  * Obtener todas las sesiones

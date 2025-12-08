@@ -79,7 +79,7 @@ router.post('/connect-to-organization', async (req, res) => {
         } catch (credentialsError) {
             console.log('⚠️ POST /credentials rechazado, el operador externo iniciará el handshake');
             console.log('📋 Error details:', credentialsError.response?.data || credentialsError.message);
-            return await handleRejectedCredentials({ partyId, countryCode, sanitizedUrl, ourCredentials, res });
+            return handleRejectedCredentials({ partyId, countryCode, sanitizedUrl, ourCredentials, res });
         }
         
         console.log('✅ Handshake OCPI 2.2.1 completado exitosamente');

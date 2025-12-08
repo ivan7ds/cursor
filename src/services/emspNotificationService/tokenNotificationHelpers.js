@@ -114,7 +114,7 @@ async function notifyTokenCreated(tokenData) {
  * Notificar a todos los EMSPs sobre un token eliminado
  * @param {Object} tokenData - Datos del token
  */
-async function notifyTokenDeleted(tokenData) {
+async function _notifyTokenDeleted(tokenData) {
     try {
         const organizations = await getConfiguredOrganizations();
         

@@ -1,7 +1,6 @@
 const axios = require('axios');
 
 const { logJobError } = require('../../api/testMonitoring');
-const EMSPCredentialsHelper = require('../../utils/emspCredentialsHelper');
 const logger = require('../../utils/logger');
 
 /**
@@ -51,7 +50,7 @@ function buildChargingUpdatePayload(session, kwh, totalCost, tariffId) {
  * @returns {Promise<Object>} Respuesta del EMSP
  */
 async function sendChargingUpdateNotification(emspUrl, payload, token) {
-  return await axios.patch(emspUrl, payload, {
+  return axios.patch(emspUrl, payload, {
     headers: {
       'Authorization': `Token ${token}`,
       'Content-Type': 'application/json',

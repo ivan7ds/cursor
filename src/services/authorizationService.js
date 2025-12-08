@@ -25,7 +25,7 @@ class AuthorizationService {
    */
   static async authorizeToken(tokenUid, options = {}) {
     try {
-      return await executeAuthorizationFlow(tokenUid, options);
+      return executeAuthorizationFlow(tokenUid, options);
     } catch (error) {
       return buildAuthorizationErrorResponse(tokenUid, options, error);
     }

@@ -44,8 +44,7 @@ function buildConnectorInfo(sessionData, evseData) {
 
 const {
   buildBasicLocationInfo,
-  buildEVSEInfo,
-  buildDefaultCoordinates
+  buildEVSEInfo
 } = require('./cdrLocationHelpers');
 
 /**

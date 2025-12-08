@@ -39,7 +39,7 @@ async function executeAuthorizationFlow(tokenUid, options) {
     return restrictionsError;
   }
 
-  return await finalizeAuthorization(tokenResult.token, tokenUid, locationId, evseUid);
+  return finalizeAuthorization(tokenResult.token, tokenUid, locationId, evseUid);
 }
 
 module.exports = {

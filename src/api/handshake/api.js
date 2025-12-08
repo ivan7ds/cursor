@@ -1,6 +1,5 @@
-const { URL } = require('url');
-
 const axios = require('axios');
+
 const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 /**

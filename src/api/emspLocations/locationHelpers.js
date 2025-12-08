@@ -1,22 +1,20 @@
 const {
+  validateEVSEExists,
+  buildEVSEPatchSuccessResponse
+} = require('./evsePatchHelpers');
+const {
   processEVSEs,
   upsertEVSE
 } = require('./locationHelpers/evseHelpers');
 const {
-  prepareLocationValues,
   updateLocation,
   createLocation,
   locationExists,
   ensureLocationExists
 } = require('./locationHelpers/locationQueries');
 const {
-  buildPatchUpdateFields,
-  buildEVSEPatchFields
+  buildPatchUpdateFields
 } = require('./locationHelpers/patchHelpers');
-const {
-  validateEVSEExists,
-  buildEVSEPatchSuccessResponse
-} = require('./evsePatchHelpers');
 
 module.exports = {
   updateLocation,

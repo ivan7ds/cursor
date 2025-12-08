@@ -7,7 +7,7 @@ const logger = require('../../utils/logger');
  * @returns {Promise<Object|null>} Token encontrado o null
  */
 async function findTokenInOCPIToken(token) {
-  return await OCPIToken.findOne({
+  return OCPIToken.findOne({
     where: {
       token,
       is_active: true

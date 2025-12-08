@@ -29,7 +29,7 @@ async function getExternalOrganizations() {
                                 org.token_base64_encoded === 1 ||
                                 org.token_base64_encoded === 'true';
     
-    logger.info(`📋 Organización ${org.party_id}: token=${org.token ? org.token.substring(0, 20) + '...' : 'MISSING'}, token_base64_encoded=${tokenBase64Encoded} (raw: ${org.token_base64_encoded})`);
+    logger.info(`📋 Organización ${org.party_id}: token=${org.token ? `${org.token.substring(0, 20)  }...` : 'MISSING'}, token_base64_encoded=${tokenBase64Encoded} (raw: ${org.token_base64_encoded})`);
     
     return {
       ...org,

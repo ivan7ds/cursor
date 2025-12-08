@@ -243,7 +243,8 @@ module.exports = {
           'twenty_four_seven',
           'user_agent',
           'validation_errors',
-          'valid_until'
+          'valid_until',
+          'token_base64_encoded'
         ]
       }
     ]

@@ -5,8 +5,7 @@ const {
   buildTariffNotFoundResponse,
   buildTariffPatchFields,
   executeTariffUpdate,
-  buildTariffPatchSuccessResponse,
-  buildTariffPatchErrorResponse
+  buildTariffPatchSuccessResponse
 } = require('./tariffPatchHelpers');
 
 /**

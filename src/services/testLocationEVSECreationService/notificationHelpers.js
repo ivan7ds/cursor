@@ -75,7 +75,7 @@ function buildLocationDeletionPayload() {
  * @returns {Promise<Object>} Respuesta de la petición
  */
 async function sendDeletionRequest(endpoint, payload, headers) {
-  return await axios.patch(endpoint, payload, {
+  return axios.patch(endpoint, payload, {
     headers,
     timeout: 10000
   });
@@ -115,7 +115,7 @@ function buildErrorResponse(statusCode, message) {
  * @returns {Promise<Object|null>} EVSE encontrado o null
  */
 async function findEVSEForDeletion(evseId) {
-  return await EVSE.findByPk(evseId);
+  return EVSE.findByPk(evseId);
 }
 
 /**
@@ -124,7 +124,7 @@ async function findEVSEForDeletion(evseId) {
  * @returns {Promise<Object|null>} Location encontrada o null
  */
 async function findLocationForDeletion(locationId) {
-  return await Location.findByPk(locationId);
+  return Location.findByPk(locationId);
 }
 
 module.exports = {

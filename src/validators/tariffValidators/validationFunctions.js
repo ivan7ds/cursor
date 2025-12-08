@@ -5,7 +5,6 @@ const {
   validateTariffPutBody,
   validateTariffPutPathBodyMatch
 } = require('./putHelpers');
-const { tariffPutBodySchema, tariffPatchBodySchema, tariffPutPathSchema } = require('./tariffBodySchemas');
 
 /**
  * Funciones de validación para Tariff

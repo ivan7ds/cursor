@@ -1,7 +1,7 @@
+const { sequelize } = require('../../../database/connection');
 const logger = require('../../../utils/logger');
 const { buildAuthorizationHeader } = require('../../../utils/tokenEncoding');
 const { buildUrl } = require('../../../utils/urlSanitizer');
-const { sequelize } = require('../../../database/connection');
 
 /**
  * Obtiene locations de una organización externa
@@ -11,7 +11,7 @@ const { sequelize } = require('../../../database/connection');
 async function fetchLocationsFromOrganization(org) {
   try {
     logger.info(`🔍 Consultando locations de ${org.party_id} (${org.url})`);
-    logger.info(`🔐 Token info: token=${org.token ? org.token.substring(0, 20) + '...' : 'MISSING'}, token_base64_encoded=${org.token_base64_encoded || false}`);
+    logger.info(`🔐 Token info: token=${org.token ? `${org.token.substring(0, 20)  }...` : 'MISSING'}, token_base64_encoded=${org.token_base64_encoded || false}`);
 
     const locationsUrl = buildUrl(org.url, '/ocpi/cpo/2.2/locations');
     const authHeader = buildAuthorizationHeader(org.token, org.token_base64_encoded || false);
@@ -158,11 +158,6 @@ async function saveLocation(location, org) {
     const validation = validateLocationOCPI(location, org);
     
     if (!validation.valid) {
-      const errorMessages = validation.errors.map(err => `${err.field}: ${err.message}`).join('; ');
-      const warningMessages = validation.warnings.length > 0 
-        ? '; Warnings: ' + validation.warnings.map(w => `${w.field}: ${w.message}`).join('; ')
-        : '';
-      
       logger.warn(`⚠️ Location ${location.id} from ${org.party_id} failed OCPI 2.2 validation:`, {
         location_id: location.id,
         organization: org.party_id,

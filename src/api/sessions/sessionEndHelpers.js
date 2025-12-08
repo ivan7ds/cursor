@@ -11,7 +11,7 @@ const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
  * @returns {Promise<Object|null>} Credenciales del EMSP o null
  */
 async function getEMSPCredentials(session) {
-  return await EMSPCredentialsHelper.getCredentialsBySession(session);
+  return EMSPCredentialsHelper.getCredentialsBySession(session);
 }
 
 /**
@@ -40,7 +40,7 @@ function validateEMSPCredentials(emspCredentials, session) {
  * @returns {Promise<Object|null>} EVSE o null
  */
 async function getEVSEForSession(evseUid) {
-  return await EVSE.findByPk(evseUid);
+  return EVSE.findByPk(evseUid);
 }
 
 /**
@@ -69,7 +69,7 @@ function validateEVSEForSession(evse, session) {
  * @returns {Promise<Object|null>} CDR o null
  */
 async function getCDRForSession(sessionId) {
-  return await CDR.findOne({
+  return CDR.findOne({
     where: { session_id: sessionId }
   });
 }
@@ -95,7 +95,7 @@ function buildSessionEndHeaders(emspCredentials) {
  * @returns {Promise<Object>} Respuesta de la petición
  */
 async function sendSessionEndRequest(emspUrl, payload, headers) {
-  return await axios.put(emspUrl, payload, {
+  return axios.put(emspUrl, payload, {
     headers,
     timeout: 10000
   });

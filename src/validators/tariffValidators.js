@@ -8,9 +8,6 @@
 
 // Importar enums
 
-// Importar esquemas básicos
-const basicSchemas = require('./tariffValidators/basicSchemas');
-
 // Importar esquemas de tarifas
 
 // Importar esquemas de energía

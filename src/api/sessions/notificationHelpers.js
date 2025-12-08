@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const { EVSE, CDR } = require('../../models');
+const { EVSE } = require('../../models');
 const EMSPCredentialsHelper = require('../../utils/emspCredentialsHelper');
 const logger = require('../../utils/logger');
 const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');

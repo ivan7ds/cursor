@@ -46,7 +46,7 @@ function buildTokenMetadata(partyId, countryCode, now, options) {
  * @returns {Promise<Object>} Registro del token creado
  */
 async function createTokenRecord({ tokenId, token, partyId, countryCode, now, options }) {
-  return await OCPIToken.create({
+  return OCPIToken.create({
     id: tokenId,
     token,
     party_id: partyId,

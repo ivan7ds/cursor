@@ -6,10 +6,9 @@ const {
   validateSessionPutMiddleware,
   validateSessionPatchMiddleware
 } = require('../validators/sessionValidators');
+
 const {
   sendChargingLogs,
-  getStatusPriority,
-  buildSessionPayload,
   buildPatchUpdateFields,
   upsertSession,
   updateSession

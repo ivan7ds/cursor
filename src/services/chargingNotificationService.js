@@ -1,9 +1,8 @@
-const axios = require('axios');
-
 const { logJobError, logJobExecution } = require('../api/testMonitoring');
 const { Session, EVSE, Tariff } = require('../models');
 const EMSPCredentialsHelper = require('../utils/emspCredentialsHelper');
 const logger = require('../utils/logger');
+
 const {
   buildEMSPNotificationUrl,
   buildChargingUpdatePayload,

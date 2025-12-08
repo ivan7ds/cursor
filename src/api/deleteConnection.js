@@ -11,7 +11,7 @@ const logger = require('../utils/logger');
  * @returns {Promise<Object|null>} - Conexión encontrada o null
  */
 async function findConnection(partyId, countryCode) {
-  return await Credentials.findOne({
+  return Credentials.findOne({
     where: {
       party_id: partyId,
       country_code: countryCode

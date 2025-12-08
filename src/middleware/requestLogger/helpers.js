@@ -44,7 +44,7 @@ function captureRequestBody(body) {
   if (body && Object.keys(body).length > 0) {
     try {
       return JSON.parse(JSON.stringify(body));
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -132,7 +132,7 @@ function setupResponseInterceptors(res) {
  * @param {*} responseBody - Body de la respuesta
  * @param {Object} responseHeaders - Headers de la respuesta
  */
-function logOutgoingResponse({ req, res, startTime, responseBody, responseHeaders }) {
+function _logOutgoingResponse({ req, res, startTime, responseBody, responseHeaders }) {
   const duration = Date.now() - startTime;
   
   logger.info('✅ API Response Outgoing', {

@@ -1,5 +1,4 @@
 const OCPITokenService = require('../../services/ocpiTokenService');
-const logger = require('../../utils/logger');
 
 const DEFAULT_OCPI_TOKEN = process.env.OCPI_TOKEN || 'ocpi_token_ipd_2024_secure_key';
 

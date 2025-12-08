@@ -4,7 +4,6 @@ const router = express.Router();
 const logger = require('../utils/logger');
 
 const { broadcastLog, broadcastChargingLog } = require('./logs/broadcast');
-const { filterUnnecessaryLogs, generateFallbackLogs } = require('./logs/filterHelpers');
 const { handleStreamConnection } = require('./logs/stream');
 
 /**

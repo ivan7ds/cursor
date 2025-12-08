@@ -1,4 +1,4 @@
-const { Token, EmspToken } = require('../../models');
+const { EmspToken } = require('../../models');
 
 /**
  * Mapea un token de la base de datos al formato OCPI 2.2

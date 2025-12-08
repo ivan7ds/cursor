@@ -73,7 +73,7 @@ async function releaseEVSE(evseId) {
  * @param {string} sessionId - ID de la sesión
  * @returns {Object|null} Objeto con error o null si es válida
  */
-function validateSessionForEnding(session, sessionId) {
+function validateSessionForEnding(session, _sessionId) {
   if (!session) {
     return {
       status: 404,

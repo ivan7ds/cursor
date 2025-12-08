@@ -17,7 +17,6 @@ const {
   queryLocationsWithEVSEs,
   processLocationsForResponse
 } = require('./locations/queryHelpers');
-const { cleanLocation } = require('./locations/transformers');
 
 /**
  * @swagger

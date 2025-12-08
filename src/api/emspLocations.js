@@ -6,18 +6,11 @@ const {
   validateLocationPutMiddleware,
   validateLocationPatchMiddleware
 } = require('../validators/locationValidators');
-const {
-  validateLocationExists,
-  buildLocationNotFoundResponse,
-  validatePatchFields,
-  executeLocationUpdate,
-  buildLocationPatchSuccessResponse,
-  buildLocationPatchErrorResponse
-} = require('./emspLocations/locationPatchHelpers');
-const { processEVSEPatchRequest } = require('./emspLocations/evsePatchRouteHelpers');
 
-// PUT /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}
-// Crear o actualizar una Location completa (OCPI 2.2)
+const {
+  buildEVSEPatchErrorResponse
+} = require('./emspLocations/evsePatchHelpers');
+const { processEVSEPatchRequest } = require('./emspLocations/evsePatchRouteHelpers');
 const { 
     updateLocation, 
     createLocation, 
@@ -27,6 +20,17 @@ const {
     ensureLocationExists,
     upsertEVSE
 } = require('./emspLocations/locationHelpers');
+const {
+  validateLocationExists,
+  buildLocationNotFoundResponse,
+  validatePatchFields,
+  executeLocationUpdate,
+  buildLocationPatchSuccessResponse,
+  buildLocationPatchErrorResponse
+} = require('./emspLocations/locationPatchHelpers');
+
+// PUT /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}
+// Crear o actualizar una Location completa (OCPI 2.2)
 
 router.put('/:country_code/:party_id/:location_id', validateLocationPutMiddleware, async (req, res) => {
     try {
@@ -164,9 +168,6 @@ router.put('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) =
 
 // PATCH /ocpi/emsp/2.2/locations/{country_code}/{party_id}/{location_id}/{evse_uid}
 // Actualizar parcialmente un EVSE en una location específica
-const {
-  buildEVSEPatchErrorResponse
-} = require('./emspLocations/evsePatchHelpers');
 
 router.patch('/:country_code/:party_id/:location_id/:evse_uid', async (req, res) => {
     try {
