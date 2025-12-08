@@ -4425,7 +4425,7 @@ class DashboardApp {
                     <td><code>${evse.evse_id || 'N/A'}</code></td>
                     <td><code>${evse.id || 'N/A'}</code></td>
                     <td><span class="badge bg-info">${evse.external_operator_party_id || 'N/A'}</span></td>
-                    <td>${evse.location_id || 'N/A'}</td>
+                    <td>${evse.location_name || evse.location_id || 'N/A'}</td>
                     <td>
                         <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
                             ${evse.status || 'UNKNOWN'}
@@ -9565,8 +9565,10 @@ class DashboardApp {
                 evse.evse_id,
                 evse.id,
                 evse.location_id,
+                evse.location_name,
                 evse.status,
-                evse.external_operator_party_id
+                evse.external_operator_party_id,
+                evse.physical_reference
             ].some(value => (value || '').toString().toLowerCase().includes(searchFilter));
 
             return statusMatch && partyMatch && searchMatch;

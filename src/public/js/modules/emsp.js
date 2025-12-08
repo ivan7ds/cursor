@@ -373,7 +373,7 @@ export class EMSPModule {
                     <td><code>${evse.evse_id || 'N/A'}</code></td>
                     <td><code>${evse.id || 'N/A'}</code></td>
                     <td><span class="badge bg-info">${evse.external_operator_party_id || 'N/A'}</span></td>
-                    <td>${evse.location_id || 'N/A'}</td>
+                    <td>${evse.location_name || evse.location_id || 'N/A'}</td>
                     <td>
                         <span class="badge ${this.getEvseStatusBadgeClass(evse.status)}">
                             ${evse.status || 'UNKNOWN'}
@@ -559,6 +559,7 @@ export class EMSPModule {
             evse.evse_id,
             evse.id,
             evse.location_id,
+            evse.location_name,
             evse.external_operator_party_id,
             evse.status,
             evse.physical_reference
@@ -1400,6 +1401,40 @@ export class EMSPModule {
         emspLocationsNextPage.addEventListener('click', () => {
           this.goToEmspLocationsNextPage()
         })
+      }
+
+      // Filtros EMSP EVSEs
+      const emspEvseStatusFilter = document.getElementById('emspEvseStatusFilter')
+      if (emspEvseStatusFilter) {
+        emspEvseStatusFilter.addEventListener('change', () => {
+          console.log('🔍 Filtro de estado EMSP EVSE cambiado:', emspEvseStatusFilter.value)
+          this.applyEmspEvseFilters({ resetPage: true })
+        })
+        console.log('✅ Event listener para emspEvseStatusFilter agregado')
+      } else {
+        console.warn('⚠️ Elemento emspEvseStatusFilter no encontrado')
+      }
+
+      const emspEvsePartyFilter = document.getElementById('emspEvsePartyFilter')
+      if (emspEvsePartyFilter) {
+        emspEvsePartyFilter.addEventListener('change', () => {
+          console.log('🔍 Filtro de party EMSP EVSE cambiado:', emspEvsePartyFilter.value)
+          this.applyEmspEvseFilters({ resetPage: true })
+        })
+        console.log('✅ Event listener para emspEvsePartyFilter agregado')
+      } else {
+        console.warn('⚠️ Elemento emspEvsePartyFilter no encontrado')
+      }
+
+      const emspEvseSearchFilter = document.getElementById('emspEvseSearchFilter')
+      if (emspEvseSearchFilter) {
+        emspEvseSearchFilter.addEventListener('input', () => {
+          console.log('🔍 Filtro de búsqueda EMSP EVSE cambiado:', emspEvseSearchFilter.value)
+          this.applyEmspEvseFilters({ resetPage: true })
+        })
+        console.log('✅ Event listener para emspEvseSearchFilter agregado')
+      } else {
+        console.warn('⚠️ Elemento emspEvseSearchFilter no encontrado')
       }
 
       // Paginación EMSP EVSEs
