@@ -81,6 +81,24 @@ Script de generación de EVSEs en España.
 - EVSEs distribuidos por las locations generadas
 - Conectores con especificaciones reales
 
+## 🔄 Scripts de Migración
+
+### `migrate_add_token_base64_encoded.sql`
+Migración para agregar la columna `token_base64_encoded` a la tabla `credentials`.
+- Agrega la columna si no existe (idempotente)
+- Establece valor por defecto `false`
+- Seguro ejecutar múltiples veces
+
+### `apply_migration_token_base64.sh`
+Script bash para aplicar la migración de `token_base64_encoded`.
+```bash
+./scripts/apply_migration_token_base64.sh
+```
+O manualmente:
+```bash
+psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f scripts/migrate_add_token_base64_encoded.sql
+```
+
 ## 🛠️ Utilidades
 
 ### `generate-ocpi-token.js`

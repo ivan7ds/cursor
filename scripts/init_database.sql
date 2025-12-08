@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS credentials (
     external_party_id VARCHAR(10),
     valid BOOLEAN NOT NULL DEFAULT true,
     temp BOOLEAN NOT NULL DEFAULT false,
+    token_base64_encoded BOOLEAN NOT NULL DEFAULT false,
     last_updated TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
