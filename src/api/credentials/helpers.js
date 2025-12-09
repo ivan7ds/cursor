@@ -1,7 +1,9 @@
 const { v4: uuidv4 } = require('uuid');
+const { URL } = require('url');
 
 const { Credentials } = require('../../models');
 const logger = require('../../utils/logger');
+const { sanitizeUrl } = require('../../utils/urlSanitizer');
 
 const {
   extractAuthToken,
@@ -93,46 +95,64 @@ async function findTempCredentials(authToken) {
 }
 
 /**
+ * Extrae la URL base (protocolo + host + puerto) de una URL completa
+ * Elimina rutas como /ocpi/versions para evitar URLs malformadas
+ * @param {string} url - URL completa que puede incluir rutas
+ * @returns {string} URL base limpia (solo protocolo + host + puerto)
+ */
+function extractBaseUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    // Construir URL base sin barra final para evitar dobles barras al concatenar
+    let baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+    if (urlObj.port) {
+      baseUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`;
+    }
+    // Asegurar que no termine en barra usando la función helper
+    return sanitizeUrl(baseUrl);
+  } catch (error) {
+    // Si la URL no es válida, intentar limpiarla manualmente
+    logger.warn('Error parsing URL, attempting manual cleanup:', { url, error: error.message });
+    // Eliminar rutas comunes como /ocpi/versions
+    const cleaned = url.replace(/\/ocpi\/versions.*$/, '').replace(/\/ocpi\/.*$/, '');
+    return sanitizeUrl(cleaned);
+  }
+}
+
+/**
  * Actualiza credenciales temporales a permanentes
  * @param {Object} tempCredentials - Credenciales temporales
  * @param {string} token - Nuevo token
- * @param {string} url - URL
+ * @param {string} url - URL (puede incluir rutas como /ocpi/versions)
  * @param {Object} businessDetails - Detalles del negocio
  * @param {Object} externalRole - Rol externo
  */
 async function updateTempToPermanent(tempCredentials, token, url, businessDetails, externalRole) {
+  // Extraer solo la URL base (protocolo + host + puerto) para evitar URLs malformadas
+  const baseUrl = extractBaseUrl(url);
+  
+  // Preservar el flag token_base64_encoded de las credenciales temporales
+  // Si las credenciales temporales tienen el flag, debe preservarse
+  const tokenBase64Encoded = tempCredentials.token_base64_encoded !== undefined 
+    ? tempCredentials.token_base64_encoded 
+    : false;
+  
+  logger.info('Cleaning URL for credentials update', {
+    originalUrl: url,
+    cleanedBaseUrl: baseUrl,
+    partyId: externalRole.party_id,
+    tokenBase64Encoded: tokenBase64Encoded
+  });
+  
   await tempCredentials.update({
     token,
-    url,
+    url: baseUrl,
     business_details: businessDetails,
     party_id: externalRole.party_id,
     country_code: externalRole.country_code,
     valid: true,
     temp: false,
-    last_updated: new Date()
-  });
-}
-
-/**
- * Crea credenciales nuestras para la organización externa
- * @param {string} ourToken - Nuestro token
- * @param {string} url - URL de la organización externa
- * @param {Object} externalRole - Rol externo
- */
-async function createOurCredentials(ourToken, url, externalRole) {
-  await Credentials.create({
-    id: uuidv4(),
-    token: ourToken,
-    url,
-    business_details: {
-      name: process.env.OCPI_PARTY_ID,
-      website: `https://www.${process.env.OCPI_PARTY_ID.toLowerCase()}.com`
-    },
-    party_id: process.env.OCPI_PARTY_ID || 'IPD',
-    country_code: process.env.OCPI_COUNTRY_CODE || 'ES',
-    external_party_id: externalRole.party_id,
-    valid: true,
-    temp: false,
+    token_base64_encoded: tokenBase64Encoded,
     last_updated: new Date()
   });
 }
@@ -212,14 +232,12 @@ async function handleCredentialsPost(req, res) {
     externalToken: `${token.substring(0, 10)}...`
   });
 
-  const ourToken = generateOurToken();
-  await createOurCredentials(ourToken, url, externalRole);
-
-  logger.info('Our credentials created for external organization', {
-    externalPartyId: externalRole.party_id,
-    ourToken: `${ourToken.substring(0, 10)}...`
-  });
+  // Cuando el operador externo inicia el handshake, NO creamos credenciales "nuestras"
+  // Las credenciales "nuestras" solo se crean cuando nosotros iniciamos el handshake
+  // (en src/api/handshake/process.js -> saveExternalCredentials)
+  // Esto evita duplicación de conexiones en el frontend
   
+  const ourToken = generateOurToken();
   const cleanBaseUrl = buildCleanBaseUrl(req);
   logHandshakeSuccess(externalRole, ourToken);
 

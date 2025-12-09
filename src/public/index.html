@@ -482,6 +482,17 @@
                                                     <label for="emspUrl" class="form-label">URL de la Organización</label>
                                                     <input type="url" class="form-control" id="emspUrl" placeholder="https://organization.example.com" required>
                                                 </div>
+                                                <div class="mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="emspTokenBase64" value="true">
+                                                        <label class="form-check-label" for="emspTokenBase64">
+                                                            <i class="bi bi-shield-lock"></i> Token codificado en Base64
+                                                        </label>
+                                                        <small class="form-text text-muted d-block">
+                                                            Marca esta opción si el operador externo requiere tokens codificados en Base64 según OCPI 2.2
+                                                        </small>
+                                                    </div>
+                                                </div>
                                                 <button type="submit" class="btn btn-success w-100">
                                                     <i class="bi bi-key"></i> Generar Credenciales
                                                 </button>

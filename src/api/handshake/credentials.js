@@ -121,9 +121,10 @@ async function saveExternalCredentials({ credentialsResponse, partyId, countryCo
  * @param {string} params.url - URL de la organización externa
  * @param {string} params.initialToken - Token inicial generado
  * @param {Object} params.ourCredentials - Nuestras credenciales
+ * @param {boolean} params.tokenBase64Encoded - Flag indicando si el token debe codificarse en Base64
  * @returns {Object} Credenciales de handshake
  */
-function createHandshakeCredentials({ partyId, countryCode, url, initialToken, ourCredentials }) {
+function createHandshakeCredentials({ partyId, countryCode, url, initialToken, ourCredentials, tokenBase64Encoded = false }) {
   return {
     id: uuidv4(),
     token: initialToken,
@@ -133,6 +134,7 @@ function createHandshakeCredentials({ partyId, countryCode, url, initialToken, o
     country_code: countryCode,
     valid: true,
     temp: true,
+    token_base64_encoded: !!tokenBase64Encoded,
     last_updated: new Date().toISOString()
   };
 }

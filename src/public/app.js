@@ -1351,7 +1351,8 @@ class DashboardApp {
             const formData = {
                 partyId: document.getElementById('emspPartyId').value,
                 countryCode: document.getElementById('emspCountryCode').value,
-                url: document.getElementById('emspUrl').value
+                url: document.getElementById('emspUrl').value,
+                tokenBase64Encoded: document.getElementById('emspTokenBase64').checked
             };
             
             console.log('📋 Datos del formulario:', formData);

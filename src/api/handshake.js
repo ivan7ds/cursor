@@ -126,9 +126,14 @@ router.post('/connect-to-organization', async (req, res) => {
  */
 router.post('/generate-credentials', async (req, res) => {
     try {
-        const { partyId, countryCode, url } = req.body;
+        const { partyId, countryCode, url, tokenBase64Encoded } = req.body;
         
-        console.log('🔑 Generando token inicial para handshake OCPI:', { partyId, countryCode, url });
+        console.log('🔑 Generando token inicial para handshake OCPI:', { 
+            partyId, 
+            countryCode, 
+            url, 
+            tokenBase64Encoded: !!tokenBase64Encoded 
+        });
         
         const validationError = validateGenerateCredentialsInput(req.body);
         if (validationError) {
@@ -138,7 +143,14 @@ router.post('/generate-credentials', async (req, res) => {
         const initialToken = `OCPI_${uuidv4().replace(/-/g, '')}`;
         const ourCredentials = getOurCredentials();
         
-        const handshakeCredentials = createHandshakeCredentials({ partyId, countryCode, url, initialToken, ourCredentials });
+        const handshakeCredentials = createHandshakeCredentials({ 
+            partyId, 
+            countryCode, 
+            url, 
+            initialToken, 
+            ourCredentials,
+            tokenBase64Encoded: !!tokenBase64Encoded 
+        });
         await Credentials.create(handshakeCredentials);
         
         console.log('✅ Token inicial generado exitosamente para handshake');
