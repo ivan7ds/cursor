@@ -1,6 +1,7 @@
 const axios = require('axios');
 
 const logger = require('../../utils/logger');
+const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 /**
  * Sanitiza una URL eliminando barras finales
@@ -70,10 +71,14 @@ async function sendLocationNotification(organization, locationData) {
     
     const payload = prepareLocationPayload(locationData);
     
+    // Construir el header Authorization con codificación Base64 si es necesario
+    const requiresBase64 = organization.token_base64_encoded === true || organization.token_base64_encoded === 'true';
+    const authHeader = buildAuthorizationHeader(organization.token, requiresBase64);
+    
     const response = await axios.put(endpoint, payload, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Token ${organization.token}`,
+        'Authorization': authHeader,
         'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`,
         'X-Request-ID': `location-create-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       },
@@ -115,10 +120,14 @@ async function sendEVSENotification(organization, evseData) {
     
     const payload = prepareEVSEPayload(evseData);
     
+    // Construir el header Authorization con codificación Base64 si es necesario
+    const requiresBase64 = organization.token_base64_encoded === true || organization.token_base64_encoded === 'true';
+    const authHeader = buildAuthorizationHeader(organization.token, requiresBase64);
+    
     const response = await axios.put(endpoint, payload, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Token ${organization.token}`,
+        'Authorization': authHeader,
         'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`,
         'X-Request-ID': `evse-create-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
       },

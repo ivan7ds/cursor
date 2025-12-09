@@ -33,6 +33,7 @@ export class CPOModule {
                     option.textContent = `${conn.party_id} - ${conn.business_details?.name || 'Sin nombre'}`;
                     option.dataset.url = conn.url;
                     option.dataset.token = conn.token;
+                    option.dataset.tokenBase64Encoded = conn.token_base64_encoded ? 'true' : 'false';
                     select.appendChild(option);
                 });
                 
@@ -54,12 +55,21 @@ export class CPOModule {
             // Rellenar campos con los datos de la conexión seleccionada
             document.getElementById('cpoUrlExtActions').value = selectedOption.dataset.url || '';
             document.getElementById('cpoTokenExtActions').value = selectedOption.dataset.token || '';
+            // Almacenar token_base64_encoded en un campo oculto o en el dataset del campo token
+            const tokenField = document.getElementById('cpoTokenExtActions');
+            if (tokenField) {
+                tokenField.dataset.tokenBase64Encoded = selectedOption.dataset.tokenBase64Encoded || 'false';
+            }
             
             console.log('✅ Campos URL y Token actualizados con la conexión seleccionada');
         } else {
             // Limpiar campos si no hay selección
             document.getElementById('cpoUrlExtActions').value = '';
             document.getElementById('cpoTokenExtActions').value = '';
+            const tokenField = document.getElementById('cpoTokenExtActions');
+            if (tokenField) {
+                tokenField.dataset.tokenBase64Encoded = 'false';
+            }
             
             console.log('🧹 Campos URL y Token limpiados');
         }
@@ -109,7 +119,9 @@ export class CPOModule {
   async getCpoDetails() {
         try {
             const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
+            const cpoTokenField = document.getElementById('cpoTokenExtActions');
+            const cpoToken = cpoTokenField.value;
+            const tokenBase64Encoded = cpoTokenField.dataset.tokenBase64Encoded === 'true';
             const cpoVersion = document.getElementById('cpoVersion').value;
 
             if (!cpoUrl || !cpoToken) {
@@ -119,8 +131,8 @@ export class CPOModule {
 
             console.log('🌐 Consultando details del CPO:', cpoUrl);
             
-            // Crear headers con soporte para ngrok
-            const headers = ApiUtils.createCpoHeaders(cpoToken);
+            // Crear headers con soporte para ngrok y codificación Base64
+            const headers = ApiUtils.createCpoHeaders(cpoToken, 'application/json', tokenBase64Encoded);
             if (ApiUtils.isNgrokUrl(cpoUrl)) {
                 headers['ngrok-skip-browser-warning'] = 'true';
             }
@@ -875,11 +887,14 @@ export class CPOModule {
             this.logToChargingConsole(`🏷️ EVSE ID: ${evseId}`, 'evse');
             
             const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
+            const cpoTokenField = document.getElementById('cpoTokenExtActions');
+            const cpoToken = cpoTokenField.value;
+            const tokenBase64Encoded = cpoTokenField.dataset.tokenBase64Encoded === 'true';
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
 
             this.logToChargingConsole(`🔗 URL del CPO: ${cpoUrl}`, 'debug');
             this.logToChargingConsole(`🔑 Token del CPO: ${cpoToken ? cpoToken.substring(0, 10) + '...' : 'No definido'}`, 'debug');
+            this.logToChargingConsole(`🔐 Token Base64: ${tokenBase64Encoded ? 'Sí' : 'No'}`, 'debug');
 
             if (!cpoUrl || !cpoToken) {
                 this.logToChargingConsole('❌ Error: URL y Token del CPO son obligatorios', 'error');
@@ -912,8 +927,8 @@ export class CPOModule {
             this.logToChargingConsole(`   URL: ${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/START_SESSION`, 'request');
             this.logToChargingConsole(`   Payload: ${JSON.stringify(startSessionPayload, null, 2)}`, 'request');
             
-            // Crear headers con soporte para ngrok
-            const headers = ApiUtils.createCpoHeaders(cpoToken);
+            // Crear headers con soporte para ngrok y codificación Base64
+            const headers = ApiUtils.createCpoHeaders(cpoToken, 'application/json', tokenBase64Encoded);
             if (ApiUtils.isNgrokUrl(cpoUrl)) {
                 headers['ngrok-skip-browser-warning'] = 'true';
             }
@@ -986,8 +1001,12 @@ export class CPOModule {
             this.logToChargingConsole(`   🎫 Token: ${this.currentChargingSession.token.uid}`, 'token');
             
             const cpoUrl = document.getElementById('cpoUrlExtActions').value;
-            const cpoToken = document.getElementById('cpoTokenExtActions').value;
+            const cpoTokenField = document.getElementById('cpoTokenExtActions');
+            const cpoToken = cpoTokenField.value;
+            const tokenBase64Encoded = cpoTokenField.dataset.tokenBase64Encoded === 'true';
             const cpoVersion = document.getElementById('cpoVersion').value || '2.2';
+
+            this.logToChargingConsole(`🔐 Token Base64: ${tokenBase64Encoded ? 'Sí' : 'No'}`, 'debug');
 
             // Obtener la URL base del servidor
             const baseUrl = await this.getServerBaseUrl();
@@ -1015,8 +1034,8 @@ export class CPOModule {
             this.logToChargingConsole(`   URL: ${cpoUrl}/ocpi/cpo/${cpoVersion}/commands/STOP_SESSION`, 'request');
             this.logToChargingConsole(`   Payload: ${JSON.stringify(stopSessionPayload, null, 2)}`, 'request');
             
-            // Crear headers con soporte para ngrok
-            const headers = ApiUtils.createCpoHeaders(cpoToken);
+            // Crear headers con soporte para ngrok y codificación Base64
+            const headers = ApiUtils.createCpoHeaders(cpoToken, 'application/json', tokenBase64Encoded);
             if (ApiUtils.isNgrokUrl(cpoUrl)) {
                 headers['ngrok-skip-browser-warning'] = 'true';
             }

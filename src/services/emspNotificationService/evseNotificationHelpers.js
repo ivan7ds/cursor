@@ -1,4 +1,5 @@
 const logger = require('../../utils/logger');
+const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 const {
     filterCapabilities,
@@ -56,11 +57,17 @@ async function notifyOrganizationAboutEVSE(organization, evseData, method) {
             payload = prepareEVSEPayload(evseData);
         }
         
+        // Construir el header Authorization con codificación Base64 si es necesario
+        const requiresBase64 = organization.token_base64_encoded === true || organization.token_base64_encoded === 'true';
+        const authHeader = buildAuthorizationHeader(organization.token, requiresBase64);
+        
+        logger.info(`🔐 Usando token ${requiresBase64 ? 'codificado en Base64' : 'sin codificar'} para organización ${organization.party_id}`);
+        
         const response = await fetch(endpoint, {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${organization.token}`,
+                'Authorization': authHeader,
                 'X-Request-ID': `evse-notify-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
             },
             body: JSON.stringify(payload)

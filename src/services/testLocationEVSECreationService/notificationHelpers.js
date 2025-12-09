@@ -1,6 +1,7 @@
 const axios = require('axios');
 
 const { EVSE, Location } = require('../../models');
+const { buildAuthorizationHeader } = require('../../utils/tokenEncoding');
 
 /**
  * Construye la URL del endpoint para notificación de eliminación de EVSE
@@ -36,9 +37,13 @@ function buildLocationDeletionEndpoint(organization, locationId) {
  * @returns {Object} Headers de la petición
  */
 function buildNotificationHeaders(organization, requestType) {
+  // Construir el header Authorization con codificación Base64 si es necesario
+  const requiresBase64 = organization.token_base64_encoded === true || organization.token_base64_encoded === 'true';
+  const authHeader = buildAuthorizationHeader(organization.token, requiresBase64);
+  
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Token ${organization.token}`,
+    'Authorization': authHeader,
     'User-Agent': `${process.env.OCPI_PARTY_ID || 'IPD'}-CPO-OCPI-${process.env.OCPI_VERSION || '2.2'}`,
     'X-Request-ID': `${requestType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   };

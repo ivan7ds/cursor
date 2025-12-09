@@ -80,6 +80,7 @@ router.get('/', async (_req, res) => {
           country_code: connData.country_code || null,
           url: connData.url || null,
           token: connData.token || null, // Campo requerido por el frontend
+          token_base64_encoded: connData.token_base64_encoded !== undefined ? Boolean(connData.token_base64_encoded) : false, // Campo para codificación Base64
           last_updated: connData.last_updated || connData.updated_at || null, // Usar updated_at como fallback
           valid: connData.valid !== undefined ? Boolean(connData.valid) : true,
           temp: connData.temp !== undefined ? Boolean(connData.temp) : false,
