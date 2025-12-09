@@ -54,7 +54,12 @@ router.put('/:country_code/:party_id/:location_id', validateLocationPutMiddlewar
             await createLocation({ sequelize, location_id, locationData, party_id, country_code });
         }
 
-        await processEVSEs(locationData.evses, party_id, country_code, location_id);
+        // Procesar EVSEs si están presentes (puede ser undefined o null)
+        if (locationData.evses) {
+            await processEVSEs(locationData.evses, party_id, country_code, location_id);
+        } else {
+            logger.info(`ℹ️ No EVSEs to process for location ${location_id}`);
+        }
 
         res.status(200).json({
             status_code: 1000,

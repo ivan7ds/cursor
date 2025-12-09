@@ -36,13 +36,19 @@ router.put('/:country_code/:party_id/:session_id', validateSessionPutMiddleware,
         
         const existingSession = await EmspSession.findOne({
             where: {
-                emsp_party_id: party_id,
-                emsp_country_code: country_code,
+                external_operator_party_id: party_id,
+                external_operator_country_code: country_code,
                 session_id
             }
         });
 
-        const result = await upsertSession(party_id, country_code, session_id, sessionData, existingSession);
+        const result = await upsertSession({ 
+            partyId: party_id, 
+            countryCode: country_code, 
+            sessionId: session_id, 
+            sessionData, 
+            existingSession 
+        });
         
         if (result === null) {
             logger.warn('⚠️ Ignoring stale PUT session payload (would downgrade status)', {
@@ -168,8 +174,8 @@ router.get('/:country_code/:party_id/:session_id', async (req, res) => {
 
         const session = await EmspSession.findOne({
             where: {
-                country_code,
-                party_id,
+                external_operator_country_code: country_code,
+                external_operator_party_id: party_id,
                 session_id
             }
         });

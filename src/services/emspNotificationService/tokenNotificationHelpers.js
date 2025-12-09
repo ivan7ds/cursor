@@ -56,7 +56,8 @@ async function notifyOrganizationAboutToken(organization, tokenData, method) {
         const partyId = process.env.OCPI_PARTY_ID || 'IPD';
         const countryCode = process.env.OCPI_COUNTRY_CODE || 'ES';
         const sanitizedUrl = sanitizeUrl(organization.url);
-        const endpoint = `${sanitizedUrl}/ocpi/emsp/2.2/tokens/${countryCode}/${partyId}/${tokenData.uid}`;
+        // Cuando nosotros (CPO) notificamos a un operador externo (EMSP), usamos el endpoint del CPO
+        const endpoint = `${sanitizedUrl}/ocpi/cpo/2.2/tokens/${countryCode}/${partyId}/${tokenData.uid}`;
         
         logger.info(`📤 Notificando token ${tokenData.uid} a organización ${organization.party_id} en ${endpoint} (${method})`);
         
