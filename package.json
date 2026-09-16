@@ -20,7 +20,12 @@
     "lint:fix": "eslint src/ --fix",
     "knip": "knip",
     "knip:production": "knip --production",
-    "knip:fix": "knip --fix"
+    "knip:fix": "knip --fix",
+    "fitness:log": "node fitness-agent/scripts/log-day.js",
+    "fitness:check": "node fitness-agent/scripts/log-day.js --check",
+    "fitness:medidas": "node fitness-agent/scripts/log-medidas.js",
+    "fitness:analyze": "node fitness-agent/scripts/analyze.js",
+    "fitness:status": "node fitness-agent/scripts/status.js"
   },
   "keywords": [
     "ocpi",

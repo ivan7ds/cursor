@@ -3,3 +3,11 @@ node_modules
 .scannerwork
 logs/
 backups/
+
+# Datos personales del agente de fitness (solo ejemplos versionados)
+fitness-agent/data/diario/**
+!fitness-agent/data/diario/.gitkeep
+fitness-agent/data/medidas/**
+!fitness-agent/data/medidas/.gitkeep
+fitness-agent/data/resumenes/**
+!fitness-agent/data/resumenes/.gitkeep

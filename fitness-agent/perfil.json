@@ -1,0 +1,20 @@
+{
+  "nombre": "Usuario",
+  "zona_horaria": "Europe/Madrid",
+  "unidades": "metric",
+  "objetivos": {
+    "peso_kg": null,
+    "kcal_diarias": 2200,
+    "proteinas_g": 160,
+    "carbohidratos_g": 220,
+    "grasas_g": 70,
+    "ayuno_protocolo": "16:8",
+    "entrenos_por_semana": 4,
+    "notas": "Ajusta estos valores a tu plan real."
+  },
+  "preferencias_analisis": {
+    "ventana_dias_default": 14,
+    "alerta_desviacion_kcal_pct": 15,
+    "alerta_proteina_min_g": 120
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "fecha": "YYYY-MM-DD",
+  "actualizado_en": "2026-01-01T12:00:00.000Z",
+  "peso_kg": null,
+  "grasa_pct": null,
+  "musculo_kg": null,
+  "circunferencias_cm": {
+    "cuello": null,
+    "hombros": null,
+    "pecho": null,
+    "cintura": null,
+    "abdomen": null,
+    "cadera": null,
+    "brazo_izq": null,
+    "brazo_der": null,
+    "muslo_izq": null,
+    "muslo_der": null,
+    "pantorrilla_izq": null,
+    "pantorrilla_der": null
+  },
+  "fotos": [],
+  "notas": ""
+}

@@ -1,0 +1,63 @@
+{
+  "fecha": "2026-09-15",
+  "actualizado_en": "2026-09-15T20:30:00.000Z",
+  "notas": "Día de cardio ligero — ejemplo",
+  "peso_kg": 75.1,
+  "ayuno": {
+    "horas": 14,
+    "inicio": "21:00",
+    "fin": "11:00",
+    "protocolo": "16:8"
+  },
+  "defecaciones": [
+    { "hora": "09:00", "bristol": 3, "notas": "" }
+  ],
+  "ejercicios": [
+    {
+      "nombre": "Zona 2",
+      "tipo": "cardio",
+      "duracion_min": 40,
+      "kcal_estimadas": 320,
+      "rpe": 4,
+      "series": [],
+      "notas": "Bici"
+    }
+  ],
+  "alimentacion": {
+    "kcal_totales": 2050,
+    "macros_g": {
+      "carbohidratos": 190,
+      "proteinas": 155,
+      "grasas": 70,
+      "fibra": 25
+    },
+    "macros_pct": {
+      "carbohidratos": 36.7,
+      "proteinas": 29.9,
+      "grasas": 33.4
+    },
+    "comidas": [
+      {
+        "hora": "11:30",
+        "tipo": "comida",
+        "descripcion": "Tostadas integrales, huevos, aguacate",
+        "kcal": 600
+      },
+      {
+        "hora": "16:00",
+        "tipo": "comida",
+        "descripcion": "Bowl de lentejas y verduras",
+        "kcal": 700
+      },
+      {
+        "hora": "20:30",
+        "tipo": "cena",
+        "descripcion": "Merluza, quinoa, calabacín",
+        "kcal": 750
+      }
+    ]
+  },
+  "sueno_h": 7,
+  "energia_1_10": 6,
+  "estres_1_10": 5
+}

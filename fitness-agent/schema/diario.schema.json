@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fitness-agent/diario.schema.json",
+  "title": "RegistroDiario",
+  "type": "object",
+  "required": ["fecha", "actualizado_en"],
+  "additionalProperties": false,
+  "properties": {
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del registro en formato YYYY-MM-DD"
+    },
+    "actualizado_en": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "peso_kg": {
+      "type": ["number", "null"],
+      "minimum": 20,
+      "maximum": 400
+    },
+    "ayuno": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "horas": { "type": ["number", "null"], "minimum": 0, "maximum": 72 },
+        "inicio": { "type": ["string", "null"], "description": "HH:MM o ISO datetime" },
+        "fin": { "type": ["string", "null"], "description": "HH:MM o ISO datetime" },
+        "protocolo": { "type": ["string", "null"], "description": "ej. 16:8, OMAD, ninguno" }
+      }
+    },
+    "defecaciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["hora"],
+        "properties": {
+          "hora": { "type": "string" },
+          "bristol": {
+            "type": ["integer", "null"],
+            "minimum": 1,
+            "maximum": 7,
+            "description": "Escala de Bristol 1-7"
+          },
+          "notas": { "type": "string" }
+        }
+      }
+    },
+    "ejercicios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nombre"],
+        "properties": {
+          "nombre": { "type": "string" },
+          "tipo": {
+            "type": "string",
+            "enum": ["fuerza", "cardio", "movilidad", "hiit", "deporte", "otro"]
+          },
+          "duracion_min": { "type": ["number", "null"], "minimum": 0 },
+          "kcal_estimadas": { "type": ["number", "null"], "minimum": 0 },
+          "rpe": {
+            "type": ["number", "null"],
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Esfuerzo percibido 1-10"
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "ejercicio": { "type": "string" },
+                "series": { "type": "integer", "minimum": 1 },
+                "reps": { "type": ["string", "integer"] },
+                "peso_kg": { "type": ["number", "null"] },
+                "notas": { "type": "string" }
+              }
+            }
+          },
+          "notas": { "type": "string" }
+        }
+      }
+    },
+    "alimentacion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kcal_totales": { "type": ["number", "null"], "minimum": 0 },
+        "macros_g": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "carbohidratos": { "type": ["number", "null"], "minimum": 0 },
+            "proteinas": { "type": ["number", "null"], "minimum": 0 },
+            "grasas": { "type": ["number", "null"], "minimum": 0 },
+            "fibra": { "type": ["number", "null"], "minimum": 0 }
+          }
+        },
+        "macros_pct": {
+          "type": "object",
+          "description": "Porcentajes energéticos (opcionales; se pueden calcular)",
+          "additionalProperties": false,
+          "properties": {
+            "carbohidratos": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+            "proteinas": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+            "grasas": { "type": ["number", "null"], "minimum": 0, "maximum": 100 }
+          }
+        },
+        "comidas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["descripcion"],
+            "properties": {
+              "hora": { "type": ["string", "null"] },
+              "tipo": {
+                "type": "string",
+                "enum": ["desayuno", "almuerzo", "comida", "merienda", "cena", "snack", "otro"]
+              },
+              "descripcion": { "type": "string" },
+              "kcal": { "type": ["number", "null"], "minimum": 0 },
+              "macros_g": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "carbohidratos": { "type": ["number", "null"] },
+                  "proteinas": { "type": ["number", "null"] },
+                  "grasas": { "type": ["number", "null"] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sueno_h": { "type": ["number", "null"], "minimum": 0, "maximum": 24 },
+    "energia_1_10": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 },
+    "estres_1_10": { "type": ["integer", "null"], "minimum": 1, "maximum": 10 }
+  }
+}

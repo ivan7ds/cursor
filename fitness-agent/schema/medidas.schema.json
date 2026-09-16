@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fitness-agent/medidas.schema.json",
+  "title": "MedidasSemanales",
+  "type": "object",
+  "required": ["fecha", "actualizado_en"],
+  "additionalProperties": false,
+  "properties": {
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de la medición (idealmente mismo día de la semana)"
+    },
+    "actualizado_en": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "peso_kg": { "type": ["number", "null"], "minimum": 20, "maximum": 400 },
+    "grasa_pct": { "type": ["number", "null"], "minimum": 1, "maximum": 70 },
+    "musculo_kg": { "type": ["number", "null"], "minimum": 0 },
+    "circunferencias_cm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cuello": { "type": ["number", "null"] },
+        "hombros": { "type": ["number", "null"] },
+        "pecho": { "type": ["number", "null"] },
+        "cintura": { "type": ["number", "null"] },
+        "abdomen": { "type": ["number", "null"] },
+        "cadera": { "type": ["number", "null"] },
+        "brazo_izq": { "type": ["number", "null"] },
+        "brazo_der": { "type": ["number", "null"] },
+        "muslo_izq": { "type": ["number", "null"] },
+        "muslo_der": { "type": ["number", "null"] },
+        "pantorrilla_izq": { "type": ["number", "null"] },
+        "pantorrilla_der": { "type": ["number", "null"] }
+      }
+    },
+    "fotos": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Rutas relativas a fotos (opcional, no subir a git público)"
+    },
+    "notas": { "type": "string" }
+  }
+}
