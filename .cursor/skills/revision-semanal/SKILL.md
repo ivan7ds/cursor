@@ -8,10 +8,10 @@ description: Registra medidas corporales semanales y resume la semana (peso, ent
 ## Pasos
 
 1. Leer `fitness-agent/AGENTS.md` y el perfil.
-2. Si hay medidas nuevas → guardar en `fitness-agent/data/medidas/YYYY-MM-DD.json` (plantilla en `templates/medidas-semanales.json`).
-3. Comparar con el archivo de medidas anterior (por fecha).
-4. Ejecutar `node fitness-agent/scripts/analyze.js --dias 7`.
-5. Escribir informe breve en `fitness-agent/data/resumenes/YYYY-MM-DD-semana.md` con:
+2. Si hay medidas nuevas → `node fitness-agent/scripts/log-medidas.js --date FECHA` con JSON por stdin (o escribir el archivo).
+3. Revisar la comparación automática vs la medición anterior.
+4. Ejecutar `node fitness-agent/scripts/analyze.js --dias 7 --save`.
+5. Completar el informe en `fitness-agent/data/resumenes/` con:
    - Deltas de medidas
    - Media de peso / kcal / proteína
    - Sesiones de entrenamiento

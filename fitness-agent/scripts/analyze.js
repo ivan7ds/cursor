@@ -7,13 +7,15 @@ const path = require('path')
 const ROOT = path.join(__dirname, '..')
 const DIARIO = path.join(ROOT, 'data', 'diario')
 const MEDIDAS = path.join(ROOT, 'data', 'medidas')
+const RESUMENES = path.join(ROOT, 'data', 'resumenes')
 const PERFIL = path.join(ROOT, 'perfil.json')
 
 function parseArgs (argv) {
-  const args = { dias: 14, json: false }
+  const args = { dias: 14, json: false, save: false }
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--dias') args.dias = Number(argv[++i])
     else if (argv[i] === '--json') args.json = true
+    else if (argv[i] === '--save') args.save = true
     else if (argv[i] === '--help' || argv[i] === '-h') args.help = true
   }
   return args
@@ -184,43 +186,60 @@ function analyze (dias) {
   }
 }
 
-function printReport (r) {
-  console.log(`# Análisis fitness (${r.ventana.dias} días, desde ${r.ventana.desde})`)
-  console.log(`Registros diarios: ${r.ventana.registros}`)
-  console.log('')
-  console.log('## Resumen numérico')
-  console.log(`- Peso medio: ${r.peso.media ?? '—'} kg (Δ ${r.peso.delta ?? '—'})`)
-  console.log(`- Kcal media: ${r.alimentacion.kcal_media ?? '—'}`)
-  console.log(`- Proteína media: ${r.alimentacion.proteinas_g_media ?? '—'} g`)
-  console.log(`- CHO media: ${r.alimentacion.carbohidratos_g_media ?? '—'} g`)
-  console.log(`- Grasas media: ${r.alimentacion.grasas_g_media ?? '—'} g`)
-  console.log(`- Sesiones: ${r.entrenamiento.sesiones} (~${r.entrenamiento.por_semana}/sem), ${r.entrenamiento.minutos_totales} min`)
-  console.log(`- Ayuno medio: ${r.ayuno.horas_media ?? '—'} h`)
-  console.log(`- Bristol medio: ${r.digesta.bristol_medio ?? '—'}`)
-  console.log(`- Energía media: ${r.energia_media ?? '—'}`)
+function formatReport (r) {
+  const lines = []
+  lines.push(`# Análisis fitness (${r.ventana.dias} días, desde ${r.ventana.desde})`)
+  lines.push(`Registros diarios: ${r.ventana.registros}`)
+  lines.push('')
+  lines.push('## Resumen numérico')
+  lines.push(`- Peso medio: ${r.peso.media ?? '—'} kg (Δ ${r.peso.delta ?? '—'})`)
+  lines.push(`- Kcal media: ${r.alimentacion.kcal_media ?? '—'}`)
+  lines.push(`- Proteína media: ${r.alimentacion.proteinas_g_media ?? '—'} g`)
+  lines.push(`- CHO media: ${r.alimentacion.carbohidratos_g_media ?? '—'} g`)
+  lines.push(`- Grasas media: ${r.alimentacion.grasas_g_media ?? '—'} g`)
+  lines.push(`- Sesiones: ${r.entrenamiento.sesiones} (~${r.entrenamiento.por_semana}/sem), ${r.entrenamiento.minutos_totales} min`)
+  lines.push(`- Ayuno medio: ${r.ayuno.horas_media ?? '—'} h`)
+  lines.push(`- Bristol medio: ${r.digesta.bristol_medio ?? '—'}`)
+  lines.push(`- Energía media: ${r.energia_media ?? '—'}`)
   if (r.medidas_delta.length) {
-    console.log('')
-    console.log('## Medidas (última vs anterior)')
+    lines.push('')
+    lines.push('## Medidas (última vs anterior)')
     for (const m of r.medidas_delta) {
-      console.log(`- ${m.metrica}: ${m.de} → ${m.a} (${m.delta > 0 ? '+' : ''}${m.delta})`)
+      lines.push(`- ${m.metrica}: ${m.de} → ${m.a} (${m.delta > 0 ? '+' : ''}${m.delta})`)
     }
   }
-  console.log('')
-  console.log('## Hallazgos')
-  for (const h of r.hallazgos) console.log(`- ${h}`)
+  lines.push('')
+  lines.push('## Hallazgos')
+  for (const h of r.hallazgos) lines.push(`- ${h}`)
+  lines.push('')
+  lines.push(`_Generado: ${new Date().toISOString()}_`)
+  return lines.join('\n') + '\n'
+}
+
+function saveReport (text, dias) {
+  fs.mkdirSync(RESUMENES, { recursive: true })
+  const stamp = new Date().toISOString().slice(0, 10)
+  const file = path.join(RESUMENES, `${stamp}-${dias}d.md`)
+  fs.writeFileSync(file, text, 'utf8')
+  return file
 }
 
 function main () {
   const args = parseArgs(process.argv)
   if (args.help) {
-    console.log('Uso: node fitness-agent/scripts/analyze.js [--dias 14] [--json]')
+    console.log('Uso: node fitness-agent/scripts/analyze.js [--dias 14] [--json] [--save]')
     process.exit(0)
   }
   const report = analyze(args.dias)
   if (args.json) {
     console.log(JSON.stringify(report, null, 2))
   } else {
-    printReport(report)
+    const text = formatReport(report)
+    process.stdout.write(text)
+    if (args.save) {
+      const file = saveReport(text, args.dias)
+      console.log(`\nGuardado: ${file}`)
+    }
   }
 }
 

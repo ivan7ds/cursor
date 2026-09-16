@@ -9,7 +9,7 @@ description: Analiza la efectividad de entrenamientos y alimentación correlacio
 
 1. Leer perfil y `fitness-agent/AGENTS.md`.
 2. Determinar ventana (default: `preferencias_analisis.ventana_dias_default` del perfil).
-3. Ejecutar `node fitness-agent/scripts/analyze.js --dias N` (y `--json` si hace falta inspección).
+3. Ejecutar `node fitness-agent/scripts/analyze.js --dias N --save` (y `--json` si hace falta inspección).
 4. Interpretar:
    - ¿Peso alineado con déficit/superávit calórico observado?
    - ¿Proteína media ≥ objetivo?

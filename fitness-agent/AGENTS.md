@@ -49,22 +49,22 @@ Deposiciones: 08:30 Bristol 4.
 
 ## Flujo semanal (medidas)
 
-1. Crear/actualizar `fitness-agent/data/medidas/YYYY-MM-DD.json`.
-2. Comparar con la medición anterior si existe.
-3. Resumir deltas (peso, cintura, etc.).
+1. Guardar con `node fitness-agent/scripts/log-medidas.js --date YYYY-MM-DD` (JSON por stdin/file) o escribiendo el archivo a mano.
+2. El script compara automáticamente con la medición anterior si existe.
+3. Resumir deltas (peso, cintura, etc.) al usuario.
 
 ## Análisis de efectividad
 
 Cuando pida análisis (o en revisión semanal):
 
-1. Ejecutar `node fitness-agent/scripts/analyze.js --dias 14` (o el rango pedido).
+1. Ejecutar `node fitness-agent/scripts/analyze.js --dias 14 --save` (o el rango pedido).
 2. Relacionar:
    - Adherencia calórica/proteica vs objetivos del perfil
    - Tendencia de peso (media móvil 7d si hay datos)
    - Volumen/frecuencia de entrenamiento vs cambios de medidas
    - Ayuno y digestión (Bristol) vs energía/notas
 3. Dar conclusiones **basadas solo en datos disponibles**; marcar incertidumbre si hay pocos días.
-4. Guardar resumen opcional en `fitness-agent/data/resumenes/YYYY-MM-DD.md`.
+4. El flag `--save` escribe el informe en `fitness-agent/data/resumenes/`.
 
 ## Skills
 

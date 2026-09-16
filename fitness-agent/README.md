@@ -39,8 +39,12 @@ node fitness-agent/scripts/log-day.js --date 2026-09-16 --file entrada.json
 # Solo comprobar un día existente
 node fitness-agent/scripts/log-day.js --check 2026-09-16
 
-# Análisis de los últimos N días
-node fitness-agent/scripts/analyze.js --dias 14
+# Medidas semanales
+node fitness-agent/scripts/log-medidas.js --date 2026-09-16 --file medidas.json
+node fitness-agent/scripts/log-medidas.js --list
+
+# Análisis de los últimos N días (y guardar informe)
+node fitness-agent/scripts/analyze.js --dias 14 --save
 ```
 
 ## Privacidad

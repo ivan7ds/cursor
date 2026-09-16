@@ -1,0 +1,23 @@
+{
+  "fecha": "2026-09-15",
+  "actualizado_en": "2026-09-15T08:00:00.000Z",
+  "peso_kg": 75.2,
+  "grasa_pct": 18.1,
+  "musculo_kg": null,
+  "circunferencias_cm": {
+    "cuello": 38,
+    "hombros": null,
+    "pecho": 99.5,
+    "cintura": 83,
+    "abdomen": 85,
+    "cadera": 97.5,
+    "brazo_izq": 34.2,
+    "brazo_der": 34.7,
+    "muslo_izq": 56.2,
+    "muslo_der": 56.7,
+    "pantorrilla_izq": null,
+    "pantorrilla_der": null
+  },
+  "fotos": [],
+  "notas": "Medición de ejemplo (semana 2)"
+}
