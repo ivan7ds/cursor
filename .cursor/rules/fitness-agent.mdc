@@ -1,0 +1,8 @@
+---
+description: Usa el módulo fitness-agent para registro y análisis de salud/entrenamiento
+globs:
+  - fitness-agent/**
+alwaysApply: false
+---
+
+Cuando el usuario aporte datos de entrenamiento, nutrición, peso, ayuno, defecaciones o medidas corporales, sigue `fitness-agent/AGENTS.md` y las skills `registro-diario`, `revision-semanal` o `analisis-efectividad`. Persiste en `fitness-agent/data/` sin inventar mediciones ni commitear datos personales.

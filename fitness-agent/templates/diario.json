@@ -1,0 +1,32 @@
+{
+  "fecha": "YYYY-MM-DD",
+  "actualizado_en": "2026-01-01T12:00:00.000Z",
+  "notas": "",
+  "peso_kg": null,
+  "ayuno": {
+    "horas": null,
+    "inicio": null,
+    "fin": null,
+    "protocolo": null
+  },
+  "defecaciones": [],
+  "ejercicios": [],
+  "alimentacion": {
+    "kcal_totales": null,
+    "macros_g": {
+      "carbohidratos": null,
+      "proteinas": null,
+      "grasas": null,
+      "fibra": null
+    },
+    "macros_pct": {
+      "carbohidratos": null,
+      "proteinas": null,
+      "grasas": null
+    },
+    "comidas": []
+  },
+  "sueno_h": null,
+  "energia_1_10": null,
+  "estres_1_10": null
+}

@@ -1,0 +1,71 @@
+{
+  "fecha": "2026-09-14",
+  "actualizado_en": "2026-09-14T21:00:00.000Z",
+  "notas": "Ejemplo de día de fuerza",
+  "peso_kg": 75.4,
+  "ayuno": {
+    "horas": 16,
+    "inicio": "20:00",
+    "fin": "12:00",
+    "protocolo": "16:8"
+  },
+  "defecaciones": [
+    {
+      "hora": "08:15",
+      "bristol": 4,
+      "notas": ""
+    }
+  ],
+  "ejercicios": [
+    {
+      "nombre": "Tren superior",
+      "tipo": "fuerza",
+      "duracion_min": 50,
+      "kcal_estimadas": 280,
+      "rpe": 7,
+      "series": [
+        { "ejercicio": "Press banca", "series": 4, "reps": "8", "peso_kg": 60 },
+        { "ejercicio": "Remo barra", "series": 4, "reps": "8", "peso_kg": 50 },
+        { "ejercicio": "Press militar", "series": 3, "reps": "10", "peso_kg": 30 }
+      ],
+      "notas": ""
+    }
+  ],
+  "alimentacion": {
+    "kcal_totales": 2150,
+    "macros_g": {
+      "carbohidratos": 210,
+      "proteinas": 165,
+      "grasas": 65,
+      "fibra": 28
+    },
+    "macros_pct": {
+      "carbohidratos": 39.5,
+      "proteinas": 31.0,
+      "grasas": 29.5
+    },
+    "comidas": [
+      {
+        "hora": "12:15",
+        "tipo": "comida",
+        "descripcion": "Avena, whey, plátano, mantequilla de cacahuete",
+        "kcal": 520
+      },
+      {
+        "hora": "15:30",
+        "tipo": "comida",
+        "descripcion": "Pollo, arroz, brócoli, AOVE",
+        "kcal": 750
+      },
+      {
+        "hora": "20:00",
+        "tipo": "cena",
+        "descripcion": "Salmón, patata, ensalada, yogur griego",
+        "kcal": 880
+      }
+    ]
+  },
+  "sueno_h": 7.5,
+  "energia_1_10": 7,
+  "estres_1_10": 4
+}

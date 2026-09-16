@@ -1,0 +1,23 @@
+{
+  "fecha": "2026-09-08",
+  "actualizado_en": "2026-09-08T08:00:00.000Z",
+  "peso_kg": 75.8,
+  "grasa_pct": 18.5,
+  "musculo_kg": null,
+  "circunferencias_cm": {
+    "cuello": 38,
+    "hombros": null,
+    "pecho": 99,
+    "cintura": 84,
+    "abdomen": 86,
+    "cadera": 98,
+    "brazo_izq": 34,
+    "brazo_der": 34.5,
+    "muslo_izq": 56,
+    "muslo_der": 56.5,
+    "pantorrilla_izq": null,
+    "pantorrilla_der": null
+  },
+  "fotos": [],
+  "notas": "Medición de ejemplo (inicio)"
+}
