@@ -33,17 +33,21 @@ Edita `fitness-agent/perfil.json` (kcal, macros, protocolo de ayuno, días de en
 ## Scripts
 
 ```bash
-# Validar / crear registro de un día (fusiona JSON por stdin o --file)
+# Registro diario desde texto libre (recomendado)
+node fitness-agent/scripts/log-day.js --date 2026-09-16 --text "Hoy 75.2 kg. Ayuno 16h. Total 2100 kcal, P160 C200 G60..."
+
+# O desde JSON
 node fitness-agent/scripts/log-day.js --date 2026-09-16 --file entrada.json
 
-# Solo comprobar un día existente
+# Comprobar un día
 node fitness-agent/scripts/log-day.js --check 2026-09-16
 
 # Medidas semanales
-node fitness-agent/scripts/log-medidas.js --date 2026-09-16 --file medidas.json
+node fitness-agent/scripts/log-medidas.js --date 2026-09-16 --text "cintura 82, pecho 98, peso 75.2 kg"
 node fitness-agent/scripts/log-medidas.js --list
 
-# Análisis de los últimos N días (y guardar informe)
+# Estado / análisis
+node fitness-agent/scripts/status.js
 node fitness-agent/scripts/analyze.js --dias 14 --save
 ```
 
