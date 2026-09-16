@@ -3,6 +3,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { parseMedidasText } = require('./parse-text')
 
 const ROOT = path.join(__dirname, '..')
 const DATA_DIR = path.join(ROOT, 'data', 'medidas')
@@ -11,18 +12,20 @@ const TEMPLATE = path.join(ROOT, 'templates', 'medidas-semanales.json')
 function usage () {
   console.log(`Uso:
   node fitness-agent/scripts/log-medidas.js --date YYYY-MM-DD --file entrada.json
-  node fitness-agent/scripts/log-medidas.js --date YYYY-MM-DD   # JSON por stdin
+  node fitness-agent/scripts/log-medidas.js --date YYYY-MM-DD --text "cintura 82, pecho 98"
+  node fitness-agent/scripts/log-medidas.js --date YYYY-MM-DD   # JSON o texto por stdin
   node fitness-agent/scripts/log-medidas.js --check YYYY-MM-DD
   node fitness-agent/scripts/log-medidas.js --list
 `)
 }
 
 function parseArgs (argv) {
-  const args = { date: null, file: null, check: null, list: false, help: false }
+  const args = { date: null, file: null, check: null, list: false, help: false, text: null }
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--date') args.date = argv[++i]
     else if (a === '--file') args.file = argv[++i]
+    else if (a === '--text') args.text = argv[++i]
     else if (a === '--check') args.check = argv[++i]
     else if (a === '--list') args.list = true
     else if (a === '--help' || a === '-h') args.help = true
@@ -161,7 +164,9 @@ function main () {
 
   const fecha = args.date || todayISO()
   let patch
-  if (args.file) {
+  if (args.text != null) {
+    patch = parseMedidasText(args.text, { fecha })
+  } else if (args.file) {
     patch = readJson(path.resolve(args.file))
   } else if (!process.stdin.isTTY) {
     const raw = fs.readFileSync(0, 'utf8').trim()
@@ -169,9 +174,18 @@ function main () {
       console.error('stdin vacío')
       process.exit(1)
     }
-    patch = JSON.parse(raw)
+    if (raw.startsWith('{') || raw.startsWith('[')) {
+      patch = JSON.parse(raw)
+    } else {
+      patch = parseMedidasText(raw, { fecha })
+    }
   } else {
     usage()
+    process.exit(1)
+  }
+
+  if (!patch || !Object.keys(patch).filter(k => k !== 'fecha').length) {
+    console.error('No se extrajo ningún dato del texto/JSON de entrada')
     process.exit(1)
   }
 
@@ -193,26 +207,25 @@ function main () {
   console.log(summarize(merged))
 
   const all = listMedidas()
-  if (all.length >= 2) {
-    const prev = all[all.length - 2]
-    const curr = all[all.length - 1]
-    if (prev.fecha !== curr.fecha && curr.fecha === fecha) {
-      console.log('\nComparación vs ' + prev.fecha + ':')
-      if (typeof prev.peso_kg === 'number' && typeof curr.peso_kg === 'number') {
-        const d = Math.round((curr.peso_kg - prev.peso_kg) * 100) / 100
-        console.log(`- peso_kg: ${prev.peso_kg} → ${curr.peso_kg} (${d > 0 ? '+' : ''}${d})`)
-      }
-      const keys = new Set([
-        ...Object.keys(prev.circunferencias_cm || {}),
-        ...Object.keys(curr.circunferencias_cm || {})
-      ])
-      for (const k of keys) {
-        const a = prev.circunferencias_cm?.[k]
-        const b = curr.circunferencias_cm?.[k]
-        if (typeof a === 'number' && typeof b === 'number') {
-          const d = Math.round((b - a) * 10) / 10
-          console.log(`- ${k}: ${a} → ${b} (${d > 0 ? '+' : ''}${d})`)
-        }
+  const currIdx = all.findIndex(x => x.fecha === fecha)
+  if (currIdx > 0) {
+    const prev = all[currIdx - 1]
+    const curr = all[currIdx]
+    console.log('\nComparación vs ' + prev.fecha + ':')
+    if (typeof prev.peso_kg === 'number' && typeof curr.peso_kg === 'number') {
+      const d = Math.round((curr.peso_kg - prev.peso_kg) * 100) / 100
+      console.log(`- peso_kg: ${prev.peso_kg} → ${curr.peso_kg} (${d > 0 ? '+' : ''}${d})`)
+    }
+    const keys = new Set([
+      ...Object.keys(prev.circunferencias_cm || {}),
+      ...Object.keys(curr.circunferencias_cm || {})
+    ])
+    for (const k of keys) {
+      const a = prev.circunferencias_cm?.[k]
+      const b = curr.circunferencias_cm?.[k]
+      if (typeof a === 'number' && typeof b === 'number') {
+        const d = Math.round((b - a) * 10) / 10
+        console.log(`- ${k}: ${a} → ${b} (${d > 0 ? '+' : ''}${d})`)
       }
     }
   }

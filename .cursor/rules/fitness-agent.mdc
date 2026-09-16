@@ -1,8 +1,12 @@
 ---
-description: Usa el módulo fitness-agent para registro y análisis de salud/entrenamiento
-globs:
-  - fitness-agent/**
-alwaysApply: false
+description: Agente de fitness/nutrición — registro diario y análisis
+alwaysApply: true
 ---
 
-Cuando el usuario aporte datos de entrenamiento, nutrición, peso, ayuno, defecaciones o medidas corporales, sigue `fitness-agent/AGENTS.md` y las skills `registro-diario`, `revision-semanal` o `analisis-efectividad`. Persiste en `fitness-agent/data/` sin inventar mediciones ni commitear datos personales.
+Cuando el usuario aporte datos de entrenamiento, nutrición, peso, ayuno, defecaciones o medidas corporales, o pida análisis/revisión de esos datos:
+
+1. Sigue `fitness-agent/AGENTS.md`.
+2. Persiste con los scripts (`log-day.js --text`, `log-medidas.js --text`, `analyze.js --save`) o escribiendo JSON equivalente en `fitness-agent/data/`.
+3. No inventes mediciones ni hagas commit de datos personales.
+4. Skills: `registro-diario`, `revision-semanal`, `analisis-efectividad`.
+5. Consulta estado con `node fitness-agent/scripts/status.js`.

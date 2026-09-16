@@ -31,11 +31,11 @@ Opcionales útiles: `sueno_h`, `energia_1_10`, `estres_1_10`, `notas`.
 ## Flujo diario (cuando el usuario envía datos)
 
 1. Identifica la fecha (hoy por defecto, o la que indique).
-2. Carga o crea `fitness-agent/data/diario/YYYY-MM-DD.json` desde la plantilla.
-3. Fusiona los nuevos datos.
-4. Si hay gramos de macros, calcula `macros_pct` energéticos (CHO×4, PRO×4, FAT×9) cuando sea posible.
-5. Valida con `node fitness-agent/scripts/log-day.js --check YYYY-MM-DD` si aplica.
-6. Confirma al usuario.
+2. Preferir el parser de texto:
+   `node fitness-agent/scripts/log-day.js --date YYYY-MM-DD --text "…mensaje del usuario…"`
+3. Si hace falta un ajuste fino, fusiona JSON adicional con `--file` (merge sobre el día existente).
+4. Valida con `node fitness-agent/scripts/log-day.js --check YYYY-MM-DD`.
+5. Confirma al usuario. Estado global: `node fitness-agent/scripts/status.js`.
 
 ### Ejemplo de entrada del usuario
 

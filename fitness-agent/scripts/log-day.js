@@ -3,6 +3,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { parseDiarioText } = require('./parse-text')
 
 const ROOT = path.join(__dirname, '..')
 const DATA_DIR = path.join(ROOT, 'data', 'diario')
@@ -11,17 +12,21 @@ const TEMPLATE = path.join(ROOT, 'templates', 'diario.json')
 function usage () {
   console.log(`Uso:
   node fitness-agent/scripts/log-day.js --date YYYY-MM-DD --file entrada.json
-  node fitness-agent/scripts/log-day.js --date YYYY-MM-DD   # lee JSON por stdin
+  node fitness-agent/scripts/log-day.js --date YYYY-MM-DD --text "Hoy 75kg..."
+  node fitness-agent/scripts/log-day.js --date YYYY-MM-DD --text-file nota.txt
+  node fitness-agent/scripts/log-day.js --date YYYY-MM-DD   # JSON por stdin
   node fitness-agent/scripts/log-day.js --check YYYY-MM-DD
 `)
 }
 
 function parseArgs (argv) {
-  const args = { date: null, file: null, check: null }
+  const args = { date: null, file: null, check: null, text: null, textFile: null }
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--date') args.date = argv[++i]
     else if (a === '--file') args.file = argv[++i]
+    else if (a === '--text') args.text = argv[++i]
+    else if (a === '--text-file') args.textFile = argv[++i]
     else if (a === '--check') args.check = argv[++i]
     else if (a === '--help' || a === '-h') args.help = true
   }
@@ -157,7 +162,11 @@ function main () {
 
   const fecha = args.date || todayISO()
   let patch
-  if (args.file) {
+  if (args.text != null) {
+    patch = parseDiarioText(args.text, { fecha })
+  } else if (args.textFile) {
+    patch = parseDiarioText(fs.readFileSync(path.resolve(args.textFile), 'utf8'), { fecha })
+  } else if (args.file) {
     patch = readJson(path.resolve(args.file))
   } else if (!process.stdin.isTTY) {
     const raw = fs.readFileSync(0, 'utf8').trim()
@@ -165,9 +174,18 @@ function main () {
       console.error('stdin vacío')
       process.exit(1)
     }
-    patch = JSON.parse(raw)
+    if (raw.startsWith('{') || raw.startsWith('[')) {
+      patch = JSON.parse(raw)
+    } else {
+      patch = parseDiarioText(raw, { fecha })
+    }
   } else {
     usage()
+    process.exit(1)
+  }
+
+  if (!patch || !Object.keys(patch).filter(k => k !== 'fecha').length) {
+    console.error('No se extrajo ningún dato del texto/JSON de entrada')
     process.exit(1)
   }
 
